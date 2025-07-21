@@ -1,0 +1,44 @@
+# ?? ??
+spring:
+  # ?? ???? dev? ??
+  profiles:
+    active: dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        format_sql: true
+        show_sql: true
+
+---
+# ?? ??(dev) ?? - ?? DB ??
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:mysql://localhost:3306/testDB
+    username: root
+    password: '@@a1542817'
+
+---
+# ?? ??(prod) ?? - ????(EC2? ??? ??) ??
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+---
