@@ -1,0 +1,26 @@
+branchName: "${issue.title}-${issue.number}"
+autoCloseIssue: true
+openDraftPR: true
+copyIssueLabelsToPR: true
+copyIssueAssigneeToPR: true
+branches:
+  - label: 🐛 Bug
+    prefix: bugfix/
+  - label: 🩹 Simple Fix
+    prefix: fix/
+  - label: 🚨 HOTFIX
+    prefix: hotfix/
+  - label: 👷 CI
+    prefix: env/
+  - label: ⚙️ Setting
+    prefix: env/
+  - label: 💄 Design
+    prefix: design/
+  - label: ✨ Feature
+    prefix: feature/
+  - label: ♻️ Refactor
+    prefix: refactor/
+  - label: ✅ Test
+    prefix: test/
+  - label: 📝 Document
+    prefix: docs/
