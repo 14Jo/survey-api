@@ -21,7 +21,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/testDB
     username: root
-    password: '@@a1542817'
+    password: '@@a1'
   jpa:
     properties:
       hibernate:
