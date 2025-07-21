@@ -6,9 +6,12 @@ labels: "📝 Document"
 assignees: ''
 
 ---
+
 ## (제목)
+
 > (설명)
 
 ## 작업 상세 내용
+
 - [ ] TODO
 - [ ] TODO
