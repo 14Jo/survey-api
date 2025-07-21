@@ -1,0 +1,18 @@
+name: Delete merged branches
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  delete_merged_branch:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branch
+        run: |
+          BRANCH_NAME="${{ github.event.pull_request.head.ref }}"
+          if [[ "$BRANCH_NAME" != "main" && "$BRANCH_NAME" != "master" ]]; then
+            curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME
+          fi
