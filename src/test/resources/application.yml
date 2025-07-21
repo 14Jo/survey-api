@@ -1,0 +1,12 @@
+# 테스트 환경 전용 설정
+spring:
+  datasource:
+    # H2 데이터베이스를 사용하도록 설정
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      # 테스트가 끝날 때마다 테이블을 초기화하도록 설정
+      ddl-auto: create-drop
