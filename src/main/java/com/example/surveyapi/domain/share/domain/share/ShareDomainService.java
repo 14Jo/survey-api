@@ -1,10 +1,10 @@
-package com.example.surveyapi.domain.share.domain.service;
+package com.example.surveyapi.domain.share.domain.share;
 
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.example.surveyapi.domain.share.domain.entity.Share;
+import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.vo.ShareMethod;
 
 @Service
