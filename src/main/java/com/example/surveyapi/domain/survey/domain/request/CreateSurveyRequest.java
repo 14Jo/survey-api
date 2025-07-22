@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.survey.domain.request;
 
 import java.time.LocalDateTime;
 
-import com.example.surveyapi.domain.survey.enums.SurveyType;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;

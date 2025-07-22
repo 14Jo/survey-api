@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.domain.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.domain.Survey;
-import com.example.surveyapi.domain.survey.domain.SurveyRepository;
-import com.example.surveyapi.domain.survey.domain.vo.SurveyDuration;
-import com.example.surveyapi.domain.survey.domain.vo.SurveyOption;
-import com.example.surveyapi.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.domain.survey.domain.survey.Survey;
+import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 
 import lombok.RequiredArgsConstructor;
 

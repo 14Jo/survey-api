@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.domain.vo;
+package com.example.surveyapi.domain.survey.domain.survey.vo;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

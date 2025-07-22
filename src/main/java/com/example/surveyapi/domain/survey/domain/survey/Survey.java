@@ -1,9 +1,9 @@
-package com.example.surveyapi.domain.survey.domain;
+package com.example.surveyapi.domain.survey.domain.survey;
 
-import com.example.surveyapi.domain.survey.domain.vo.SurveyDuration;
-import com.example.surveyapi.domain.survey.domain.vo.SurveyOption;
-import com.example.surveyapi.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.domain.survey.enums.SurveyType;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import org.hibernate.annotations.JdbcTypeCode;
