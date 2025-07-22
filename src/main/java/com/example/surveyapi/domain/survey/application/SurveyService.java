@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.domain.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.domain.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.Survey;
 import com.example.surveyapi.domain.survey.domain.SurveyRepository;
+import com.example.surveyapi.domain.survey.domain.vo.SurveyDuration;
+import com.example.surveyapi.domain.survey.domain.vo.SurveyOption;
 import com.example.surveyapi.domain.survey.enums.SurveyStatus;
 
 import lombok.RequiredArgsConstructor;
@@ -25,10 +27,12 @@ public class SurveyService {
 		CreateSurveyRequest request
 	) {
 		SurveyStatus status = decideStatus(request.getStartDate());
+		SurveyOption option = new SurveyOption(request.isAnonymous(), request.isAllowMultiple(), request.isAllowResponseUpdate());
+		SurveyDuration duration = new SurveyDuration(request.getStartDate(), request.getEndDate());
 		Survey survey = Survey.create(
-			projectId, creatorId, request.getTitle(), request.getDescription(), request.getSurveyType(), status,
-			request.isAnonymous(), request.isAllowMultiple(), request.isAllowResponseUpdate(), request.getStartDate(),
-			request.getEndDate()
+			projectId, creatorId,
+			request.getTitle(), request.getDescription(), request.getSurveyType(),
+			status, option, duration
 		);
 		Survey save = surveyRepository.save(survey);
 		return save.getSurveyId();

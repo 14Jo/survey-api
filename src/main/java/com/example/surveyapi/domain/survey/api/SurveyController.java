@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.survey.application.SurveyService;
-import com.example.surveyapi.domain.survey.domain.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.domain.request.CreateSurveyRequest;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
