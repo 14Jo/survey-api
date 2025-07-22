@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.survey.domain;
 
+import java.time.LocalDateTime;
+
 import com.example.surveyapi.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.enums.SurveyType;
 import com.example.surveyapi.global.model.BaseEntity;
@@ -32,10 +34,10 @@ public class Survey extends BaseEntity {
 	@Column(name = "description", columnDefinition = "TEXT")
 	private String description;
 	@Enumerated(EnumType.STRING)
-	@Column(name = "type", nullable = false, columnDefinition = "VARCHAR(255) default 'VOTE'")
+	@Column(name = "type", nullable = false)
 	private SurveyType type;
 	@Enumerated(EnumType.STRING)
-	@Column(name = "status", nullable = false, columnDefinition = "VARCHAR(255) default 'PREPARING'")
+	@Column(name = "status", nullable = false)
 	private SurveyStatus status;
 	@Column(name = "is_anonymous", nullable = false)
 	private Boolean isAnonymous = false;
@@ -43,5 +45,37 @@ public class Survey extends BaseEntity {
 	private Boolean allowMultipleResponses = false;
 	@Column(name = "allow_response_update", nullable = false)
 	private Boolean allowResponseUpdate = false;
+	@Column(name = "start_date", nullable = false)
+	private LocalDateTime startDate;
+	@Column(name = "end_date", nullable = false)
+	private LocalDateTime endDate;
 
+
+	public static Survey create(
+		Long projectId,
+		Long creatorId,
+		String title,
+		String description,
+		SurveyType type,
+		SurveyStatus status,
+		Boolean isAnonymous,
+		Boolean allowMultipleResponses,
+		Boolean allowResponseUpdate,
+		LocalDateTime startDate,
+		LocalDateTime endDate
+	) {
+		Survey survey = new Survey();
+		survey.projectId = projectId;
+		survey.creatorId = creatorId;
+		survey.title = title;
+		survey.description = description;
+		survey.type = type;
+		survey.status = status;
+		survey.isAnonymous = isAnonymous;
+		survey.allowMultipleResponses = allowMultipleResponses;
+		survey.allowResponseUpdate = allowResponseUpdate;
+		survey.startDate = startDate;
+		survey.endDate = endDate;
+		return survey;
+	}
 }
