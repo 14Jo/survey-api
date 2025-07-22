@@ -34,6 +34,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-62:3.5.3'
 }
 
 tasks.named('test') {
