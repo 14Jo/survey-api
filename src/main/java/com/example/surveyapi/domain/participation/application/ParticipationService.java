@@ -26,7 +26,8 @@ public class ParticipationService {
 		// TODO: memberId가 설문의 대상이 맞는지 공유에 검증 요청
 		List<ResponseData> responseDataList = request.getResponseDataList();
 
-		// TODO: 멤버의 participantInfo 스냅샷 설정을 위해 Member에 요청
+		// TODO: 멤버의 participantInfo 스냅샷 설정을 위해 Member에 요청, REST 통신으로 받아온 json 데이터를 dto로 받을지 고려하고
+		// TODO: participantInfo를 도메인 create 에서 생성하도록 수정
 		ParticipantInfo participantInfo = new ParticipantInfo();
 
 		Participation participation = Participation.create(memberId, surveyId, participantInfo);
@@ -44,3 +45,4 @@ public class ParticipationService {
 		return savedParticipation.getId();
 	}
 }
+

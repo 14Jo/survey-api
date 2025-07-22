@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.participation.domain.participation;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,10 +43,8 @@ public class Participation extends BaseEntity {
 	@Column(columnDefinition = "jsonb", nullable = false)
 	private ParticipantInfo participantInfo;
 
-	@OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "participation", orphanRemoval = true)
+	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "participation")
 	private List<Response> responses = new ArrayList<>();
-
-	private LocalDateTime deletedAt;
 
 	public static Participation create(Long memberId, Long surveyId, ParticipantInfo participantInfo) {
 		Participation participation = new Participation();
@@ -63,7 +60,7 @@ public class Participation extends BaseEntity {
 		response.setParticipation(this);
 	}
 
-	public void delete() {
-		this.deletedAt = LocalDateTime.now();
-	}
+	// public void delete() {
+	// 	this.deletedAt = LocalDateTime.now();
+	// }
 }
