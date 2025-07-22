@@ -53,13 +53,12 @@ public class Response {
 	@Column(columnDefinition = "jsonb")
 	private Map<String, Object> answer = new HashMap<>();
 
-	public static Response create(Participation participation, Long questionId, QuestionType questionType,
-		Map<String, Object> answer) {
+	public static Response create(Long questionId, QuestionType questionType, Map<String, Object> answer) {
 		Response response = new Response();
-		response.participation = participation;
 		response.questionId = questionId;
 		response.questionType = questionType;
 		response.answer = answer;
+
 		return response;
 	}
 }

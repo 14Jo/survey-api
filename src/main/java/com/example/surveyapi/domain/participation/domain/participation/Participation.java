@@ -49,13 +49,12 @@ public class Participation extends BaseEntity {
 
 	private LocalDateTime deletedAt;
 
-	public static Participation create(Long memberId, Long surveyId, ParticipantInfo participantInfo,
-		List<Response> responses) {
+	public static Participation create(Long memberId, Long surveyId, ParticipantInfo participantInfo) {
 		Participation participation = new Participation();
 		participation.memberId = memberId;
 		participation.surveyId = surveyId;
 		participation.participantInfo = participantInfo;
-		participation.responses = responses;
+
 		return participation;
 	}
 
