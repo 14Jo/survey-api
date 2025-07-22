@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.share.domain.entity;
+package com.example.surveyapi.domain.share.domain.notification.entity;
 
 import com.example.surveyapi.global.model.BaseEntity;
 

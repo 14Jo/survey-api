@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.share.application.dto;
 
 import java.time.LocalDateTime;
 
-import com.example.surveyapi.domain.share.domain.entity.Share;
+import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.vo.ShareMethod;
 
 import lombok.Getter;
