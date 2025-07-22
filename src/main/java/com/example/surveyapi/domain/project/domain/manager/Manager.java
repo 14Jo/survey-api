@@ -40,9 +40,6 @@ public class Manager extends BaseEntity {
 	@Column(nullable = false)
 	private ManagerRole role = ManagerRole.READ;
 
-	@Column(nullable = false)
-	private Boolean isDeleted = false;
-
 	public static Manager createOwner(Project project, Long memberId) {
 		Manager manager = new Manager();
 		manager.project = project;
