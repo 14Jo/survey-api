@@ -1,24 +1,29 @@
-package com.example.surveyapi.domain.project.domain.entity;
+package com.example.surveyapi.domain.project.domain.manager;
 
-import java.time.LocalDateTime;
+import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.project.Project;
+import com.example.surveyapi.global.model.BaseEntity;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import com.example.surveyapi.domain.project.domain.vo.ManagerRole;
-
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "managers")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Manager {
+public class Manager extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,13 +39,6 @@ public class Manager {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ManagerRole role = ManagerRole.READ;
-
-	@CreatedDate
-	@Column(updatable = false)
-	private LocalDateTime createdAt;
-
-	@LastModifiedDate
-	private LocalDateTime updatedAt;
 
 	@Column(nullable = false)
 	private Boolean isDeleted = false;
