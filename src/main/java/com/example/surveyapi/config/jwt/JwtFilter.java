@@ -8,7 +8,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.example.surveyapi.config.security.auth.AuthUser;
+
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 
 import io.jsonwebtoken.Claims;
@@ -48,9 +48,9 @@ public class JwtFilter extends OncePerRequestFilter {
         Long userId = Long.parseLong(claims.getSubject());
         Role userRole = Role.valueOf(claims.get("role", String.class));
 
-        AuthUser authUser = new AuthUser(userId);
+
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            authUser, null, List.of(new SimpleGrantedAuthority("ROLE_" + userRole.name())));
+            userId, null, List.of(new SimpleGrantedAuthority("ROLE_" + userRole.name())));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
