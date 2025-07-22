@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
@@ -19,28 +21,29 @@ public class CreateSurveyRequest {
 	private String description;
 
 	@NotNull
-	private LocalDateTime startDate;
-
-	@NotNull
-	private LocalDateTime endDate;
-
-	@NotNull
 	private SurveyType surveyType;
 
-	private boolean isAllowMultiple = false;
-	private boolean isAllowResponseUpdate = false;
-	private boolean isAnonymous = false;
+	@NotNull
+	private SurveyDuration surveyDuration;
+
+	@NotNull
+	private SurveyOption surveyOption;
 
 	private List<CreateQuestionRequest> questions;
 
+	@AssertTrue(message = "시작 일과 종료를 입력 해야 합니다.")
+	public boolean isValidDuration() {
+		return surveyDuration.getStartDate() != null && surveyDuration.getEndDate() != null;
+	}
+
 	@AssertTrue(message = "시작 일은 종료 일보다 이전 이어야 합니다.")
 	public boolean isStartBeforeEnd() {
-		return startDate != null && endDate != null && startDate.isBefore(endDate);
+		return surveyDuration.getStartDate().isBefore(surveyDuration.getEndDate());
 	}
 
 	@AssertTrue(message = "종료 일은 현재 보다 이후 여야 합니다.")
 	public boolean isEndAfterNow() {
-		return endDate != null && endDate.isAfter(LocalDateTime.now());
+		return surveyDuration.getEndDate().isAfter(LocalDateTime.now());
 	}
 
 }

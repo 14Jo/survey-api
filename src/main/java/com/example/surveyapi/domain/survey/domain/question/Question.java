@@ -1,6 +1,13 @@
 package com.example.surveyapi.domain.survey.domain.question;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
+import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.*;
@@ -33,12 +40,17 @@ public class Question extends BaseEntity {
 	@Column(name = "is_required", nullable = false)
 	private boolean isRequired = false;
 
+	@JdbcTypeCode(SqlTypes.JSON)
+	@Column(name = "choices", columnDefinition = "jsonb")
+	private List<Choice> choices = new ArrayList<>();
+
 	public static Question create(
 		Long surveyId,
 		String content,
 		QuestionType type,
 		int displayOrder,
-		boolean isRequired
+		boolean isRequired,
+		List<Choice> choices
 	) {
 		Question question = new Question();
 
@@ -47,6 +59,7 @@ public class Question extends BaseEntity {
 		question.type = type;
 		question.displayOrder = displayOrder;
 		question.isRequired = isRequired;
+		question.choices = choices;
 
 		return question;
 	}

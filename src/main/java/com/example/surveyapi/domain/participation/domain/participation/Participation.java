@@ -59,8 +59,4 @@ public class Participation extends BaseEntity {
 		this.responses.add(response);
 		response.setParticipation(this);
 	}
-
-	// public void delete() {
-	// 	this.deletedAt = LocalDateTime.now();
-	// }
 }
