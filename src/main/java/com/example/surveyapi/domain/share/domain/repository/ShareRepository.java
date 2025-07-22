@@ -8,5 +8,6 @@ import com.example.surveyapi.domain.share.domain.entity.Share;
 
 public interface ShareRepository extends JpaRepository<Share, Long> {
 	Optional<Share> findBySurveyId(Long surveyId);
+
 	Optional<Share> findByLink(String link);
 }
