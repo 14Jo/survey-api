@@ -9,8 +9,8 @@ import lombok.Getter;
 @Getter
 public class QuestionCreateEvent {
 
-	private Long questionId;
-	private List<CreateChoiceRequest> choiceList;
+	private final Long questionId;
+	private final List<CreateChoiceRequest> choiceList;
 
 	public QuestionCreateEvent(Long questionId, List<CreateChoiceRequest> choiceList) {
 		this.questionId = questionId;

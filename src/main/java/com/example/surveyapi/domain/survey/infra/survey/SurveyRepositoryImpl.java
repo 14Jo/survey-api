@@ -10,7 +10,7 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class SurveyRepositoryImpl implements SurveyRepository{
+public class SurveyRepositoryImpl implements SurveyRepository {
 
 	private final JpaSurveyRepository jpaRepository;
 

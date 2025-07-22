@@ -12,42 +12,42 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Question extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "question_id")
-    private Long questionId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "question_id")
+	private Long questionId;
 
-    @Column(name = "survey_id", nullable = false)
-    private Long surveyId;
+	@Column(name = "survey_id", nullable = false)
+	private Long surveyId;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String content;
+	@Column(columnDefinition = "TEXT", nullable = false)
+	private String content;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private QuestionType type = QuestionType.SINGLE_CHOICE;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "type", nullable = false)
+	private QuestionType type = QuestionType.SINGLE_CHOICE;
 
-    @Column(name = "display_order", nullable = false)
-    private Integer displayOrder;
+	@Column(name = "display_order", nullable = false)
+	private Integer displayOrder;
 
-    @Column(name = "is_required", nullable = false)
-    private boolean isRequired = false;
+	@Column(name = "is_required", nullable = false)
+	private boolean isRequired = false;
 
-    public static Question create(
-        Long surveyId,
-        String content,
-        QuestionType type,
-        int displayOrder,
-        boolean isRequired
-    ) {
-        Question question = new Question();
+	public static Question create(
+		Long surveyId,
+		String content,
+		QuestionType type,
+		int displayOrder,
+		boolean isRequired
+	) {
+		Question question = new Question();
 
-        question.surveyId = surveyId;
-        question.content = content;
-        question.type = type;
-        question.displayOrder = displayOrder;
-        question.isRequired = isRequired;
+		question.surveyId = surveyId;
+		question.content = content;
+		question.type = type;
+		question.displayOrder = displayOrder;
+		question.isRequired = isRequired;
 
-        return question;
-    }
+		return question;
+	}
 }

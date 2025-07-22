@@ -4,5 +4,6 @@ import java.util.List;
 
 public interface QuestionRepository {
 	Question save(Question question);
+
 	void saveAll(List<Question> questions);
 }

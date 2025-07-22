@@ -4,6 +4,8 @@ import lombok.Getter;
 
 @Getter
 public class CreateChoiceRequest {
+
 	private String content;
 	private int displayOrder;
+
 }

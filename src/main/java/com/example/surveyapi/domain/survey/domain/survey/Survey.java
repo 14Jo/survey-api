@@ -24,13 +24,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Survey extends BaseEntity {
 
-	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "survey_id")
 	private Long surveyId;
 
-	@Column(name = "projecy_id",  nullable = false)
+	@Column(name = "projecy_id", nullable = false)
 	private Long projectId;
-	@Column(name = "creator_id",  nullable = false)
+	@Column(name = "creator_id", nullable = false)
 	private Long creatorId;
 	@Column(name = "title", nullable = false)
 	private String title;
