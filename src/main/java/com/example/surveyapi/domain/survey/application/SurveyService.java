@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.domain.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.Survey;
+import com.example.surveyapi.domain.survey.domain.SurveyRepository;
 import com.example.surveyapi.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.domain.survey.infra.SurveyRepository;
 
 import lombok.RequiredArgsConstructor;
 
