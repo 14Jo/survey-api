@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.share.api.dto;
+package com.example.surveyapi.domain.share.application.dto;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
