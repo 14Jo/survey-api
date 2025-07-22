@@ -20,6 +20,9 @@ public abstract class BaseEntity {
 	@Column(name = "updated_at")
 	private LocalDateTime updatedAt;
 
+	@Column(name = "is_deleted", nullable = false)
+	private Boolean isDeleted = false;
+
 	@PrePersist
 	public void prePersist() {
 		this.createdAt = LocalDateTime.now();
@@ -29,5 +32,10 @@ public abstract class BaseEntity {
 	@PreUpdate
 	public void preUpdate() {
 		this.updatedAt = LocalDateTime.now();
+	}
+
+	// Soft delete
+	public void delete() {
+		this.isDeleted = true;
 	}
 }
