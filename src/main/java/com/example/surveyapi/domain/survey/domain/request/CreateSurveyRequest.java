@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.survey.domain.request;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 
@@ -29,6 +30,8 @@ public class CreateSurveyRequest {
 	private boolean isAllowMultiple = false;
 	private boolean isAllowResponseUpdate = false;
 	private boolean isAnonymous = false;
+
+	private List<CreateQuestionRequest> questions;
 
 	@AssertTrue(message = "시작일은 종료일보다 이전이어야 합니다.")
 	public boolean isStartBeforeEnd() {
