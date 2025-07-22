@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
+import com.example.surveyapi.domain.survey.infra.survey.jpa.JpaSurveyRepository;
 
 import lombok.RequiredArgsConstructor;
 

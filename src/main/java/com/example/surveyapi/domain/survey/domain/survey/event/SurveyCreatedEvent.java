@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.survey.domain.survey.event;
 
 import java.util.List;
 
-import com.example.surveyapi.domain.survey.domain.request.CreateQuestionRequest;
+import com.example.surveyapi.domain.survey.application.request.CreateQuestionRequest;
 
 import lombok.Getter;
 

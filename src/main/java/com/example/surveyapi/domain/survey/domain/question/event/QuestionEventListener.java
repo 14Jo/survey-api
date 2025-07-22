@@ -20,13 +20,13 @@ public class QuestionEventListener {
 
 	@Async
 	@EventListener
-	public void handleSurveyCreated(SurveyCreatedEvent event) {
+	public void handleQuestionCreated(SurveyCreatedEvent event) {
 		try {
-			log.info("설문 생성 생성 호출 - 설문 Id : {}", event.getSurveyId());
+			log.info("질문 생성 호출 - 설문 Id : {}", event.getSurveyId());
 			questionService.create(event.getSurveyId(), event.getQuestions());
-			log.info("설문 생성 종료");
+			log.info("질문 생성 종료");
 		} catch (Exception e) {
-			log.error("설문 생성 실패 - message : {}", e.getMessage());
+			log.error("질문 생성 실패 - message : {}", e.getMessage());
 		}
 	}
 }

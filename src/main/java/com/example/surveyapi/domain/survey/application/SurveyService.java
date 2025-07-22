@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.domain.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
