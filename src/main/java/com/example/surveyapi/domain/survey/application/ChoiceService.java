@@ -31,4 +31,5 @@ public class ChoiceService {
 		long endTime = System.currentTimeMillis();
 		log.info("질문 생성 시간 - 총 {} ms", endTime - startTime);
 	}
+
 }

@@ -9,8 +9,8 @@ import lombok.Getter;
 @Getter
 public class SurveyCreatedEvent {
 
-	private Long surveyId;
-	private List<CreateQuestionRequest> questions;
+	private final Long surveyId;
+	private final List<CreateQuestionRequest> questions;
 
 	public SurveyCreatedEvent(Long surveyId, List<CreateQuestionRequest> questions) {
 		this.surveyId = surveyId;

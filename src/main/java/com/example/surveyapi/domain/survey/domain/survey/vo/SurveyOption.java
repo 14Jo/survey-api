@@ -11,4 +11,5 @@ public class SurveyOption {
 	private boolean anonymous;
 	private boolean allowMultipleResponses;
 	private boolean allowResponseUpdate;
+
 }

@@ -30,7 +30,8 @@ public class SurveyService {
 		CreateSurveyRequest request
 	) {
 		SurveyStatus status = decideStatus(request.getStartDate());
-		SurveyOption option = new SurveyOption(request.isAnonymous(), request.isAllowMultiple(), request.isAllowResponseUpdate());
+		SurveyOption option = new SurveyOption(request.isAnonymous(), request.isAllowMultiple(),
+			request.isAllowResponseUpdate());
 		SurveyDuration duration = new SurveyDuration(request.getStartDate(), request.getEndDate());
 
 		Survey survey = Survey.create(

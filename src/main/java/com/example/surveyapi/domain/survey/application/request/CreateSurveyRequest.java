@@ -33,13 +33,14 @@ public class CreateSurveyRequest {
 
 	private List<CreateQuestionRequest> questions;
 
-	@AssertTrue(message = "시작일은 종료일보다 이전이어야 합니다.")
+	@AssertTrue(message = "시작 일은 종료 일보다 이전 이어야 합니다.")
 	public boolean isStartBeforeEnd() {
 		return startDate != null && endDate != null && startDate.isBefore(endDate);
 	}
 
-	@AssertTrue(message = "종료일은 현재보다 이후여야 합니다.")
+	@AssertTrue(message = "종료 일은 현재 보다 이후 여야 합니다.")
 	public boolean isEndAfterNow() {
 		return endDate != null && endDate.isAfter(LocalDateTime.now());
 	}
+
 }

@@ -10,31 +10,32 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class Choice extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "choice_id")
-    private Long choiceId;
 
-    @Column(name = "question_id")
-    private Long questionId;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "choice_id")
+	private Long choiceId;
 
-    @Column(name = "content", columnDefinition = "TEXT", nullable = false)
-    private String content;
+	@Column(name = "question_id")
+	private Long questionId;
 
-    @Column(name = "display_order", nullable = false)
-    private Integer displayOrder;
+	@Column(name = "content", columnDefinition = "TEXT", nullable = false)
+	private String content;
 
-    public static Choice create(
-        Long questionId,
-        String content,
-        int displayOrder
-    ) {
-        Choice choice = new Choice();
+	@Column(name = "display_order", nullable = false)
+	private Integer displayOrder;
 
-        choice.questionId = questionId;
-        choice.content = content;
-        choice.displayOrder = displayOrder;
+	public static Choice create(
+		Long questionId,
+		String content,
+		int displayOrder
+	) {
+		Choice choice = new Choice();
 
-        return choice;
-    }
+		choice.questionId = questionId;
+		choice.content = content;
+		choice.displayOrder = displayOrder;
+
+		return choice;
+	}
 } 
