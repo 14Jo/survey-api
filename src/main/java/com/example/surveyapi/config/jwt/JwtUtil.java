@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import com.example.surveyapi.domain.user.domain.user.enums.Role;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -30,12 +32,13 @@ public class JwtUtil {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final long TOKEN_TIME = 60 * 60 * 1000L;
 
-    public String createToken(Long userId) {
+    public String createToken(Long userId, Role userRole) {
         Date date = new Date();
 
         return BEARER_PREFIX +
             Jwts.builder()
                 .subject(String.valueOf(userId))
+                .claim("userRole", userRole)
                 .expiration(new Date(date.getTime() + TOKEN_TIME))
                 .issuedAt(date)
                 .signWith(secretKey)
