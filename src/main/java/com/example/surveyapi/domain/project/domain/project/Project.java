@@ -1,34 +1,36 @@
-package com.example.surveyapi.domain.project.domain.entity;
+package com.example.surveyapi.domain.project.domain.project;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.example.surveyapi.domain.project.domain.manager.Manager;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
+import com.example.surveyapi.global.model.BaseEntity;
 
-import com.example.surveyapi.domain.project.domain.vo.ProjectPeriod;
-import com.example.surveyapi.domain.project.domain.vo.ProjectState;
-
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+/**
+ * 애그리거트 루트
+ */
 @Entity
 @Table(name = "projects")
-@EntityListeners(AuditingEntityListener.class)
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Project {
+public class Project extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,12 +52,8 @@ public class Project {
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
 
-	@CreatedDate
-	@Column(updatable = false)
-	private LocalDateTime createdAt;
-
-	@LastModifiedDate
-	private LocalDateTime updatedAt;
+	@OneToMany(mappedBy = "project", cascade = CascadeType.PERSIST, orphanRemoval = true)
+	private List<Manager> managers = new ArrayList<>();
 
 	@Column(nullable = false)
 	private Boolean isDeleted = false;
@@ -67,5 +65,11 @@ public class Project {
 		project.ownerId = ownerId;
 		project.period = period;
 		return project;
+	}
+
+	public Manager addOwnerManager(Long memberId) {
+		Manager manager = Manager.createOwner(this, memberId);
+		this.managers.add(manager);
+		return manager;
 	}
 }
