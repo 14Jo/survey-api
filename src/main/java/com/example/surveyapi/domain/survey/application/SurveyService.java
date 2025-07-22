@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.survey.application;
 
 import java.time.LocalDateTime;
+import java.util.function.Consumer;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,8 @@ import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEven
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,15 +32,10 @@ public class SurveyService {
 		Long creatorId,
 		CreateSurveyRequest request
 	) {
-		SurveyStatus status = decideStatus(request.getStartDate());
-		SurveyOption option = new SurveyOption(request.isAnonymous(), request.isAllowMultiple(),
-			request.isAllowResponseUpdate());
-		SurveyDuration duration = new SurveyDuration(request.getStartDate(), request.getEndDate());
-
 		Survey survey = Survey.create(
 			projectId, creatorId,
 			request.getTitle(), request.getDescription(), request.getSurveyType(),
-			status, option, duration
+			request.getSurveyDuration(), request.getSurveyOption()
 		);
 		Survey save = surveyRepository.save(survey);
 
@@ -53,5 +51,22 @@ public class SurveyService {
 		} else {
 			return SurveyStatus.IN_PROGRESS;
 		}
+	}
+
+	@Transactional
+	public String open(Long surveyId, Long userId) {
+		return changeSurveyStatus(surveyId, userId, Survey::open, "설문 시작");
+	}
+
+	@Transactional
+	public String close(Long surveyId, Long userId) {
+		return changeSurveyStatus(surveyId, userId, Survey::close, "설문 종료");
+	}
+
+	private String changeSurveyStatus(Long surveyId, Long userId, Consumer<Survey> statusChanger, String message) {
+		Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, userId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY, "사용자가 만든 해당 설문이 없습니다."));
+		statusChanger.accept(survey);
+		return message;
 	}
 }

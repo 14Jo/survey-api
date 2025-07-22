@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hibernate.annotations.Type;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.response.enums.QuestionType;
@@ -12,7 +11,6 @@ import com.example.surveyapi.domain.participation.domain.response.enums.Question
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
@@ -30,7 +28,6 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @Table(name = "responses")
-@EntityListeners(AuditingEntityListener.class)
 public class Response {
 
 	@Id
