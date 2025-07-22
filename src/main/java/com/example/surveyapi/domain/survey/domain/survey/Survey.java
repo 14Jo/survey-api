@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.survey.domain.survey;
 
+import java.time.LocalDateTime;
+
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -58,9 +60,8 @@ public class Survey extends BaseEntity {
 		String title,
 		String description,
 		SurveyType type,
-		SurveyStatus status,
-		SurveyOption option,
-		SurveyDuration duration
+		SurveyDuration duration,
+		SurveyOption option
 	) {
 		Survey survey = new Survey();
 
@@ -69,11 +70,20 @@ public class Survey extends BaseEntity {
 		survey.title = title;
 		survey.description = description;
 		survey.type = type;
-		survey.status = status;
+		survey.status = decideStatus(duration.getStartDate());
 		survey.duration = duration;
 		survey.option = option;
 
 		return survey;
+	}
+
+	private static SurveyStatus decideStatus(LocalDateTime startDate) {
+		LocalDateTime now = LocalDateTime.now();
+		if (startDate.isAfter(now)) {
+			return SurveyStatus.PREPARING;
+		} else {
+			return SurveyStatus.IN_PROGRESS;
+		}
 	}
 
 	public void open() {
