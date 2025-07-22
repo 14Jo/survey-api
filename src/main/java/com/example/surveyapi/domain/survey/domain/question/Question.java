@@ -1,11 +1,6 @@
 package com.example.surveyapi.domain.survey.domain.question;
 
-import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.*;

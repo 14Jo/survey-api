@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
+import com.example.surveyapi.domain.survey.infra.question.jpa.JpaQuestionRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -19,7 +20,8 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 	public Question save(Question choice) {
 		return jpaRepository.save(choice);
 	}
-	
+
+	@Override
 	public void saveAll(List<Question> choices) {
 		jpaRepository.saveAll(choices);
 	}
