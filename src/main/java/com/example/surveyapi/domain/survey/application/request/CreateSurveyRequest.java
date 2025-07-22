@@ -3,7 +3,6 @@ package com.example.surveyapi.domain.survey.application.request;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;

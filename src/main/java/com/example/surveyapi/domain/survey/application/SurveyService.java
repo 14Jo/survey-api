@@ -1,7 +1,5 @@
 package com.example.surveyapi.domain.survey.application;
 
-import java.time.LocalDateTime;
-
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,9 +8,6 @@ import com.example.surveyapi.domain.survey.application.request.CreateSurveyReque
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 
 import lombok.RequiredArgsConstructor;
 
