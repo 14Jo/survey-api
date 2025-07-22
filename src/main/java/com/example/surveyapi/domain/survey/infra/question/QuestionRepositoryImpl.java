@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.survey.infra.question;
 
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.survey.domain.question.Question;
@@ -16,5 +18,9 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 	@Override
 	public Question save(Question choice) {
 		return jpaRepository.save(choice);
+	}
+	
+	public void saveAll(List<Question> choices) {
+		jpaRepository.saveAll(choices);
 	}
 }
