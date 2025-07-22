@@ -22,13 +22,13 @@ public class ProjectService {
 	private final ProjectRepository projectRepository;
 
 	@Transactional
-	public CreateProjectResponse create(CreateProjectRequest request, Long currentMemberId) {
+	public CreateProjectResponse create(CreateProjectRequest request, Long currentUserId) {
 		validateDuplicateName(request.getName());
 
 		Project project = Project.create(
 			request.getName(),
 			request.getDescription(),
-			currentMemberId,
+			currentUserId,
 			request.getPeriodStart(),
 			request.getPeriodEnd()
 		);
@@ -36,12 +36,12 @@ public class ProjectService {
 
 		// TODO: 이벤트 발행
 
-		return CreateProjectResponse.toDto(project.getId());
+		return CreateProjectResponse.from(project.getId());
 	}
 
 	@Transactional(readOnly = true)
-	public Page<ReadProjectResponse> getMyProjects(Pageable pageable, Long currentMemberId) {
-		return projectRepository.findMyProjects(pageable, currentMemberId);
+	public Page<ReadProjectResponse> getMyProjects(Pageable pageable, Long currentUserId) {
+		return projectRepository.findMyProjects(pageable, currentUserId);
 	}
 
 	private void validateDuplicateName(String name) {
