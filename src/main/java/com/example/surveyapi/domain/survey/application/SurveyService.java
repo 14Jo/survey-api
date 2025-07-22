@@ -29,29 +29,15 @@ public class SurveyService {
 		Long creatorId,
 		CreateSurveyRequest request
 	) {
-		SurveyStatus status = decideStatus(request.getStartDate());
-		SurveyOption option = new SurveyOption(request.isAnonymous(), request.isAllowMultiple(),
-			request.isAllowResponseUpdate());
-		SurveyDuration duration = new SurveyDuration(request.getStartDate(), request.getEndDate());
-
 		Survey survey = Survey.create(
 			projectId, creatorId,
 			request.getTitle(), request.getDescription(), request.getSurveyType(),
-			status, option, duration
+			request.getSurveyDuration(), request.getSurveyOption()
 		);
 		Survey save = surveyRepository.save(survey);
 
 		eventPublisher.publishEvent(new SurveyCreatedEvent(save.getSurveyId(), request.getQuestions()));
 
 		return save.getSurveyId();
-	}
-
-	private SurveyStatus decideStatus(LocalDateTime startDate) {
-		LocalDateTime now = LocalDateTime.now();
-		if (startDate.isAfter(now)) {
-			return SurveyStatus.PREPARING;
-		} else {
-			return SurveyStatus.IN_PROGRESS;
-		}
 	}
 }
