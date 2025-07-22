@@ -75,4 +75,12 @@ public class Survey extends BaseEntity {
 
 		return survey;
 	}
+
+	public void open() {
+		this.status = SurveyStatus.IN_PROGRESS;
+	}
+
+	public void close() {
+		this.status = SurveyStatus.CLOSED;
+	}
 }
