@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.domain.request;
+package com.example.surveyapi.domain.survey.application.request;
 
 import java.util.List;
 
