@@ -1,8 +1,9 @@
 package com.example.surveyapi.domain.project.application;
 
-import java.time.LocalDateTime;
+import static com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod.*;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
@@ -20,6 +21,7 @@ public class ProjectService {
 
 	private final ProjectRepository projectRepository;
 
+	@Transactional
 	public CreateProjectResponse create(CreateProjectRequest request, Long currentMemberId) {
 		validateDuplicateName(request.getName());
 		ProjectPeriod period = toPeriod(request.getPeriodStart(), request.getPeriodEnd());
@@ -42,14 +44,5 @@ public class ProjectService {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
 		}
-	}
-
-	private ProjectPeriod toPeriod(LocalDateTime periodStart, LocalDateTime periodEnd) {
-
-		if (periodEnd != null && periodStart.isAfter(periodEnd)) {
-			throw new CustomException(CustomErrorCode.START_DATE_AFTER_END_DATE);
-		}
-
-		return new ProjectPeriod(periodStart, periodEnd);
 	}
 }
