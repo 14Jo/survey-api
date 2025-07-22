@@ -1,9 +1,17 @@
 package com.example.surveyapi.config.jwt;
 
 import java.io.IOException;
+import java.util.List;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.example.surveyapi.config.security.auth.AuthUser;
+import com.example.surveyapi.domain.user.domain.user.enums.Role;
+
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -34,6 +42,17 @@ public class JwtFilter extends OncePerRequestFilter {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.getWriter().write(errorMessage);
         }
+
+        Claims claims = jwtUtil.extractToken(token);
+
+        Long userId = Long.parseLong(claims.getSubject());
+        Role userRole = Role.valueOf(claims.get("role", String.class));
+
+        AuthUser authUser = new AuthUser(userId);
+        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+            authUser, null, List.of(new SimpleGrantedAuthority("ROLE_" + userRole.name())));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
 
