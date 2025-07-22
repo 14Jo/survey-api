@@ -3,8 +3,9 @@ package com.example.surveyapi.domain.share.application;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.share.domain.ShareLinkGenerator;
+import com.example.surveyapi.domain.share.application.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.entity.Share;
+import com.example.surveyapi.domain.share.domain.service.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.repository.ShareRepository;
 
@@ -15,16 +16,14 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class ShareService {
 	private final ShareRepository shareRepository;
-	private final ShareLinkGenerator shareLinkGenerator;
+	private final ShareDomainService shareDomainService;
 
-	public Share createShare(Long surveyId) {
-		String link = shareLinkGenerator.generateLink(surveyId);
-
-		Share share = new Share(surveyId, ShareMethod.URL, link);
+	public ShareResponse createShare(Long surveyId) {
+		Share share = shareDomainService.createShare(surveyId, ShareMethod.URL);
 		Share saved = shareRepository.save(share);
 
 		//event 발행 부분
 
-		return saved;
+		return ShareResponse.from(saved);
 	}
 }
