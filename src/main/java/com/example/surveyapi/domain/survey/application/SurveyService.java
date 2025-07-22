@@ -32,15 +32,10 @@ public class SurveyService {
 		Long creatorId,
 		CreateSurveyRequest request
 	) {
-		SurveyStatus status = decideStatus(request.getStartDate());
-		SurveyOption option = new SurveyOption(request.isAnonymous(), request.isAllowMultiple(),
-			request.isAllowResponseUpdate());
-		SurveyDuration duration = new SurveyDuration(request.getStartDate(), request.getEndDate());
-
 		Survey survey = Survey.create(
 			projectId, creatorId,
 			request.getTitle(), request.getDescription(), request.getSurveyType(),
-			status, option, duration
+			request.getSurveyDuration(), request.getSurveyOption()
 		);
 		Survey save = surveyRepository.save(survey);
 
