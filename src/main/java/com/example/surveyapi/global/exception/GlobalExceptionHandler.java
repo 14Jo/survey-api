@@ -19,17 +19,22 @@ import com.example.surveyapi.global.util.ApiResponse;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ApiResponse<Object> handleMethodArgumentNotValidException(
+	public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(
 		MethodArgumentNotValidException e
 	) {
-		BindingResult bindingResult = e.getBindingResult();
-		String message = bindingResult.getFieldError().getDefaultMessage();
-		return ApiResponse.error(message, HttpStatus.BAD_REQUEST);
+		Map<String, String> errors = new HashMap<>();
+
+		e.getBindingResult().getFieldErrors()
+			.forEach((fieldError) -> {
+				errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+			});
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+			.body(ApiResponse.error("Validation Error", errors));
 	}
 
 	@ExceptionHandler(CustomException.class)
-	protected ApiResponse<Object> handleBusinessException(CustomException e) {
-		return ApiResponse.error(e.getMessage(), HttpStatus.BAD_REQUEST);
+	protected ApiResponse<Object> handleCustomException(CustomException e) {
+		return ApiResponse.error(e.getMessage(), e.getErrorCode());
 	}
 
 }
