@@ -4,6 +4,8 @@ import java.util.List;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
@@ -21,8 +23,8 @@ public class QuestionService {
 	private final QuestionRepository questionRepository;
 	private final ApplicationEventPublisher eventPublisher;
 
-	//TODO 트랜잭션 관리 방법 생각하기
 	//TODO 벌크 인서트 고려하기
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void create(Long surveyId, List<CreateQuestionRequest> questions) {
 		long startTime = System.currentTimeMillis();
 		questions.forEach(question -> {
