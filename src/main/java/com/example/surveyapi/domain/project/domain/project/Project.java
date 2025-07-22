@@ -55,9 +55,6 @@ public class Project extends BaseEntity {
 	@OneToMany(mappedBy = "project", cascade = CascadeType.PERSIST, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
 
-	@Column(nullable = false)
-	private Boolean isDeleted = false;
-
 	public static Project create(String name, String description, Long ownerId, ProjectPeriod period) {
 		Project project = new Project();
 		project.name = name;
