@@ -10,6 +10,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.example.surveyapi.global.util.ApiResponse;
+
 /**
  * 전역 예외처리 핸들러
  */
@@ -17,22 +19,17 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Map<String, Object>> handleMethodArgumentNotValidException(
-		MethodArgumentNotValidException e) {
+	public ApiResponse<Object> handleMethodArgumentNotValidException(
+		MethodArgumentNotValidException e
+	) {
 		BindingResult bindingResult = e.getBindingResult();
 		String message = bindingResult.getFieldError().getDefaultMessage();
-		Map<String, Object> map = new HashMap<>();
-		map.put("error", HttpStatus.BAD_REQUEST);
-		map.put("message", message);
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
+		return ApiResponse.error(message, HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler(CustomException.class)
-	protected ResponseEntity<Map<String, Object>> handleBusinessException(CustomException e) {
-		Map<String, Object> map = new HashMap<>();
-		map.put("error", HttpStatus.BAD_REQUEST);
-		map.put("message", e.getMessage());
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(map);
+	protected ApiResponse<Object> handleBusinessException(CustomException e) {
+		return ApiResponse.error(e.getMessage(), HttpStatus.BAD_REQUEST);
 	}
 
 }
