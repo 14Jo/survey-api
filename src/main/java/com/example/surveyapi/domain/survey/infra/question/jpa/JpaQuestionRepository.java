@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.infra.question;
+package com.example.surveyapi.domain.survey.infra.question.jpa;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
