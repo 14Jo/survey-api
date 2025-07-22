@@ -19,8 +19,11 @@ public class ShareController {
 	private final ShareService shareService;
 
 	@PostMapping
-	public ApiResponse<ShareResponse> createShare(@RequestBody CreateShareRequest request) {
+	public ApiResponse<ShareResponse> createShare(@Valid @RequestBody CreateShareRequest request) {
 		ShareResponse response = shareService.createShare(request.getSurveyId());
-		return ApiResponse.success("공유 캠페인 생성 완료", response);
+		ApiResponse<ShareResponse> body = ApiResponse.success("공유 캠페인 생성 완료", response);
+		return ResponseEntity
+			.status(HttpStatus.CREATED)
+			.body(body);
 	}
 }
