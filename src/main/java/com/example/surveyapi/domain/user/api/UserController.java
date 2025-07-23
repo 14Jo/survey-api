@@ -23,6 +23,7 @@ import com.example.surveyapi.domain.user.application.dtos.response.UserListRespo
 import com.example.surveyapi.domain.user.application.service.UserService;
 import com.example.surveyapi.global.util.ApiResponse;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 
@@ -33,9 +34,10 @@ public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("auth/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
-        @RequestBody SignupRequest request) {
+        @Valid @RequestBody SignupRequest request) {
+
 
         SignupResponse signup = userService.signup(request);
 
@@ -44,9 +46,9 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(success);
     }
 
-    @PostMapping("auth/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-        @RequestBody LoginRequest request) {
+        @Valid @RequestBody LoginRequest request) {
 
         LoginResponse login = userService.login(request);
 
