@@ -22,6 +22,7 @@ public enum CustomErrorCode {
 	INVALID_STATE_TRANSITION(HttpStatus.BAD_REQUEST, "PENDING -> IN_PROGRESS -> CLOSED 순서로만 변경 가능합니다."),
 	OWNER_ONLY(HttpStatus.BAD_REQUEST, "OWNER만 접근할 수 있습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다"),
+
 	// 통계 에러
 	STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),
 
