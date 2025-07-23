@@ -1,4 +1,4 @@
-package com.example.surveyapi.config.jwt;
+package com.example.surveyapi.global.config.jwt;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,7 +46,7 @@ public class JwtFilter extends OncePerRequestFilter {
         Claims claims = jwtUtil.extractToken(token);
 
         Long userId = Long.parseLong(claims.getSubject());
-        Role userRole = Role.valueOf(claims.get("role", String.class));
+        Role userRole = Role.valueOf(claims.get("userRole", String.class));
 
 
         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
