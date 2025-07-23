@@ -35,20 +35,33 @@ public class SurveyService {
 		return save.getSurveyId();
 	}
 
+	public String delete(Long surveyId, Long userId) {
+		Survey survey = changeSurveyStatus(surveyId, userId, Survey::delete);
+		surveyRepository.delete(survey);
+
+		return "설문 삭제";
+	}
+
 	@Transactional
 	public String open(Long surveyId, Long userId) {
-		return changeSurveyStatus(surveyId, userId, Survey::open, "설문 시작");
+		Survey survey = changeSurveyStatus(surveyId, userId, Survey::open);
+		surveyRepository.stateUpdate(survey);
+
+		return "설문 시작";
 	}
 
 	@Transactional
 	public String close(Long surveyId, Long userId) {
-		return changeSurveyStatus(surveyId, userId, Survey::close, "설문 종료");
+		Survey survey = changeSurveyStatus(surveyId, userId, Survey::close);
+		surveyRepository.stateUpdate(survey);
+
+		return  "설문 종료";
 	}
 
-	private String changeSurveyStatus(Long surveyId, Long userId, Consumer<Survey> statusChanger, String message) {
+	private Survey changeSurveyStatus(Long surveyId, Long userId, Consumer<Survey> statusChanger) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY, "사용자가 만든 해당 설문이 없습니다."));
 		statusChanger.accept(survey);
-		return message;
+		return survey;
 	}
 }
