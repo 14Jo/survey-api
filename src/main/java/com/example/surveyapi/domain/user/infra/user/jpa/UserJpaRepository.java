@@ -9,5 +9,8 @@ import com.example.surveyapi.domain.user.domain.user.User;
 public interface UserJpaRepository extends JpaRepository<User, Long> {
 
     boolean existsByAuthEmail(String email);
+
     Optional<User> findByAuthEmail(String authEmail);
+
+
 }
