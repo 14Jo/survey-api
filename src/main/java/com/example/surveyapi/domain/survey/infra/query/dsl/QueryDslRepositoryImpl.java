@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
+import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
 import com.example.surveyapi.domain.survey.domain.question.QQuestion;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.QSurvey;
@@ -62,5 +63,35 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 		);
 
 		return Optional.of(detail);
+	}
+
+	@Override
+	public List<SurveyTitle> findSurveyTitlesInCursor(Long projectId, Long lastSurveyId) {
+		QSurvey survey = QSurvey.survey;
+		int pageSize = 10;
+
+		return jpaQueryFactory
+			.select(
+				survey.surveyId,
+				survey.title,
+				survey.status,
+				survey.duration
+			)
+			.from(survey)
+			.where(
+				survey.projectId.eq(projectId),
+				lastSurveyId != null ? survey.surveyId.lt(lastSurveyId) : null
+			)
+			.orderBy(survey.surveyId.desc())
+			.limit(pageSize)
+			.fetch()
+			.stream()
+			.map(tuple -> new SurveyTitle(
+				tuple.get(survey.surveyId),
+				tuple.get(survey.title),
+				tuple.get(survey.status),
+				tuple.get(survey.duration)
+			))
+			.toList();
 	}
 }
