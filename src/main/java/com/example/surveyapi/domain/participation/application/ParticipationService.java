@@ -74,6 +74,7 @@ public class ParticipationService {
 				surveyInfo -> surveyInfo
 			));
 
+		// TODO: stream 한번만 사용하여서 map 수정
 		return participations.map(p -> {
 			SurveyInfoOfParticipation surveyInfo = surveyInfoMap.get(p.getSurveyId());
 
