@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.project.domain.project;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,18 +56,15 @@ public class Project extends BaseEntity {
 	@OneToMany(mappedBy = "project", cascade = CascadeType.PERSIST, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
 
-	public static Project create(String name, String description, Long ownerId, ProjectPeriod period) {
+	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
+		LocalDateTime periodEnd) {
 		Project project = new Project();
+		ProjectPeriod period = ProjectPeriod.toPeriod(periodStart, periodEnd);
 		project.name = name;
 		project.description = description;
 		project.ownerId = ownerId;
 		project.period = period;
+		project.managers.add(Manager.createOwner(project, ownerId));
 		return project;
-	}
-
-	public Manager addOwnerManager(Long memberId) {
-		Manager manager = Manager.createOwner(this, memberId);
-		this.managers.add(manager);
-		return manager;
 	}
 }
