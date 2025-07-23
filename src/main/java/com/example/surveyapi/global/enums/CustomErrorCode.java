@@ -14,7 +14,10 @@ public enum CustomErrorCode {
 	NOT_FOUND_SURVEY(HttpStatus.NOT_FOUND, "설문이 존재하지 않습니다"),
 	START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
 	DUPLICATE_PROJECT_NAME(HttpStatus.BAD_REQUEST, "중복 프로젝트 이름입니다."),
-	NOT_FOUND_PROJECT(HttpStatus.NOT_FOUND, "프로젝트가 존재하지 않습니다.");
+	NOT_FOUND_PROJECT(HttpStatus.NOT_FOUND, "프로젝트가 존재하지 않습니다."),
+	NOT_FOUND_MANAGER(HttpStatus.NOT_FOUND, "담당자가 존재하지 않습니다."),
+	INVALID_PROJECT_STATE(HttpStatus.BAD_REQUEST, "종료된 프로젝트 입니다."),
+	INVALID_STATE_TRANSITION(HttpStatus.BAD_REQUEST, "PENDING -> IN_PROGRESS -> CLOSED 순서로만 변경 가능합니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;
