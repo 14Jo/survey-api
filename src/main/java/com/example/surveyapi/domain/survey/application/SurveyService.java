@@ -1,19 +1,13 @@
 package com.example.surveyapi.domain.survey.application;
 
-import java.time.LocalDateTime;
 import java.util.function.Consumer;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -24,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 public class SurveyService {
 
 	private final SurveyRepository surveyRepository;
-	private final ApplicationEventPublisher eventPublisher;
 
 	@Transactional
 	public Long create(
@@ -35,22 +28,11 @@ public class SurveyService {
 		Survey survey = Survey.create(
 			projectId, creatorId,
 			request.getTitle(), request.getDescription(), request.getSurveyType(),
-			request.getSurveyDuration(), request.getSurveyOption()
+			request.getSurveyDuration(), request.getSurveyOption(), request.getQuestions()
 		);
 		Survey save = surveyRepository.save(survey);
 
-		eventPublisher.publishEvent(new SurveyCreatedEvent(save.getSurveyId(), request.getQuestions()));
-
 		return save.getSurveyId();
-	}
-
-	private SurveyStatus decideStatus(LocalDateTime startDate) {
-		LocalDateTime now = LocalDateTime.now();
-		if (startDate.isAfter(now)) {
-			return SurveyStatus.PREPARING;
-		} else {
-			return SurveyStatus.IN_PROGRESS;
-		}
 	}
 
 	@Transactional
