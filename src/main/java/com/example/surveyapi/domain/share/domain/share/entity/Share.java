@@ -43,13 +43,7 @@ public class Share extends BaseEntity {
 	public Share(Long surveyId, ShareMethod shareMethod, String linkUrl) {
 		this.surveyId = surveyId;
 		this.shareMethod = shareMethod;
-		this.link = generateUniqueLink(linkUrl);
-	}
-
-	private String generateUniqueLink(String linkUrl) {
-		String newUrl =  linkUrl + "/survey/link/"
-			+ UUID.randomUUID().toString().replace("-", "");
-		return newUrl;
+		this.link = linkUrl;
 	}
 
 	public boolean isAlreadyExist(String link) {
