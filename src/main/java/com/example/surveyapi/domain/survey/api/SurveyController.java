@@ -14,11 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.surveyapi.domain.survey.application.SurveyQueryService;
 import com.example.surveyapi.domain.survey.application.SurveyService;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDtailResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -29,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 public class SurveyController {
 
 	private final SurveyService surveyService;
-	private final SurveyQueryService surveyQueryService;
 
 	//TODO 생성자 ID 구현 필요
 	@PostMapping("/{projectId}/create")
@@ -73,24 +69,5 @@ public class SurveyController {
 		String result = surveyService.delete(surveyId, userId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", result));
-	}
-
-	@GetMapping("/{surveyId}/detail")
-	public ResponseEntity<ApiResponse<SearchSurveyDtailResponse>> getSurveyDetail(
-		@PathVariable Long surveyId
-	) {
-		SearchSurveyDtailResponse surveyDetailById = surveyQueryService.findSurveyDetailById(surveyId);
-
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
-	}
-
-	@GetMapping("/{projectId}/survey-list")
-	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
-		@PathVariable Long projectId,
-		@RequestParam(required = false) Long lastSurveyId
-	) {
-		List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(projectId, lastSurveyId);
-
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
 	}
 }
