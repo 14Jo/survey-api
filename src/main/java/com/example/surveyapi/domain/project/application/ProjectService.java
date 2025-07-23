@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
 import com.example.surveyapi.domain.project.domain.project.Project;
@@ -51,6 +52,12 @@ public class ProjectService {
 		Project project = projectRepository.findByIdOrElseThrow(projectId);
 		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
 			request.getPeriodEnd());
+	}
+
+	@Transactional
+	public void updateState(Long projectId, UpdateProjectStateRequest request) {
+		Project project = projectRepository.findByIdOrElseThrow(projectId);
+		project.updateState(request.getState());
 	}
 
 	private void validateDuplicateName(String name) {
