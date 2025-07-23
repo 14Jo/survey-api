@@ -1,6 +1,5 @@
-package com.example.surveyapi.domain.user.application.dtos.request.vo;
+package com.example.surveyapi.domain.user.application.dtos.request.vo.select;
 
-import com.example.surveyapi.domain.user.domain.user.command.AddressCommand;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -20,8 +19,5 @@ public class AddressRequest {
     @NotBlank(message = "우편번호는 필수입니다.")
     private String postalCode;
 
-    public AddressCommand toCommand(){
-        return new AddressCommand(
-            province, district, detailAddress, postalCode);
-    }
+
 }
