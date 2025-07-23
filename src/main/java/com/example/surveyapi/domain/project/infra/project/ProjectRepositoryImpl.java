@@ -1,7 +1,7 @@
 package com.example.surveyapi.domain.project.infra.project;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
+
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
@@ -30,7 +30,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public Page<ReadProjectResponse> findMyProjects(Pageable pageable, Long currentUserId) {
-		return projectQuerydslRepository.findMyProjects(pageable, currentUserId);
+	public List<ReadProjectResponse> findMyProjects(Long currentUserId) {
+		return projectQuerydslRepository.findMyProjects(currentUserId);
 	}
 }

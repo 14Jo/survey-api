@@ -5,14 +5,10 @@ import static com.example.surveyapi.domain.project.domain.project.QProject.*;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.project.application.dto.response.QReadProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
-import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -23,12 +19,9 @@ import lombok.RequiredArgsConstructor;
 public class ProjectQuerydslRepository {
 	private final JPAQueryFactory query;
 
-	public Page<ReadProjectResponse> findMyProjects(Pageable pageable, Long currentUserId) {
+	public List<ReadProjectResponse> findMyProjects(Long currentUserId) {
 
-		BooleanBuilder condition = isParticipatedBy(currentUserId);
-
-		List<ReadProjectResponse> content = query
-			.select(new QReadProjectResponse(
+		return query.select(new QReadProjectResponse(
 				project.id,
 				project.name,
 				project.description,
@@ -37,7 +30,6 @@ public class ProjectQuerydslRepository {
 				project.period.periodStart,
 				project.period.periodEnd,
 				project.state.stringValue(),
-				// 관리자 인원수 서브 쿼리
 				JPAExpressions
 					.select(manager.count().intValue())
 					.from(manager)
@@ -45,21 +37,11 @@ public class ProjectQuerydslRepository {
 				project.createdAt,
 				project.updatedAt
 			))
-			.from(project)
-			.leftJoin(project.managers, manager)
-			.on(manager.userId.eq(currentUserId).and(manager.isDeleted.eq(false)))
-			.where(condition)
-			.offset(pageable.getOffset())
-			.limit(pageable.getPageSize())
+			.from(manager)
+			.join(manager.project, project)
+			.where(manager.userId.eq(currentUserId).and(manager.isDeleted.eq(false)).and(project.isDeleted.eq(false)))
 			.orderBy(project.createdAt.desc())
 			.fetch();
-
-		return new PageImpl<>(content, pageable, content.size());
-	}
-
-	private BooleanBuilder isParticipatedBy(Long userId) {
-		return new BooleanBuilder()
-			.and(project.isDeleted.eq(false))
-			.and(manager.userId.eq(userId).and(manager.isDeleted.eq(false)));
 	}
 }
+
