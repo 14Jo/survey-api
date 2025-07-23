@@ -3,6 +3,9 @@ package com.example.surveyapi.domain.project.domain.project;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import org.springframework.util.StringUtils;
 
 import com.example.surveyapi.domain.project.domain.manager.Manager;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
@@ -66,5 +69,20 @@ public class Project extends BaseEntity {
 		project.period = period;
 		project.managers.add(Manager.createOwner(project, ownerId));
 		return project;
+	}
+
+	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,
+		LocalDateTime newPeriodEnd) {
+		if (newPeriodStart != null || newPeriodEnd != null) {
+			LocalDateTime start = Objects.requireNonNullElse(newPeriodStart, this.period.getPeriodStart());
+			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
+			this.period = ProjectPeriod.toPeriod(start, end);
+		}
+		if (StringUtils.hasText(newName)) {
+			this.name = newName;
+		}
+		if (StringUtils.hasText(newDescription)) {
+			this.description = newDescription;
+		}
 	}
 }
