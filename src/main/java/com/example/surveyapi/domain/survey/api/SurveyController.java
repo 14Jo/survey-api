@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.survey.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.survey.application.SurveyService;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -42,9 +42,9 @@ public class SurveyController {
 		@PathVariable Long surveyId
 	) {
 		Long userId = 1L;
-		String open = surveyService.open(surveyId, userId);
+		String result = surveyService.open(surveyId, userId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", open));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", result));
 	}
 
 	@PatchMapping("/{surveyId}/close")
@@ -52,8 +52,18 @@ public class SurveyController {
 		@PathVariable Long surveyId
 	) {
 		Long userId = 1L;
-		String open = surveyService.close(surveyId, userId);
+		String result = surveyService.close(surveyId, userId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", open));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 종료 성공", result));
+	}
+
+	@DeleteMapping("/{surveyId}/delete")
+	public ResponseEntity<ApiResponse<String>> delete(
+		@PathVariable Long surveyId
+	) {
+		Long userId = 1L;
+		String result = surveyService.delete(surveyId, userId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", result));
 	}
 }

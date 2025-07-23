@@ -3,13 +3,13 @@ package com.example.surveyapi.domain.participation.domain.participation;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.model.BaseEntity;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -39,7 +39,7 @@ public class Participation extends BaseEntity {
 	@Column(nullable = false)
 	private Long surveyId;
 
-	@Type(JsonType.class)
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "jsonb", nullable = false)
 	private ParticipantInfo participantInfo;
 

@@ -8,7 +8,7 @@ import lombok.Getter;
 public class CreateProjectResponse {
 	private Long projectId;
 
-	public static CreateProjectResponse toDto(Long projectId) {
+	public static CreateProjectResponse from(Long projectId) {
 		return new CreateProjectResponse(projectId);
 	}
 }
