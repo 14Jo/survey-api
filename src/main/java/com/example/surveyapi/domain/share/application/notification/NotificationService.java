@@ -28,7 +28,7 @@ public class NotificationService {
 		Share share = shareRepository.findById(shareId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
-		//접근 권한 체크
+		//TODO : 접근 권한 체크(User 테이블 참조?) - 요청자와 생성자가 일치하는지 + 관리자인지
 
 		Pageable pageable = PageRequest.of(
 			page,
@@ -40,7 +40,7 @@ public class NotificationService {
 	}
 
 	private boolean isAdmin(Long userId) {
-		//관리자 권한 조회 기능
+		//TODO : 관리자 권한 조회 기능, 접근 권한 확인 기능 구현 시 동시에 구현 및 사용
 		return false;
 	}
 }
