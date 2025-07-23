@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.user.application.dtos.request;
 
 import com.example.surveyapi.domain.user.application.dtos.request.vo.AuthRequest;
 import com.example.surveyapi.domain.user.application.dtos.request.vo.ProfileRequest;
+import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -18,4 +19,8 @@ public class SignupRequest {
     @NotNull(message = "프로필 정보는 필수입니다.")
     private ProfileRequest profile;
 
+    public SignupCommand toCommand() {
+        return new SignupCommand(
+            auth.toCommand(), profile.toCommand());
+    }
 }
