@@ -23,7 +23,7 @@ public class QuestionEventListener {
 		try {
 			log.info("질문 생성 호출 - 설문 Id : {}", event.getSurveyId());
 
-			questionService.create(event.getSurveyId(), event.getQuestions());
+			questionService.create(event.getSurveyId().get(), event.getQuestions());
 
 			log.info("질문 생성 종료");
 		} catch (Exception e) {
