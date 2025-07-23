@@ -1,9 +1,9 @@
-package com.example.surveyapi.domain.user.application.dtos.request.vo;
+package com.example.surveyapi.domain.user.application.dtos.request.vo.select;
 
 import java.time.LocalDateTime;
 
 
-import com.example.surveyapi.domain.user.domain.user.command.ProfileCommand;
+
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 
 import jakarta.validation.Valid;
@@ -27,8 +27,5 @@ public class ProfileRequest {
     @NotNull(message = "주소는 필수입니다.")
     private AddressRequest address;
 
-    public ProfileCommand toCommand() {
-        return new ProfileCommand(
-            name, birthDate, gender, address.toCommand());
-    }
+    
 }

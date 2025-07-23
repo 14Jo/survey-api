@@ -32,6 +32,10 @@ public abstract class BaseEntity {
 		this.updatedAt = LocalDateTime.now();
 	}
 
+	protected void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
+
 	// Soft delete
 	public void delete() {
 		this.isDeleted = true;
