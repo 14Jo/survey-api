@@ -5,11 +5,12 @@ import java.util.Map;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.util.ApiResponse;
 
 /**
@@ -33,8 +34,20 @@ public class GlobalExceptionHandler {
 	}
 
 	@ExceptionHandler(CustomException.class)
-	protected ApiResponse<Object> handleCustomException(CustomException e) {
-		return ApiResponse.error(e.getMessage(), e.getErrorCode());
+	protected ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e) {
+		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+			.body(ApiResponse.error(e.getErrorCode().getMessage()));
 	}
 
+	@ExceptionHandler(AccessDeniedException.class)
+	public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e) {
+		return ResponseEntity.status(CustomErrorCode.ACCESS_DENIED.getHttpStatus())
+			.body(ApiResponse.error(CustomErrorCode.ACCESS_DENIED.getMessage()));
+	}
+
+	@ExceptionHandler(Exception.class)
+	protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+		return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
+			.body(ApiResponse.error("알 수 없는 오류"));
+	}
 }
