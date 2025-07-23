@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/share-campaigns")
+@RequestMapping("/api/v1/share-tasks")
 public class ShareController {
 	private final ShareService shareService;
 
