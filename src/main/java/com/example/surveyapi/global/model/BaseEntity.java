@@ -19,7 +19,7 @@ public abstract class BaseEntity {
 	private LocalDateTime updatedAt;
 
 	@Column(name = "is_deleted", nullable = false)
-	private Boolean isDeleted = false;
+	protected Boolean isDeleted = false;
 
 	@PrePersist
 	public void prePersist() {

@@ -10,6 +10,7 @@ import org.hibernate.type.SqlTypes;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.SurveyDeletedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
@@ -65,6 +66,8 @@ public class Survey extends BaseEntity {
 
 	@Transient
 	private Optional<SurveyCreatedEvent> createdEvent;
+	@Transient
+	private Optional<SurveyDeletedEvent> deletedEvent;
 
 	public static Survey create(
 		Long projectId,
@@ -101,13 +104,17 @@ public class Survey extends BaseEntity {
 		}
 	}
 
-	public SurveyCreatedEvent getCreatedEvent() {
-		SurveyCreatedEvent surveyCreatedEvent = this.createdEvent.orElseThrow(() -> {
+	private <T> T validEvent(Optional<T> event) {
+		return event.orElseThrow(() -> {
 			log.error("이벤트가 존재하지 않습니다.");
 			return new CustomException(CustomErrorCode.SERVER_ERROR);
 		});
+	}
 
-		if(surveyCreatedEvent.getSurveyId().isEmpty()) {
+	public SurveyCreatedEvent getCreatedEvent() {
+		SurveyCreatedEvent surveyCreatedEvent = validEvent(this.createdEvent);
+
+		if (surveyCreatedEvent.getSurveyId().isEmpty()) {
 			log.error("이벤트에 할당된 설문 ID가 없습니다.");
 			throw new CustomException(CustomErrorCode.SERVER_ERROR, "이벤트에 할당된 설문 ID가 없습니다.");
 		}
@@ -115,13 +122,25 @@ public class Survey extends BaseEntity {
 		return surveyCreatedEvent;
 	}
 
-	public void saved() {
+	public void registerCreatedEvent() {
 		this.createdEvent.ifPresent(surveyCreatedEvent ->
 			surveyCreatedEvent.setSurveyId(this.getSurveyId()));
 	}
 
-	public void published() {
+	public void clearCreatedEvent() {
 		this.createdEvent = Optional.empty();
+	}
+
+	public SurveyDeletedEvent getDeletedEvent() {
+		return validEvent(this.deletedEvent);
+	}
+
+	public void registerDeletedEvent() {
+		this.deletedEvent = Optional.of(new SurveyDeletedEvent(this.surveyId));
+	}
+
+	public void clearDeletedEvent() {
+		this.deletedEvent = Optional.empty();
 	}
 
 	public void open() {
@@ -130,5 +149,10 @@ public class Survey extends BaseEntity {
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
+	}
+
+	public void delete() {
+		this.status = SurveyStatus.DELETED;
+		this.isDeleted = true;
 	}
 }
