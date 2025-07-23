@@ -1,7 +1,7 @@
 package com.example.surveyapi.domain.project.api;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,9 +34,9 @@ public class ProjectController {
 	}
 
 	@GetMapping("/me")
-	public ResponseEntity<ApiResponse<Page<ReadProjectResponse>>> getMyProjects(Pageable pageable) {
+	public ResponseEntity<ApiResponse<List<ReadProjectResponse>>> getMyProjects() {
 		Long currentUserId = 1L; // TODO: 시큐리티 구현 시 변경
-		Page<ReadProjectResponse> result = projectService.getMyProjects(pageable, currentUserId);
-		return ResponseEntity.ok(ApiResponse.success("프로젝트 목록 조회 성공", result));
+		List<ReadProjectResponse> result = projectService.getMyProjects(currentUserId);
+		return ResponseEntity.ok(ApiResponse.success("나의 프로젝트 목록 조회 성공", result));
 	}
 }
