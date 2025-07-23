@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.survey.application.SurveyService;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;

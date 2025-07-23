@@ -14,7 +14,9 @@ public class QuestionInfo {
 	private final int displayOrder;
 	private final List<ChoiceInfo> choices;
 
-	public QuestionInfo(String content, QuestionType questionType, boolean isRequired, int displayOrder, List<ChoiceInfo> choices) {
+	public QuestionInfo(String content, QuestionType questionType, boolean isRequired, int displayOrder,
+		List<ChoiceInfo> choices
+	) {
 		this.content = content;
 		this.questionType = questionType;
 		this.isRequired = isRequired;

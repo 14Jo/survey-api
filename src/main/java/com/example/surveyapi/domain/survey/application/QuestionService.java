@@ -1,7 +1,6 @@
 package com.example.surveyapi.domain.survey.application;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
