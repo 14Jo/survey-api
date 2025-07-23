@@ -5,6 +5,7 @@ import java.awt.print.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,9 +29,9 @@ public class NotificationController {
 		@PathVariable Long shareId,
 		@RequestParam(defaultValue = "0") int page,
 		@RequestParam(defaultValue = "10") int size,
-		@RequestParam Long requestId //추후 인증을 통한 id추출 예정
+		@AuthenticationPrincipal Long currentId
 	) {
-		NotificationPageResponse response = notificationService.gets(shareId, requestId, page, size);
+		NotificationPageResponse response = notificationService.gets(shareId, currentId, page, size);
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
 }
