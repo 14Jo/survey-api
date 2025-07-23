@@ -1,12 +1,20 @@
 package com.example.surveyapi.domain.participation.application;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.request.ResponseData;
+import com.example.surveyapi.domain.participation.application.dto.request.SurveyInfoOfParticipation;
+import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
@@ -44,5 +52,27 @@ public class ParticipationService {
 
 		return savedParticipation.getId();
 	}
-}
 
+	@Transactional(readOnly = true)
+	public Page<ReadParticipationPageResponse> gets(Long memberId, Pageable pageable) {
+		Page<Participation> participations = participationRepository.findAll(memberId, pageable);
+
+		List<Long> surveyIds = participations.get().map(Participation::getSurveyId).toList();
+
+		List<SurveyInfoOfParticipation> surveyInfoOfParticipations = new ArrayList<>();
+		surveyInfoOfParticipations.add(
+			new SurveyInfoOfParticipation(1L, "설문 제목", "진행 중", LocalDate.now().plusWeeks(1), true));
+
+		Map<Long, SurveyInfoOfParticipation> surveyInfoMap = surveyInfoOfParticipations.stream()
+			.collect(Collectors.toMap(
+				SurveyInfoOfParticipation::getSurveyId,
+				surveyInfo -> surveyInfo
+			));
+
+		return participations.map(p -> {
+			SurveyInfoOfParticipation surveyInfo = surveyInfoMap.get(p.getSurveyId());
+
+			return ReadParticipationPageResponse.of(p, surveyInfo);
+		});
+	}
+}
