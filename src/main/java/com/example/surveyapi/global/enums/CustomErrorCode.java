@@ -15,9 +15,13 @@ public enum CustomErrorCode {
 	START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
 	DUPLICATE_PROJECT_NAME(HttpStatus.BAD_REQUEST, "중복 프로젝트 이름입니다."),
 
+	// 통계 에러
+	STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),
+
+	// 서버 에러
 	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다."),
 	;
-  
+
 	private final HttpStatus httpStatus;
 	private final String message;
 
