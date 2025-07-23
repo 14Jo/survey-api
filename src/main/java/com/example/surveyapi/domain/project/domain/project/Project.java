@@ -114,9 +114,7 @@ public class Project extends BaseEntity {
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
-		if (!this.ownerId.equals(currentUserId)) {
-			throw new CustomException(CustomErrorCode.OWNER_ONLY);
-		}
+		checkOwner(currentUserId);
 		// 소유자 위임
 		Manager newOwner = findManagerByUserId(newOwnerId);
 		newOwner.updateRole(ManagerRole.OWNER);
@@ -126,7 +124,25 @@ public class Project extends BaseEntity {
 		previousOwner.updateRole(ManagerRole.READ);
 	}
 
-	public Manager findManagerByUserId(Long userId) {
+	public void softDelete(Long currentUserId) {
+		checkOwner(currentUserId);
+		this.state = ProjectState.CLOSED;
+
+		// 기존 프로젝트 담당자 같이 삭제
+		if (this.managers != null) {
+			this.managers.forEach(Manager::delete);
+		}
+
+		this.delete();
+	}
+
+	private void checkOwner(Long currentUserId) {
+		if (!this.ownerId.equals(currentUserId)) {
+			throw new CustomException(CustomErrorCode.OWNER_ONLY);
+		}
+	}
+
+	private Manager findManagerByUserId(Long userId) {
 		return this.managers.stream()
 			.filter(manager -> manager.getUserId().equals(userId))
 			.findFirst()

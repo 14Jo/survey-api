@@ -13,5 +13,5 @@ public interface ProjectRepository {
 
 	List<ReadProjectResponse> findMyProjects(Long currentUserId);
 
-	Optional<Project> findById(Long projectId);
+	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
 }

@@ -36,7 +36,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public Optional<Project> findById(Long projectId) {
-		return projectJpaRepository.findById(projectId);
+	public Optional<Project> findByIdAndIsDeletedFalse(Long projectId) {
+		return projectJpaRepository.findByIdAndIsDeletedFalse(projectId);
 	}
 }
