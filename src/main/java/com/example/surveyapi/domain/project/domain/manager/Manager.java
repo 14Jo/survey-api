@@ -34,16 +34,16 @@ public class Manager extends BaseEntity {
 	private Project project;
 
 	@Column(nullable = false)
-	private Long memberId;
+	private Long userId;
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ManagerRole role = ManagerRole.READ;
 
-	public static Manager createOwner(Project project, Long memberId) {
+	public static Manager createOwner(Project project, Long userId) {
 		Manager manager = new Manager();
 		manager.project = project;
-		manager.memberId = memberId;
+		manager.userId = userId;
 		manager.role = ManagerRole.OWNER;
 		return manager;
 	}
