@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.survey.application;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -8,7 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
-import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionCreationInfo;
+import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
+import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,14 +25,18 @@ public class QuestionService {
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void create(
 		Long surveyId,
-		List<QuestionCreationInfo> questions
+		List<QuestionInfo> questions
 	) {
 		long startTime = System.currentTimeMillis();
 
 		List<Question> questionList = questions.stream().map(question ->
 			Question.create(
 				surveyId, question.getContent(), question.getQuestionType(),
-				question.getDisplayOrder(), question.isRequired(), question.getChoices()
+				question.getDisplayOrder(), question.isRequired(),
+				question.getChoices()
+					.stream()
+					.map(choiceInfo -> new Choice(choiceInfo.getContent(), choiceInfo.getDisplayOrder()))
+					.toList()
 			)
 		).toList();
 		questionRepository.saveAll(questionList);

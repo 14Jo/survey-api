@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionCreationInfo;
+import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -24,7 +24,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
 @Getter
@@ -70,7 +69,7 @@ public class Survey extends BaseEntity {
 		SurveyType type,
 		SurveyDuration duration,
 		SurveyOption option,
-		List<QuestionCreationInfo> questions
+		List<QuestionInfo> questions
 	) {
 		Survey survey = new Survey();
 

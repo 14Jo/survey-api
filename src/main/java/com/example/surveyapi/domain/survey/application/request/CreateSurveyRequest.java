@@ -4,8 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
-import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionCreationInfo;
+import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
@@ -33,7 +32,7 @@ public class CreateSurveyRequest {
 	@NotNull
 	private SurveyOption surveyOption;
 
-	private List<QuestionCreationInfo> questions;
+	private List<QuestionInfo> questions;
 
 	@AssertTrue(message = "시작 일과 종료를 입력 해야 합니다.")
 	public boolean isValidDuration() {
