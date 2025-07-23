@@ -25,8 +25,7 @@ public class SurveyQueryService {
 		SurveyDetail surveyDetail = surveyQueryRepository.getSurveyDetail(surveyId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
-		return new SearchSurveyDtailResponse(surveyDetail.getTitle(), surveyDetail.getDescription(),
-			surveyDetail.getDuration(), surveyDetail.getOption(), surveyDetail.getQuestions());
+		return SearchSurveyDtailResponse.from(surveyDetail);
 	}
 
 	//TODO 참여수 연산 기능 구현 필요 있음
@@ -35,14 +34,7 @@ public class SurveyQueryService {
 
 		return surveyQueryRepository.getSurveyTitles(projectId, lastSurveyId)
 			.stream()
-			.map(surveyTitle ->
-				new SearchSurveyTitleResponse(
-					surveyTitle.getSurveyId(),
-					surveyTitle.getTitle(),
-					surveyTitle.getStatus(),
-					surveyTitle.getDuration()
-				)
-			)
+			.map(SearchSurveyTitleResponse::from)
 			.toList();
 	}
 } 
