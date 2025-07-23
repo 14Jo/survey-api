@@ -7,12 +7,9 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
-import com.example.surveyapi.domain.participation.domain.response.enums.QuestionType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -42,18 +39,13 @@ public class Response {
 	@Column(nullable = false)
 	private Long questionId;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
-	private QuestionType questionType;
-
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "jsonb")
 	private Map<String, Object> answer = new HashMap<>();
 
-	public static Response create(Long questionId, QuestionType questionType, Map<String, Object> answer) {
+	public static Response create(Long questionId, Map<String, Object> answer) {
 		Response response = new Response();
 		response.questionId = questionId;
-		response.questionType = questionType;
 		response.answer = answer;
 
 		return response;

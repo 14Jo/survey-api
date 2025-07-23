@@ -29,12 +29,11 @@ public class ParticipationService {
 		// TODO: 멤버의 participantInfo 스냅샷 설정을 위해 Member에 요청, REST 통신으로 받아온 json 데이터를 dto로 받을지 고려하고
 		// TODO: participantInfo를 도메인 create 에서 생성하도록 수정
 		ParticipantInfo participantInfo = new ParticipantInfo();
-
 		Participation participation = Participation.create(memberId, surveyId, participantInfo);
 
 		for (ResponseData responseData : responseDataList) {
-			Response response = Response.create(responseData.getQuestionId(), responseData.getQuestionType(),
-				responseData.getAnswer());
+			// TODO: questionId가 해당 survey에 속하는지(보류), 받아온 questionType으로 answer의 key값이 올바른지 유효성 검증
+			Response response = Response.create(responseData.getQuestionId(), responseData.getAnswer());
 
 			participation.addResponse(response);
 		}
