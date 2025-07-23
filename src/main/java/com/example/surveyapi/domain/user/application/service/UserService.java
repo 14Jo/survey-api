@@ -10,6 +10,7 @@ import com.example.surveyapi.domain.user.application.dtos.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dtos.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.MemberResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.SignupResponse;
+import com.example.surveyapi.domain.user.application.dtos.response.UserListResponse;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
@@ -58,6 +59,12 @@ public class UserService {
 
         return new LoginResponse(token, member);
     }
+
+    @Transactional
+    public UserListResponse getAll(){
+
+    }
+
 
     public static User from(SignupRequest request, PasswordEncoder passwordEncoder) {
         Address address = new Address(
