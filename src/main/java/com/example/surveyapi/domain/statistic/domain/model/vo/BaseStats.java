@@ -24,5 +24,11 @@ public class BaseStats {
 		return new BaseStats(totalResponses, responseStart, responseEnd);
 	}
 
+	public static BaseStats start(){
+		BaseStats baseStats = new BaseStats();
+		baseStats.responseStart = LocalDateTime.now();
+		return baseStats;
+	}
+
 
 }
