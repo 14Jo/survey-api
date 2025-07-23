@@ -1,6 +1,6 @@
-package com.example.surveyapi.domain.user.application.dtos.request.vo;
+package com.example.surveyapi.domain.user.application.dtos.request.vo.select;
 
-import com.example.surveyapi.domain.user.domain.user.command.AuthCommand;
+
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -15,7 +15,4 @@ public class AuthRequest {
     @NotBlank(message = "비밀번호는 필수입니다")
     private String password;
 
-    public AuthCommand toCommand() {
-        return new AuthCommand(email, password);
-    }
 }
