@@ -47,4 +47,8 @@ public class Manager extends BaseEntity {
 		manager.role = ManagerRole.OWNER;
 		return manager;
 	}
+
+	public void updateRole(ManagerRole role) {
+		this.role = role;
+	}
 }

@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.project.infra.project;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -37,8 +38,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public Project findByIdOrElseThrow(Long projectId) {
-		return projectJpaRepository.findById(projectId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
+	public Optional<Project> findByIdAndIsDeletedFalse(Long projectId) {
+		return projectJpaRepository.findByIdAndIsDeletedFalse(projectId);
 	}
 }
