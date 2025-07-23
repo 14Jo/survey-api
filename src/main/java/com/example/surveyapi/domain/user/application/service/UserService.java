@@ -100,7 +100,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse getUser(Long memberId) {
-        User user = userRepository.findById(memberId)
+        User user = userRepository.findByIdAndIsDeletedFalse(memberId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         return UserResponse.from(user);
@@ -108,7 +108,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public GradeResponse getGrade(Long userId) {
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         return GradeResponse.from(user);
