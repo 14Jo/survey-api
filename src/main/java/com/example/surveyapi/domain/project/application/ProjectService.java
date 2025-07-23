@@ -5,17 +5,21 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
+import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
+import com.example.surveyapi.domain.project.domain.manager.Manager;
 import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class ProjectService {
 
 	private final ProjectRepository projectRepository;
+	private final EntityManager entityManager;
 
 	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
@@ -71,6 +76,17 @@ public class ProjectService {
 	public void deleteProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.softDelete(currentUserId);
+		// TODO: 이벤트 발행
+	}
+
+	@Transactional
+	public CreateManagerResponse createManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		// TODO: 회원 존재 여부
+		Manager manager = project.createManager(currentUserId, request.getUserId());
+		// 쓰기 지연 flush 하여 id 생성되도록 강제 flush
+		entityManager.flush(); // TODO: 다른 방법이 있는지 더 고민해보기
+		return CreateManagerResponse.from(manager.getId());
 	}
 
 	private void validateDuplicateName(String name) {

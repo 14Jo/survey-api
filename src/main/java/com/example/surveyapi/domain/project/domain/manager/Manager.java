@@ -38,7 +38,15 @@ public class Manager extends BaseEntity {
 
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
-	private ManagerRole role = ManagerRole.READ;
+	private ManagerRole role;
+
+	public static Manager create(Project project, Long userId) {
+		Manager manager = new Manager();
+		manager.project = project;
+		manager.userId = userId;
+		manager.role = ManagerRole.READ;
+		return manager;
+	}
 
 	public static Manager createOwner(Project project, Long userId) {
 		Manager manager = new Manager();
