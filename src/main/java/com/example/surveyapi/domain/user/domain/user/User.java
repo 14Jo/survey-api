@@ -16,7 +16,6 @@ import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -86,6 +85,7 @@ public class User extends BaseEntity {
         this.grade = Grade.LV1;
     }
 
+    // Todo command 사용시 사용할 create 메서드
     public static User create(SignupCommand command, PasswordEncoder passwordEncoder) {
         Address address = Address.create(command);
 
@@ -97,7 +97,7 @@ public class User extends BaseEntity {
     }
 
 
-    public static User from(String email,
+    public static User create(String email,
         String password,
         String name,
         LocalDateTime birthDate,
