@@ -1,4 +1,5 @@
 package com.example.surveyapi.domain.user.domain.user.vo;
+import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
@@ -15,5 +16,16 @@ public class Address {
     private String district;
     private String detailAddress;
     private String postalCode;
+
+
+    public static Address create(SignupCommand command) {
+        return new Address(
+            command.getProfile().getAddress().getProvince(),
+            command.getProfile().getAddress().getDistrict(),
+            command.getProfile().getAddress().getDetailAddress(),
+            command.getProfile().getAddress().getPostalCode()
+        );
+    }
+
 
 }
