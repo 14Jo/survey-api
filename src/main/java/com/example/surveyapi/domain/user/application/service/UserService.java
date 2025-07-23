@@ -1,9 +1,13 @@
 package com.example.surveyapi.domain.user.application.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.user.application.dtos.request.SignupRequest;
+import com.example.surveyapi.domain.user.application.dtos.response.GradeResponse;
+import com.example.surveyapi.domain.user.application.dtos.response.UserResponse;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.application.dtos.request.LoginRequest;
@@ -51,9 +55,11 @@ public class UserService {
             throw new CustomException(CustomErrorCode.EMAIL_NOT_FOUND);
         }
 
-        User user = User.from(
+        String encryptedPassword = passwordEncoder.encode(request.getAuth().getPassword());
+
+        User user = User.create(
             request.getAuth().getEmail(),
-            request.getAuth().getPassword(),
+            encryptedPassword,
             request.getProfile().getName(),
             request.getProfile().getBirthDate(),
             request.getProfile().getGender(),
@@ -73,7 +79,6 @@ public class UserService {
         User user = userRepository.findByEmail(request.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
-
         if (!passwordEncoder.matches(request.getPassword(), user.getAuth().getPassword())) {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
         }
@@ -85,11 +90,28 @@ public class UserService {
         return LoginResponse.of(token, member);
     }
 
-    @Transactional
-    public UserListResponse getAll(){
+    @Transactional(readOnly = true)
+    public UserListResponse getAll(Pageable pageable) {
 
+        Page<UserResponse> users = userRepository.gets(pageable);
+
+        return UserListResponse.from(users);
     }
 
+    @Transactional(readOnly = true)
+    public UserResponse getUser(Long memberId) {
+        User user = userRepository.findById(memberId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
+        return UserResponse.from(user);
+    }
+
+    @Transactional(readOnly = true)
+    public GradeResponse getGrade(Long userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        return GradeResponse.from(user);
+    }
 
 }
