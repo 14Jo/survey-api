@@ -39,8 +39,11 @@ public class Statistics extends BaseEntity {
 
 	protected Statistics() {}
 
-	public static Statistics create(Long surveyId, StatisticStatus status) {
+	public static Statistics create(Long surveyId) {
 		Statistics statistic = new Statistics();
+		statistic.surveyId = surveyId;
+		statistic.status = StatisticStatus.COUNTING;
+		statistic.stats = BaseStats.start();
 		return statistic;
 	}
 }
