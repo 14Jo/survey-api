@@ -9,6 +9,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.example.surveyapi.domain.survey.application.QuestionService;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyDeletedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.SurveyUpdatedEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,20 @@ public class QuestionEventListener {
 			log.info("질문 삭제 종료");
 		} catch (Exception e) {
 			log.error("질문 삭제 실패 - message : {}", e.getMessage());
+		}
+	}
+
+	@EventListener
+	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+	public void handleSurveyUpdated(SurveyUpdatedEvent event) {
+		try {
+			log.info("질문 추가 호출 - 설문 Id : {}", event.getSurveyId());
+
+			questionService.create(event.getSurveyId(),  event.getQuestions());
+
+			log.info("질문 추가 종료");
+		} catch (Exception e) {
+			log.error("질문 추가 실패 - message : {}", e.getMessage());
 		}
 	}
 }
