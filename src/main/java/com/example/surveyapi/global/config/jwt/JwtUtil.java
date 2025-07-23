@@ -1,4 +1,4 @@
-package com.example.surveyapi.config.jwt;
+package com.example.surveyapi.global.config.jwt;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;

@@ -1,4 +1,4 @@
-package com.example.surveyapi.config.jwt;
+package com.example.surveyapi.global.config.jwt;
 
 import java.io.IOException;
 import java.util.List;
