@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.participation.application.dto.response;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.participation.application.dto.request.SurveyInfoOfParticipation;
@@ -14,29 +13,16 @@ import lombok.NoArgsConstructor;
 public class ReadParticipationPageResponse {
 
 	private Long participationId;
-	private Long surveyId;
-	private String surveyTitle;
-	private String surveyStatus;
-	private LocalDate endDate;
-	private boolean allowResponseUpdate;
+	private SurveyInfoOfParticipation surveyInfo;
 	private LocalDateTime participatedAt;
 
-	public ReadParticipationPageResponse(Long participationId, Long surveyId, String surveyTitle, String surveyStatus,
-		LocalDate endDate, Boolean allowResponseUpdate,
-		LocalDateTime participatedAt) {
-		this.participationId = participationId;
-		this.surveyId = surveyId;
-		this.surveyTitle = surveyTitle;
-		this.surveyStatus = surveyStatus;
-		this.endDate = endDate;
-		this.allowResponseUpdate = allowResponseUpdate;
-		this.participatedAt = participatedAt;
+	public ReadParticipationPageResponse(Participation participation, SurveyInfoOfParticipation surveyInfo) {
+		this.participationId = participation.getId();
+		this.surveyInfo = surveyInfo;
+		this.participatedAt = participation.getUpdatedAt();
 	}
 
 	public static ReadParticipationPageResponse of(Participation participation, SurveyInfoOfParticipation surveyInfo) {
-		return new ReadParticipationPageResponse(participation.getId(), participation.getSurveyId(),
-			surveyInfo.getSurveyTitle(), surveyInfo.getSurveyStatus(), surveyInfo.getEndDate(),
-			surveyInfo.isAllowResponseUpdate(),
-			participation.getCreatedAt());
+		return new ReadParticipationPageResponse(participation, surveyInfo);
 	}
 }
