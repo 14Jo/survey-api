@@ -1,7 +1,10 @@
 package com.example.surveyapi.domain.survey.domain.survey;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionCreationInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -18,8 +21,10 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Getter
@@ -54,6 +59,9 @@ public class Survey extends BaseEntity {
 	@Column(name = "survey_duration", nullable = false, columnDefinition = "jsonb")
 	private SurveyDuration duration;
 
+	@Transient
+	private SurveyCreatedEvent createdEvent;
+
 	public static Survey create(
 		Long projectId,
 		Long creatorId,
@@ -61,7 +69,8 @@ public class Survey extends BaseEntity {
 		String description,
 		SurveyType type,
 		SurveyDuration duration,
-		SurveyOption option
+		SurveyOption option,
+		List<QuestionCreationInfo> questions
 	) {
 		Survey survey = new Survey();
 
@@ -74,6 +83,11 @@ public class Survey extends BaseEntity {
 		survey.duration = duration;
 		survey.option = option;
 
+		survey.createdEvent = new SurveyCreatedEvent(
+			null,
+			questions
+		);
+
 		return survey;
 	}
 
@@ -84,6 +98,16 @@ public class Survey extends BaseEntity {
 		} else {
 			return SurveyStatus.IN_PROGRESS;
 		}
+	}
+
+	public void saved() {
+		if (this.createdEvent != null) {
+			this.createdEvent.setSurveyId(this.getSurveyId());
+		}
+	}
+
+	public void published() {
+		this.createdEvent = null;
 	}
 
 	public void open() {

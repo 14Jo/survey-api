@@ -42,9 +42,9 @@ public class SurveyController {
 		@PathVariable Long surveyId
 	) {
 		Long userId = 1L;
-		String open = surveyService.open(surveyId, userId);
+		String result = surveyService.open(surveyId, userId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", open));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", result));
 	}
 
 	@PatchMapping("/{surveyId}/close")
@@ -52,8 +52,8 @@ public class SurveyController {
 		@PathVariable Long surveyId
 	) {
 		Long userId = 1L;
-		String open = surveyService.close(surveyId, userId);
+		String result = surveyService.close(surveyId, userId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", open));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 종료 성공", result));
 	}
 }
