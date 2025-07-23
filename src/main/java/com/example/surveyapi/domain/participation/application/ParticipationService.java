@@ -56,11 +56,17 @@ public class ParticipationService {
 	public Page<ReadParticipationPageResponse> gets(Long memberId, Pageable pageable) {
 		Page<Participation> participations = participationRepository.findAll(memberId, pageable);
 
-		List<Long> surveyIds = participations.get().map(Participation::getSurveyId).toList();
+		List<Long> surveyIds = participations.get().map(Participation::getSurveyId).distinct().toList();
 
+		// TODO: List<Long> surveyIds를 매개변수로 id, 설문 제목, 설문 기한, 설문 상태(진행중인지 종료인지), 수정이 가능한 설문인지 요청
 		List<SurveyInfoOfParticipation> surveyInfoOfParticipations = new ArrayList<>();
-		surveyInfoOfParticipations.add(
-			new SurveyInfoOfParticipation(1L, "설문 제목", "진행 중", LocalDate.now().plusWeeks(1), true));
+
+		// 더미데이터 생성
+		for (Long surveyId : surveyIds) {
+			surveyInfoOfParticipations.add(
+				new SurveyInfoOfParticipation(surveyId, "설문 제목" + surveyId, "진행 중", LocalDate.now().plusWeeks(1),
+					true));
+		}
 
 		Map<Long, SurveyInfoOfParticipation> surveyInfoMap = surveyInfoOfParticipations.stream()
 			.collect(Collectors.toMap(
@@ -75,3 +81,4 @@ public class ParticipationService {
 		});
 	}
 }
+
