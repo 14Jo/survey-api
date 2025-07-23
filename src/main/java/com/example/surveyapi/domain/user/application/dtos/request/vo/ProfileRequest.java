@@ -17,10 +17,10 @@ public class ProfileRequest {
     @NotBlank(message = "이름은 필수입니다.")
     private String name;
 
-    @NotBlank(message = "생년월일은 필수입니다.")
+    @NotNull(message = "생년월일은 필수입니다.")
     private LocalDateTime birthDate;
 
-    @NotBlank(message = "성별은 필수입니다.")
+    @NotNull(message = "성별은 필수입니다.")
     private Gender gender;
 
     @Valid
