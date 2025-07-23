@@ -3,12 +3,12 @@ package com.example.surveyapi.domain.participation.domain.response;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hibernate.annotations.Type;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.response.enums.QuestionType;
 
-import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -46,7 +46,7 @@ public class Response {
 	@Column(nullable = false)
 	private QuestionType questionType;
 
-	@Type(JsonType.class)
+	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(columnDefinition = "jsonb")
 	private Map<String, Object> answer = new HashMap<>();
 
