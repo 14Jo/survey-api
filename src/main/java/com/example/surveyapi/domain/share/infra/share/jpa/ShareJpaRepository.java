@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.share.infra.share.repository;
+package com.example.surveyapi.domain.share.infra.share.jpa;
 
 import java.util.Optional;
 

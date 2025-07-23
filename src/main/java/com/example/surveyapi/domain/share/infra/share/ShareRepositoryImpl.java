@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.share.infra.share.repository;
+package com.example.surveyapi.domain.share.infra.share;
 
 import java.util.Optional;
 
@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
+import com.example.surveyapi.domain.share.infra.share.jpa.ShareJpaRepository;
 
 import lombok.RequiredArgsConstructor;
 
