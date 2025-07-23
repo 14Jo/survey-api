@@ -1,7 +1,10 @@
 package com.example.surveyapi.domain.user.domain.user;
 
+import com.example.surveyapi.global.config.security.PasswordEncoder;
+import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
+import com.example.surveyapi.domain.user.domain.user.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Auth;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.model.BaseEntity;
@@ -52,5 +55,16 @@ public class User extends BaseEntity {
         this.role = Role.USER;
         this.grade = Grade.LV1;
     }
+
+    public static User create(SignupCommand command, PasswordEncoder passwordEncoder) {
+        Address address = Address.create(command);
+
+        Profile profile = Profile.create(command,address);
+
+        Auth auth =  Auth.create(command,passwordEncoder);
+
+        return new User(auth, profile);
+    }
+
 
 }
