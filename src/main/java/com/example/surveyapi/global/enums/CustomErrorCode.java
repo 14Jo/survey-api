@@ -26,7 +26,10 @@ public enum CustomErrorCode {
 	STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),
 
 	// 서버 에러
-	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다.");
+	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다."),
+
+	// 공유 에러
+	NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;
