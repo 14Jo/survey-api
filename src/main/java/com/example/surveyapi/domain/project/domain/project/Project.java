@@ -3,10 +3,15 @@ package com.example.surveyapi.domain.project.domain.project;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import org.springframework.util.StringUtils;
 
 import com.example.surveyapi.domain.project.domain.manager.Manager;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -66,5 +71,44 @@ public class Project extends BaseEntity {
 		project.period = period;
 		project.managers.add(Manager.createOwner(project, ownerId));
 		return project;
+	}
+
+	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,
+		LocalDateTime newPeriodEnd) {
+		if (newPeriodStart != null || newPeriodEnd != null) {
+			LocalDateTime start = Objects.requireNonNullElse(newPeriodStart, this.period.getPeriodStart());
+			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
+			this.period = ProjectPeriod.toPeriod(start, end);
+		}
+		if (StringUtils.hasText(newName)) {
+			this.name = newName;
+		}
+		if (StringUtils.hasText(newDescription)) {
+			this.description = newDescription;
+		}
+	}
+
+	public void updateState(ProjectState newState) {
+		// 이미 CLOSED 프로젝트는 상태 변경 불가
+		if (this.state == ProjectState.CLOSED) {
+			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
+		}
+
+		// PENDING -> IN_PROGRESS만 허용 periodStart를 now로 세팅
+		if (this.state == ProjectState.PENDING) {
+			if (newState != ProjectState.IN_PROGRESS) {
+				throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
+			}
+			this.period = ProjectPeriod.toPeriod(LocalDateTime.now(), this.period.getPeriodEnd());
+		}
+		// IN_PROGRESS -> CLOSED만 허용 periodEnd를 now로 세팅
+		else if (this.state == ProjectState.IN_PROGRESS) {
+			if (newState != ProjectState.CLOSED) {
+				throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
+			}
+			this.period = ProjectPeriod.toPeriod(this.period.getPeriodStart(), LocalDateTime.now());
+		}
+
+		this.state = newState;
 	}
 }
