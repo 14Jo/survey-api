@@ -15,4 +15,8 @@ public class SignupResponse {
         this.email = user.getAuth().getEmail();
         this.name = user.getProfile().getName();
     }
+
+    public static SignupResponse from(User user){
+        return new SignupResponse(user);
+    }
 }
