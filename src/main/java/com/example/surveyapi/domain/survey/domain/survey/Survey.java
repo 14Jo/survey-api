@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.survey.domain.survey;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -12,6 +13,8 @@ import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEven
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -24,7 +27,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Entity
 @Getter
 @NoArgsConstructor
@@ -59,7 +64,7 @@ public class Survey extends BaseEntity {
 	private SurveyDuration duration;
 
 	@Transient
-	private SurveyCreatedEvent createdEvent;
+	private Optional<SurveyCreatedEvent> createdEvent;
 
 	public static Survey create(
 		Long projectId,
@@ -82,10 +87,7 @@ public class Survey extends BaseEntity {
 		survey.duration = duration;
 		survey.option = option;
 
-		survey.createdEvent = new SurveyCreatedEvent(
-			null,
-			questions
-		);
+		survey.createdEvent = Optional.of(new SurveyCreatedEvent(questions));
 
 		return survey;
 	}
@@ -99,14 +101,27 @@ public class Survey extends BaseEntity {
 		}
 	}
 
-	public void saved() {
-		if (this.createdEvent != null) {
-			this.createdEvent.setSurveyId(this.getSurveyId());
+	public SurveyCreatedEvent getCreatedEvent() {
+		SurveyCreatedEvent surveyCreatedEvent = this.createdEvent.orElseThrow(() -> {
+			log.error("이벤트가 존재하지 않습니다.");
+			return new CustomException(CustomErrorCode.SERVER_ERROR);
+		});
+
+		if(surveyCreatedEvent.getSurveyId().isEmpty()) {
+			log.error("이벤트에 할당된 설문 ID가 없습니다.");
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, "이벤트에 할당된 설문 ID가 없습니다.");
 		}
+
+		return surveyCreatedEvent;
+	}
+
+	public void saved() {
+		this.createdEvent.ifPresent(surveyCreatedEvent ->
+			surveyCreatedEvent.setSurveyId(this.getSurveyId()));
 	}
 
 	public void published() {
-		this.createdEvent = null;
+		this.createdEvent = Optional.empty();
 	}
 
 	public void open() {
