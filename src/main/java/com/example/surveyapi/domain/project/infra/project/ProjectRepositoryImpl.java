@@ -9,6 +9,8 @@ import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
 import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,5 +34,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	@Override
 	public List<ReadProjectResponse> findMyProjects(Long currentUserId) {
 		return projectQuerydslRepository.findMyProjects(currentUserId);
+	}
+
+	@Override
+	public Project findByIdOrElseThrow(Long projectId) {
+		return projectJpaRepository.findById(projectId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
 	}
 }
