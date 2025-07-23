@@ -10,4 +10,6 @@ public interface ShareJpaRepository extends JpaRepository<Share, Long> {
 	Optional<Share> findBySurveyId(Long surveyId);
 
 	Optional<Share> findByLink(String link);
+
+	Optional<Share> findById(Long id);
 }
