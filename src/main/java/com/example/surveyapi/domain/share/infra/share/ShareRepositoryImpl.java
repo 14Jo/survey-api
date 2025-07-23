@@ -29,4 +29,9 @@ public class ShareRepositoryImpl implements ShareRepository {
 	public Share save(Share share) {
 		return shareJpaRepository.save(share);
 	}
+
+	@Override
+	public Optional<Share> findById(Long id) {
+		return shareJpaRepository.findById(id);
+	}
 }
