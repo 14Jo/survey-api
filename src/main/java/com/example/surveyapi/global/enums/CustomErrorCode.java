@@ -22,11 +22,15 @@ public enum CustomErrorCode {
 	INVALID_STATE_TRANSITION(HttpStatus.BAD_REQUEST, "PENDING -> IN_PROGRESS -> CLOSED 순서로만 변경 가능합니다."),
 	ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근이 거부되었습니다."),
 	ALREADY_REGISTERED_MANAGER(HttpStatus.CONFLICT, "이미 등록된 담당자입니다."),
+    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다"),
+
 	// 통계 에러
 	STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),
 
 	// 서버 에러
-	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다.");
+	USER_LIST_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "회원 목록이 비어 있습니다. 데이터 상태를 확인하세요."),
+	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다."),
+	;
 
 	private final HttpStatus httpStatus;
 	private final String message;
