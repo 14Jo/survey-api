@@ -1,11 +1,14 @@
 package com.example.surveyapi.domain.survey.application;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -35,6 +38,49 @@ public class SurveyService {
 		return save.getSurveyId();
 	}
 
+	//TODO 실제 업데이트 적용 컬럼 수 계산하는 쿼리 작성 필요
+	//TODO 질문 추가되면서 display_order 조절 필요
+	@Transactional
+	public String update(Long surveyId, Long userId, UpdateSurveyRequest request) {
+		Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, userId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+
+		Map<String, Object> updateFields = new HashMap<>();
+		int modifiedCount = 0;
+
+		if (request.getTitle() != null) {
+			updateFields.put("title", request.getTitle());
+			modifiedCount++;
+		}
+		if (request.getDescription() != null) {
+			updateFields.put("description", request.getDescription());
+			modifiedCount++;
+		}
+		if (request.getSurveyType() != null) {
+			updateFields.put("type", request.getSurveyType());
+			modifiedCount++;
+		}
+		if (request.getSurveyDuration() != null) {
+			updateFields.put("duration", request.getSurveyDuration());
+			modifiedCount++;
+		}
+		if (request.getSurveyOption() != null) {
+			updateFields.put("option", request.getSurveyOption());
+			modifiedCount++;
+		}
+		if (request.getQuestions() != null) {
+			updateFields.put("questions", request.getQuestions());
+		}
+
+		survey.updateFields(updateFields);
+
+		int addedQuestions = (request.getQuestions() != null) ? request.getQuestions().size() : 0;
+
+		surveyRepository.update(survey);
+
+		return String.format("수정: %d개, 질문 추가: %d개", modifiedCount, addedQuestions);
+	}
+
 	public String delete(Long surveyId, Long userId) {
 		Survey survey = changeSurveyStatus(surveyId, userId, Survey::delete);
 		surveyRepository.delete(survey);
@@ -55,7 +101,7 @@ public class SurveyService {
 		Survey survey = changeSurveyStatus(surveyId, userId, Survey::close);
 		surveyRepository.stateUpdate(survey);
 
-		return  "설문 종료";
+		return "설문 종료";
 	}
 
 	private Survey changeSurveyStatus(Long surveyId, Long userId, Consumer<Survey> statusChanger) {
