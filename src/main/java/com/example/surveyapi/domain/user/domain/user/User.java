@@ -1,5 +1,8 @@
 package com.example.surveyapi.domain.user.domain.user;
 
+import java.time.LocalDateTime;
+
+import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
@@ -56,6 +59,27 @@ public class User extends BaseEntity {
         this.grade = Grade.LV1;
     }
 
+    public User(
+        String email,
+        String password,
+        String name,
+        LocalDateTime birthDate,
+        Gender gender,
+        String province,
+        String district,
+        String detailAddress,
+        String postalCode){
+
+        User user = new User();
+
+        user.auth = new Auth(email,password);
+        user.profile = new Profile(
+            name,
+            birthDate,
+            gender,
+            new Address(province,district,detailAddress,postalCode));
+    }
+
     public static User create(SignupCommand command, PasswordEncoder passwordEncoder) {
         Address address = Address.create(command);
 
@@ -66,5 +90,27 @@ public class User extends BaseEntity {
         return new User(auth, profile);
     }
 
+
+    public static User from(String email,
+        String password,
+        String name,
+        LocalDateTime birthDate,
+        Gender gender,
+        String province,
+        String district,
+        String detailAddress,
+        String postalCode) {
+
+        return new User(
+            email,
+            password,
+            name,
+            birthDate,
+            gender,
+            province,
+            district,
+            detailAddress,
+            postalCode);
+    }
 
 }
