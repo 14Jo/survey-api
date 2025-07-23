@@ -31,8 +31,8 @@ public class ParticipationController {
 
 	@PostMapping("/surveys/{surveyId}/participations")
 	public ResponseEntity<ApiResponse<Long>> create(
-		@RequestBody @Valid CreateParticipationRequest request, @PathVariable Long surveyId) {
-		Long memberId = 1L; // TODO: 시큐리티 적용후 사용자 인증정보에서 가져오도록 수정
+		@RequestBody @Valid CreateParticipationRequest request, @PathVariable Long surveyId,
+		@AuthenticationPrincipal Long memberId) {
 		Long participationId = participationService.create(surveyId, memberId, request);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -43,10 +43,9 @@ public class ParticipationController {
 	public ResponseEntity<ApiResponse<Page<ReadParticipationPageResponse>>> getAll(
 		@AuthenticationPrincipal Long memberId,
 		@PageableDefault(size = 5, sort = "updatedAt", direction = Sort.Direction.DESC) Pageable pageable) {
-		Long sampleMemberId = 1L;
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("나의 전체 설문 참여 기록 조회에 성공하였습니다.",
-				participationService.gets(sampleMemberId, pageable)));
+				participationService.gets(memberId, pageable)));
 	}
 }
