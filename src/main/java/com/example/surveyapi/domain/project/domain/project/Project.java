@@ -156,6 +156,21 @@ public class Project extends BaseEntity {
 		return newManager;
 	}
 
+	public void updateManagerRole(Long currentUserId, Long userId, ManagerRole newRole) {
+		checkOwner(currentUserId);
+		Manager manager = findManagerByUserId(userId);
+
+		// 본인 OWNER 권한 변경 불가
+		if (Objects.equals(currentUserId, userId)) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+		if (newRole == ManagerRole.OWNER) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+
+		manager.updateRole(newRole);
+	}
+
 	private void checkOwner(Long currentUserId) {
 		if (!this.ownerId.equals(currentUserId)) {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
