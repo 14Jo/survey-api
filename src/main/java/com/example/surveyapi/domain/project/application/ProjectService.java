@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
@@ -87,6 +88,13 @@ public class ProjectService {
 		// 쓰기 지연 flush 하여 id 생성되도록 강제 flush
 		entityManager.flush(); // TODO: 다른 방법이 있는지 더 고민해보기
 		return CreateManagerResponse.from(manager.getId());
+	}
+
+	@Transactional
+	public void updateManagerRole(Long projectId, Long managerId, UpdateManagerRoleRequest request,
+		Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
 	}
 
 	private void validateDuplicateName(String name) {

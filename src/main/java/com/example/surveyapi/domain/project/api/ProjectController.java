@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.surveyapi.domain.project.application.ProjectService;
 import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
@@ -54,7 +55,7 @@ public class ProjectController {
 	}
 
 	@PutMapping("/{projectId}")
-	public ResponseEntity<ApiResponse<String>> updateProject(
+	public ResponseEntity<ApiResponse<Void>> updateProject(
 		@PathVariable Long projectId,
 		@RequestBody @Valid UpdateProjectRequest request
 	) {
@@ -63,7 +64,7 @@ public class ProjectController {
 	}
 
 	@PatchMapping("/{projectId}/state")
-	public ResponseEntity<ApiResponse<String>> updateState(
+	public ResponseEntity<ApiResponse<Void>> updateState(
 		@PathVariable Long projectId,
 		@RequestBody @Valid UpdateProjectStateRequest request
 	) {
@@ -72,7 +73,7 @@ public class ProjectController {
 	}
 
 	@PatchMapping("/{projectId}/owner")
-	public ResponseEntity<ApiResponse<String>> updateOwner(
+	public ResponseEntity<ApiResponse<Void>> updateOwner(
 		@PathVariable Long projectId,
 		@RequestBody @Valid UpdateProjectOwnerRequest request,
 		@AuthenticationPrincipal Long currentUserId
@@ -98,5 +99,16 @@ public class ProjectController {
 	) {
 		CreateManagerResponse response = projectService.createManager(projectId, request, currentUserId);
 		return ResponseEntity.ok(ApiResponse.success("협력자 추가 성공", response));
+	}
+
+	@PatchMapping("/{projectId}/managers/{managerId}/role")
+	public ResponseEntity<ApiResponse<Void>> updateManagerRole(
+		@PathVariable Long projectId,
+		@PathVariable Long managerId,
+		@RequestBody @Valid UpdateManagerRoleRequest request,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		projectService.updateManagerRole(projectId, managerId, request, currentUserId);
+		return ResponseEntity.ok(ApiResponse.success("협력자 권한 수정 성공"));
 	}
 }
