@@ -26,16 +26,39 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    // @Transactional
+    // public SignupResponse signup(SignupRequest request) {
+    //
+    //     SignupCommand command = request.toCommand();
+    //
+    //     if (userRepository.existsByEmail(command.getAuth().getEmail())) {
+    //         throw new CustomException(CustomErrorCode.EMAIL_NOT_FOUND);
+    //     }
+    //
+    //     User user = User.create(command, passwordEncoder);
+    //
+    //     User createUser = userRepository.save(user);
+    //
+    //     return SignupResponse.from(createUser);
+    // }
+
     @Transactional
     public SignupResponse signup(SignupRequest request) {
 
-        SignupCommand command = request.toCommand();
-
-        if (userRepository.existsByEmail(command.getAuth().getEmail())) {
+        if (userRepository.existsByEmail(request.getAuth().getEmail())) {
             throw new CustomException(CustomErrorCode.EMAIL_NOT_FOUND);
         }
 
-        User user = User.create(command, passwordEncoder);
+        User user = User.from(
+            request.getAuth().getEmail(),
+            request.getAuth().getPassword(),
+            request.getProfile().getName(),
+            request.getProfile().getBirthDate(),
+            request.getProfile().getGender(),
+            request.getProfile().getAddress().getProvince(),
+            request.getProfile().getAddress().getDistrict(),
+            request.getProfile().getAddress().getDetailAddress(),
+            request.getProfile().getAddress().getPostalCode());
 
         User createUser = userRepository.save(user);
 
