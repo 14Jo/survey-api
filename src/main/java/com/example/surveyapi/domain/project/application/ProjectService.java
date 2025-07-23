@@ -25,7 +25,7 @@ public class ProjectService {
 	private final ProjectRepository projectRepository;
 
 	@Transactional
-	public CreateProjectResponse create(CreateProjectRequest request, Long currentUserId) {
+	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
 		validateDuplicateName(request.getName());
 
 		Project project = Project.create(
@@ -48,7 +48,7 @@ public class ProjectService {
 	}
 
 	@Transactional
-	public void update(Long projectId, UpdateProjectRequest request) {
+	public void updateProject(Long projectId, UpdateProjectRequest request) {
 		validateDuplicateName(request.getName());
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
@@ -67,6 +67,12 @@ public class ProjectService {
 		project.updateOwner(currentUserId, request.getNewOwnerId());
 	}
 
+	@Transactional
+	public void deleteProject(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.softDelete(currentUserId);
+	}
+
 	private void validateDuplicateName(String name) {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
@@ -74,7 +80,7 @@ public class ProjectService {
 	}
 
 	private Project findByIdOrElseThrow(Long projectId) {
-		return projectRepository.findById(projectId)
+		return projectRepository.findByIdAndIsDeletedFalse(projectId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
 	}
 }
