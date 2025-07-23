@@ -1,4 +1,4 @@
-package com.example.surveyapi.config.security;
+package com.example.surveyapi.global.config.security;
 
 import org.springframework.stereotype.Component;
 

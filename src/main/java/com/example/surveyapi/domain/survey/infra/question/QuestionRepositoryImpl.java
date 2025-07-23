@@ -25,4 +25,9 @@ public class QuestionRepositoryImpl implements QuestionRepository {
 	public void saveAll(List<Question> choices) {
 		jpaRepository.saveAll(choices);
 	}
+
+	@Override
+	public List<Question> findAllBySurveyId(Long surveyId) {
+		return jpaRepository.findBySurveyId(surveyId);
+	}
 }
