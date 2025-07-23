@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
@@ -58,6 +59,12 @@ public class ProjectService {
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = projectRepository.findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
+	}
+
+	@Transactional
+	public void updateOwner(Long projectId, UpdateProjectOwnerRequest request, Long currentUserId) {
+		Project project = projectRepository.findByIdOrElseThrow(projectId);
+		project.updateOwner(currentUserId, request.getNewOwnerId());
 	}
 
 	private void validateDuplicateName(String name) {

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectService;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
@@ -65,5 +66,15 @@ public class ProjectController {
 	) {
 		projectService.updateState(projectId, request);
 		return ResponseEntity.ok(ApiResponse.success("프로젝트 상태 변경 성공", null));
+	}
+
+	@PatchMapping("/{projectId}/owner")
+	public ResponseEntity<ApiResponse<String>> updateOwner(
+		@PathVariable Long projectId,
+		@RequestBody @Valid UpdateProjectOwnerRequest request,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		projectService.updateOwner(projectId, request, currentUserId);
+		return ResponseEntity.ok(ApiResponse.success("프로젝트 소유자 위임 성공", null));
 	}
 }
