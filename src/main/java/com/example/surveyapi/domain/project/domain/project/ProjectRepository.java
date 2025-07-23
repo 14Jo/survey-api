@@ -11,4 +11,6 @@ public interface ProjectRepository {
 	boolean existsByNameAndIsDeletedFalse(String name);
 
 	List<ReadProjectResponse> findMyProjects(Long currentUserId);
+
+	Project findByIdOrElseThrow(Long projectId);
 }
