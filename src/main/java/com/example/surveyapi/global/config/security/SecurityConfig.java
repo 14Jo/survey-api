@@ -1,4 +1,4 @@
-package com.example.surveyapi.config.security;
+package com.example.surveyapi.global.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,8 +9,8 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import com.example.surveyapi.config.jwt.JwtFilter;
-import com.example.surveyapi.config.jwt.JwtUtil;
+import com.example.surveyapi.global.config.jwt.JwtFilter;
+import com.example.surveyapi.global.config.jwt.JwtUtil;
 
 import lombok.RequiredArgsConstructor;
 
@@ -28,7 +28,7 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/users/signup", "/api/v1/users/login").permitAll()
+                .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll()
                 .requestMatchers("/api/v1/survey/**").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
