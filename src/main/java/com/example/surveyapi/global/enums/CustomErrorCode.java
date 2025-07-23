@@ -35,5 +35,4 @@ public enum CustomErrorCode {
 		this.httpStatus = httpStatus;
 		this.message = message;
 	}
-
 }

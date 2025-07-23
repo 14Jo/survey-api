@@ -41,7 +41,7 @@ public class Survey extends BaseEntity {
 	@Column(name = "survey_id")
 	private Long surveyId;
 
-	@Column(name = "projecy_id", nullable = false)
+	@Column(name = "project_id", nullable = false)
 	private Long projectId;
 	@Column(name = "creator_id", nullable = false)
 	private Long creatorId;
