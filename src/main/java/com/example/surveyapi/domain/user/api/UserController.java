@@ -14,6 +14,7 @@ import com.example.surveyapi.domain.user.application.dtos.response.SignupRespons
 import com.example.surveyapi.domain.user.application.service.UserService;
 import com.example.surveyapi.global.util.ApiResponse;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -25,7 +26,7 @@ public class UserController {
 
     @PostMapping("/auth/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
-        @RequestBody SignupRequest request) {
+        @Valid @RequestBody SignupRequest request) {
 
 
         SignupResponse signup = userService.signup(request);
@@ -37,7 +38,7 @@ public class UserController {
 
     @PostMapping("/auth/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
-        @RequestBody LoginRequest request) {
+        @Valid @RequestBody LoginRequest request) {
 
         LoginResponse login = userService.login(request);
 
