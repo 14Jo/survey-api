@@ -8,6 +8,7 @@ import java.util.Objects;
 import org.springframework.util.StringUtils;
 
 import com.example.surveyapi.domain.project.domain.manager.Manager;
+import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -102,7 +103,7 @@ public class Project extends BaseEntity {
 			this.period = ProjectPeriod.toPeriod(LocalDateTime.now(), this.period.getPeriodEnd());
 		}
 		// IN_PROGRESS -> CLOSED만 허용 periodEnd를 now로 세팅
-		else if (this.state == ProjectState.IN_PROGRESS) {
+		if (this.state == ProjectState.IN_PROGRESS) {
 			if (newState != ProjectState.CLOSED) {
 				throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
 			}
@@ -110,5 +111,25 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
+	}
+
+	public void updateOwner(Long currentUserId, Long newOwnerId) {
+		if (!this.ownerId.equals(currentUserId)) {
+			throw new CustomException(CustomErrorCode.OWNER_ONLY);
+		}
+		// 소유자 위임
+		Manager newOwner = findManagerByUserId(newOwnerId);
+		newOwner.updateRole(ManagerRole.OWNER);
+
+		// 기존 소유자는 READ 권한으로 변경
+		Manager previousOwner = findManagerByUserId(this.ownerId);
+		previousOwner.updateRole(ManagerRole.READ);
+	}
+
+	public Manager findManagerByUserId(Long userId) {
+		return this.managers.stream()
+			.filter(manager -> manager.getUserId().equals(userId))
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 }
