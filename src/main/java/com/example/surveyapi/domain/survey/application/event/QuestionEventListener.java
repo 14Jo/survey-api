@@ -30,4 +30,4 @@ public class QuestionEventListener {
 			log.error("질문 생성 실패 - message : {}", e.getMessage());
 		}
 	}
-} 
+}
