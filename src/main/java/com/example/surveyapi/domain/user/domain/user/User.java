@@ -2,6 +2,9 @@ package com.example.surveyapi.domain.user.domain.user;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
@@ -36,12 +39,12 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "auth", nullable = false)
-    @Embedded
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "auth", nullable = false, columnDefinition = "jsonb")
     private Auth auth;
 
-    @Column(name = "profile", nullable = false)
-    @Embedded
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "profile", nullable = false, columnDefinition = "jsonb")
     private Profile profile;
 
     @Column(name = "role", nullable = false)
@@ -70,14 +73,17 @@ public class User extends BaseEntity {
         String detailAddress,
         String postalCode){
 
-        User user = new User();
 
-        user.auth = new Auth(email,password);
-        user.profile = new Profile(
+
+        this.auth = new Auth(email,password);
+        this.profile = new Profile(
             name,
             birthDate,
             gender,
             new Address(province,district,detailAddress,postalCode));
+
+        this.role = Role.USER;
+        this.grade = Grade.LV1;
     }
 
     public static User create(SignupCommand command, PasswordEncoder passwordEncoder) {
