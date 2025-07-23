@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.survey.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -54,5 +55,15 @@ public class SurveyController {
 		String result = surveyService.close(surveyId, userId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 종료 성공", result));
+	}
+
+	@DeleteMapping("/{surveyId}/delete")
+	public ResponseEntity<ApiResponse<String>> delete(
+		@PathVariable Long surveyId
+	) {
+		Long userId = 1L;
+		String result = surveyService.delete(surveyId, userId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", result));
 	}
 }
