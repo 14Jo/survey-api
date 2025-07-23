@@ -12,20 +12,22 @@ import com.example.surveyapi.domain.user.application.dtos.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dtos.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.service.UserService;
+import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @PostMapping("/signup")
+    @PostMapping("/auth/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
         @RequestBody SignupRequest request) {
+
 
         SignupResponse signup = userService.signup(request);
 
@@ -34,7 +36,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(success);
     }
 
-    @PostMapping("/login")
+    @PostMapping("/auth/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
         @RequestBody LoginRequest request) {
 
