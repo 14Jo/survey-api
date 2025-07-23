@@ -26,6 +26,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
+    // Todo Command로 변경될 경우 사용할 메서드
     // @Transactional
     // public SignupResponse signup(SignupRequest request) {
     //
