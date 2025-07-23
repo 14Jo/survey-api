@@ -23,7 +23,7 @@ public enum CustomErrorCode {
 	ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근이 거부되었습니다."),
 	ALREADY_REGISTERED_MANAGER(HttpStatus.CONFLICT, "이미 등록된 담당자입니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다"),
-	CANNOT_CHANGE_OWNER_ROLE(HttpStatus.BAD_REQUEST, "OWNER 권한으로 직접 변경할 수 없습니다. 소유자 위임 API를 사용해 주세요."),
+	CANNOT_CHANGE_OWNER_ROLE(HttpStatus.BAD_REQUEST, "OWNER는(로) 변경할 수 없습니다"),
 
 	// 통계 에러
 	STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),
