@@ -1,12 +1,20 @@
 package com.example.surveyapi.domain.participation.application;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.request.ResponseData;
+import com.example.surveyapi.domain.participation.application.dto.request.SurveyInfoOfParticipation;
+import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
@@ -42,6 +50,36 @@ public class ParticipationService {
 		//TODO: 설문의 중복 참여는 어디서 검증해야하는지 확인
 
 		return savedParticipation.getId();
+	}
+
+	@Transactional(readOnly = true)
+	public Page<ReadParticipationPageResponse> gets(Long memberId, Pageable pageable) {
+		Page<Participation> participations = participationRepository.findAll(memberId, pageable);
+
+		List<Long> surveyIds = participations.get().map(Participation::getSurveyId).distinct().toList();
+
+		// TODO: List<Long> surveyIds를 매개변수로 id, 설문 제목, 설문 기한, 설문 상태(진행중인지 종료인지), 수정이 가능한 설문인지 요청
+		List<SurveyInfoOfParticipation> surveyInfoOfParticipations = new ArrayList<>();
+
+		// 더미데이터 생성
+		for (Long surveyId : surveyIds) {
+			surveyInfoOfParticipations.add(
+				new SurveyInfoOfParticipation(surveyId, "설문 제목" + surveyId, "진행 중", LocalDate.now().plusWeeks(1),
+					true));
+		}
+
+		Map<Long, SurveyInfoOfParticipation> surveyInfoMap = surveyInfoOfParticipations.stream()
+			.collect(Collectors.toMap(
+				SurveyInfoOfParticipation::getSurveyId,
+				surveyInfo -> surveyInfo
+			));
+
+		// TODO: stream 한번만 사용하여서 map 수정
+		return participations.map(p -> {
+			SurveyInfoOfParticipation surveyInfo = surveyInfoMap.get(p.getSurveyId());
+
+			return ReadParticipationPageResponse.of(p, surveyInfo);
+		});
 	}
 }
 

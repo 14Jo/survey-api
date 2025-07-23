@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.participation.infra;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
@@ -17,5 +19,10 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 	@Override
 	public Participation save(Participation participation) {
 		return jpaParticipationRepository.save(participation);
+	}
+
+	@Override
+	public Page<Participation> findAll(Long memberId, Pageable pageable) {
+		return jpaParticipationRepository.findAllByMemberIdAndIsDeleted(memberId, false, pageable);
 	}
 }
