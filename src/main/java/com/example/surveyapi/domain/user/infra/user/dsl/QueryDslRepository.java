@@ -28,7 +28,11 @@ public class QueryDslRepository {
 
     public Page<UserResponse> gets(Pageable pageable) {
 
-        Long total = queryFactory.selectFrom(user).fetchCount();
+        Long total = queryFactory.
+            select(user.count())
+            .from(user)
+            .where(user.isDeleted.eq(false))
+            .fetchOne();
 
         long totalCount = total != null ? total : 0L;
 
@@ -58,6 +62,7 @@ public class QueryDslRepository {
                 )
             ))
             .from(user)
+            .where(user.isDeleted.eq(false))
             .orderBy(user.createdAt.desc())
             .offset(pageable.getOffset())
             .limit(pageable.getPageSize())

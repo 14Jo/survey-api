@@ -43,7 +43,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findById(Long memberId) {
-        return userJpaRepository.findById(memberId);
+    public Optional<User> findByIdAndIsDeletedFalse(Long memberId) {
+        return userJpaRepository.findByIdAndIsDeletedFalse(memberId);
     }
 }
