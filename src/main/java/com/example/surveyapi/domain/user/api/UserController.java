@@ -12,7 +12,6 @@ import com.example.surveyapi.domain.user.application.dtos.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dtos.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.service.UserService;
-import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
