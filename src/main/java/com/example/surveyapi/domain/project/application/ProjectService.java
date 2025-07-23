@@ -50,20 +50,20 @@ public class ProjectService {
 	@Transactional
 	public void update(Long projectId, UpdateProjectRequest request) {
 		validateDuplicateName(request.getName());
-		Project project = projectRepository.findByIdOrElseThrow(projectId);
+		Project project = findByIdOrElseThrow(projectId);
 		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
 			request.getPeriodEnd());
 	}
 
 	@Transactional
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
-		Project project = projectRepository.findByIdOrElseThrow(projectId);
+		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
 	}
 
 	@Transactional
 	public void updateOwner(Long projectId, UpdateProjectOwnerRequest request, Long currentUserId) {
-		Project project = projectRepository.findByIdOrElseThrow(projectId);
+		Project project = findByIdOrElseThrow(projectId);
 		project.updateOwner(currentUserId, request.getNewOwnerId());
 	}
 
@@ -71,5 +71,10 @@ public class ProjectService {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
 		}
+	}
+
+	private Project findByIdOrElseThrow(Long projectId) {
+		return projectRepository.findById(projectId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
 	}
 }
