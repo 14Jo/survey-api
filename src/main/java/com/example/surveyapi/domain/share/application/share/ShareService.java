@@ -1,10 +1,10 @@
-package com.example.surveyapi.domain.share.application;
+package com.example.surveyapi.domain.share.application.share;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.share.application.dto.ShareResponse;
+import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.share.event.ShareCreateEvent;

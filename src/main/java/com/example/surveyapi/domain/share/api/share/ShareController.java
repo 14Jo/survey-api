@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.share.api.controller;
+package com.example.surveyapi.domain.share.api.share;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,9 +7,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.surveyapi.domain.share.application.ShareService;
-import com.example.surveyapi.domain.share.application.dto.CreateShareRequest;
-import com.example.surveyapi.domain.share.application.dto.ShareResponse;
+import com.example.surveyapi.domain.share.application.share.ShareService;
+import com.example.surveyapi.domain.share.application.share.dto.CreateShareRequest;
+import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
