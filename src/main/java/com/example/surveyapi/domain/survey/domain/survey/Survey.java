@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.survey.domain.survey;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -11,6 +12,7 @@ import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyDeletedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.SurveyUpdatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
@@ -64,10 +66,13 @@ public class Survey extends BaseEntity {
 	@Column(name = "survey_duration", nullable = false, columnDefinition = "jsonb")
 	private SurveyDuration duration;
 
+	//TODO 필드 하나로 이벤트 관리할 수 있을까?
 	@Transient
-	private Optional<SurveyCreatedEvent> createdEvent;
+	private Optional<SurveyCreatedEvent> createdEvent = Optional.empty();
 	@Transient
-	private Optional<SurveyDeletedEvent> deletedEvent;
+	private Optional<SurveyDeletedEvent> deletedEvent = Optional.empty();
+	@Transient
+	private Optional<SurveyUpdatedEvent> updatedEvent = Optional.empty();
 
 	public static Survey create(
 		Long projectId,
@@ -111,6 +116,19 @@ public class Survey extends BaseEntity {
 		});
 	}
 
+	public void updateFields(Map<String, Object> fields) {
+		fields.forEach((key, value) -> {
+			switch (key) {
+				case "title" -> this.title = (String)value;
+				case "description" -> this.description = (String)value;
+				case "type" -> this.type = (SurveyType)value;
+				case "duration" -> this.duration = (SurveyDuration)value;
+				case "option" -> this.option = (SurveyOption)value;
+				case "questions" -> registerUpdatedEvent((List<QuestionInfo>)value);
+			}
+		});
+	}
+
 	public SurveyCreatedEvent getCreatedEvent() {
 		SurveyCreatedEvent surveyCreatedEvent = validEvent(this.createdEvent);
 
@@ -141,6 +159,21 @@ public class Survey extends BaseEntity {
 
 	public void clearDeletedEvent() {
 		this.deletedEvent = Optional.empty();
+	}
+
+	public SurveyUpdatedEvent getUpdatedEvent() {
+		if (this.updatedEvent.isPresent()) {
+			return validEvent(this.updatedEvent);
+		}
+		return null;
+	}
+
+	public void registerUpdatedEvent(List<QuestionInfo> questions) {
+		this.updatedEvent = Optional.of(new SurveyUpdatedEvent(this.surveyId, questions));
+	}
+
+	public void clearUpdatedEvent() {
+		this.updatedEvent = Optional.empty();
 	}
 
 	public void open() {
