@@ -27,6 +27,6 @@ public class ShareService {
 
 		eventPublisher.publishEvent(new ShareCreateEvent(saved.getId(), saved.getSurveyId()));
 
-		return ShareResponse.from(saved);
+		return new ShareResponse(saved);
 	}
 }

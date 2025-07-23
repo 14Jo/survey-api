@@ -16,32 +16,12 @@ public class ShareResponse {
 	private final LocalDateTime createdAt;
 	private final LocalDateTime updatedAt;
 
-	private ShareResponse(
-		Long id,
-		Long surveyId,
-		ShareMethod shareMethod,
-		String shareLink,
-		LocalDateTime createdAt,
-		LocalDateTime updatedAt
-	) {
-		this.id = id;
-		this.surveyId = surveyId;
-		this.shareMethod = shareMethod;
-		this.shareLink = shareLink;
-		this.createdAt = createdAt;
-		this.updatedAt = updatedAt;
-	}
-
-	public static ShareResponse from(Share share) {
-		ShareResponse result = new ShareResponse(
-			share.getId(),
-			share.getSurveyId(),
-			share.getShareMethod(),
-			share.getLink(),
-			share.getCreatedAt(),
-			share.getUpdatedAt()
-		);
-
-		return result;
+	public ShareResponse(Share share) {
+		this.id = share.getId();
+		this.surveyId = share.getSurveyId();
+		this.shareMethod = share.getShareMethod();
+		this.shareLink = share.getLink();
+		this.createdAt = share.getCreatedAt();
+		this.updatedAt = share.getUpdatedAt();
 	}
 }
