@@ -10,6 +10,7 @@ import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
+import com.example.surveyapi.global.model.BaseEntity;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,5 +42,11 @@ public class QuestionService {
 		questionRepository.saveAll(questionList);
 		long endTime = System.currentTimeMillis();
 		log.info("질문 생성 시간 - 총 {} ms", endTime - startTime);
+	}
+
+	@Transactional
+	public void delete(Long surveyId) {
+		List<Question> questionList = questionRepository.findAllBySurveyId(surveyId);
+		questionList.forEach(BaseEntity::delete);
 	}
 }
