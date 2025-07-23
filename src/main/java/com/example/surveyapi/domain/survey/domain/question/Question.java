@@ -2,12 +2,14 @@ package com.example.surveyapi.domain.survey.domain.question;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
+import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.*;
@@ -50,7 +52,7 @@ public class Question extends BaseEntity {
 		QuestionType type,
 		int displayOrder,
 		boolean isRequired,
-		List<Choice> choices
+		List<ChoiceInfo> choices
 	) {
 		Question question = new Question();
 
@@ -59,7 +61,8 @@ public class Question extends BaseEntity {
 		question.type = type;
 		question.displayOrder = displayOrder;
 		question.isRequired = isRequired;
-		question.choices = choices;
+		question.choices = choices.stream().map(
+			choice -> new Choice(choice.getContent(), choice.getDisplayOrder())).toList();
 
 		return question;
 	}

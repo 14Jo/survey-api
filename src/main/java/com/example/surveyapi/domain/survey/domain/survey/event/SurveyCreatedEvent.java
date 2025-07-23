@@ -2,17 +2,19 @@ package com.example.surveyapi.domain.survey.domain.survey.event;
 
 import java.util.List;
 
-import com.example.surveyapi.domain.survey.application.request.CreateQuestionRequest;
+import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionCreationInfo;
 
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
 public class SurveyCreatedEvent {
 
-	private final Long surveyId;
-	private final List<CreateQuestionRequest> questions;
+	@Setter
+	private Long surveyId;
+	private final List<QuestionCreationInfo> questions;
 
-	public SurveyCreatedEvent(Long surveyId, List<CreateQuestionRequest> questions) {
+	public SurveyCreatedEvent(Long surveyId, List<QuestionCreationInfo> questions) {
 		this.surveyId = surveyId;
 		this.questions = questions;
 	}
