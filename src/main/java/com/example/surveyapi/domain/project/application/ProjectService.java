@@ -1,15 +1,15 @@
 package com.example.surveyapi.domain.project.application;
 
-import static com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod.*;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
 import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
-import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -22,22 +22,26 @@ public class ProjectService {
 	private final ProjectRepository projectRepository;
 
 	@Transactional
-	public CreateProjectResponse create(CreateProjectRequest request, Long currentMemberId) {
+	public CreateProjectResponse create(CreateProjectRequest request, Long currentUserId) {
 		validateDuplicateName(request.getName());
-		ProjectPeriod period = toPeriod(request.getPeriodStart(), request.getPeriodEnd());
 
 		Project project = Project.create(
 			request.getName(),
 			request.getDescription(),
-			currentMemberId,
-			period
+			currentUserId,
+			request.getPeriodStart(),
+			request.getPeriodEnd()
 		);
-		project.addOwnerManager(currentMemberId);
 		projectRepository.save(project);
 
 		// TODO: 이벤트 발행
 
-		return CreateProjectResponse.toDto(project.getId());
+		return CreateProjectResponse.from(project.getId());
+	}
+
+	@Transactional(readOnly = true)
+	public List<ReadProjectResponse> getMyProjects(Long currentUserId) {
+		return projectRepository.findMyProjects(currentUserId);
 	}
 
 	private void validateDuplicateName(String name) {
