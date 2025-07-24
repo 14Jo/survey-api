@@ -13,12 +13,15 @@ import com.example.surveyapi.domain.user.domain.user.enums.Role;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SecurityException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 public class JwtUtil {
 
@@ -45,21 +48,25 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String validateToken(String token) {
+    public boolean validateToken(String token) {
         try{
             Jwts.parser()
                 .verifyWith(secretKey)
                 .build()
                 .parseSignedClaims(token);
-            return null;
+            return true;
         }catch (SecurityException | MalformedJwtException e) {
-            return "유효하지 않은 JWT 서명입니다";
+            log.warn("Invalid JWT token: {}", e.getMessage());
+            throw new JwtException("잘못된 형식의 토큰입니다");
         }catch (ExpiredJwtException e) {
-            return "만료된 JWT 토큰입니다.";
+            log.warn("Expired JWT token: {}", e.getMessage());
+            throw new JwtException("만료된 토큰입니다");
         } catch (UnsupportedJwtException e) {
-            return "지원되지 않는 JWT 토큰입니다.";
+            log.warn("Unsupported JWT token: {}", e.getMessage());
+            throw new JwtException("지원하지 않는 토큰입니다");
         } catch (IllegalArgumentException e) {
-            return "잘못된 JWT 토큰입니다.";
+            log.warn("JWT claims string is empty: {}", e.getMessage());
+            throw new JwtException("토큰 정보가 비어있습니다");
         }
     }
 
