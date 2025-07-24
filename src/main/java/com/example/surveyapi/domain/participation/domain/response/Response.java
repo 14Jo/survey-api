@@ -50,4 +50,8 @@ public class Response {
 
 		return response;
 	}
+
+	public void updateAnswer(Map<String, Object> newAnswer) {
+		this.answer = newAnswer;
+	}
 }
