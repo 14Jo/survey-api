@@ -56,54 +56,6 @@ class SurveyServiceTest {
     }
 
     @Test
-    @DisplayName("질문 displayOrder 중복/비연속 자동정렬")
-    void createSurvey_questionOrderAdjust() {
-        // given
-        CreateSurveyRequest request = new CreateSurveyRequest();
-        ReflectionTestUtils.setField(request, "title", "설문 제목");
-        ReflectionTestUtils.setField(request, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(request, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(request, "surveyOption", new SurveyOption(true, true));
-        ReflectionTestUtils.setField(request, "questions", List.of(
-                new QuestionInfo("Q1", QuestionType.SHORT_ANSWER, true, 2, List.of()),
-                new QuestionInfo("Q2", QuestionType.SHORT_ANSWER, true, 2, List.of()),
-                new QuestionInfo("Q3", QuestionType.SHORT_ANSWER, true, 5, List.of())
-        ));
-
-        // when
-        Long surveyId = surveyService.create(1L, 1L, request);
-
-        // then
-        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
-        assertThat(survey.getTitle()).isEqualTo("설문 제목");
-    }
-
-    @Test
-    @DisplayName("선택지 displayOrder 중복/비연속 자동정렬")
-    void createSurvey_choiceOrderAdjust() {
-        // given
-        CreateSurveyRequest request = new CreateSurveyRequest();
-        ReflectionTestUtils.setField(request, "title", "설문 제목");
-        ReflectionTestUtils.setField(request, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(request, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(request, "surveyOption", new SurveyOption(true, true));
-        ReflectionTestUtils.setField(request, "questions", List.of(
-                new QuestionInfo("Q1", QuestionType.MULTIPLE_CHOICE, true, 1, List.of(
-                        new ChoiceInfo("A", 1),
-                        new ChoiceInfo("B", 1),
-                        new ChoiceInfo("C", 3)
-                ))
-        ));
-
-        // when
-        Long surveyId = surveyService.create(1L, 1L, request);
-
-        // then
-        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
-        assertThat(survey.getTitle()).isEqualTo("설문 제목");
-    }
-
-    @Test
     @DisplayName("설문 수정 - 제목, 설명만 변경")
     void updateSurvey_titleAndDescription() {
         // given

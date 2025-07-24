@@ -33,7 +33,7 @@ class QuestionServiceTest {
     QuestionRepository questionRepository;
 
     @Test
-    @DisplayName("질문 displayOrder 중복/비연속 자동정렬 - 중복 없이 저장 검증")
+    @DisplayName("질문 displayOrder 중복/비연속 삽입 - 중복 없이 저장 검증")
     void createSurvey_questionOrderAdjust() throws Exception {
         // given
         List<QuestionInfo> inputQuestions = List.of(
@@ -61,7 +61,7 @@ class QuestionServiceTest {
     }
 
     @Test
-    @DisplayName("선택지 displayOrder 중복/비연속 자동정렬 - 중복 없이 저장 검증")
+    @DisplayName("선택지 displayOrder 중복/비연속 삽입 - 중복 없이 저장 검증")
     void createSurvey_choiceOrderAdjust() throws Exception {
         // given
         List<ChoiceInfo> choices = List.of(
