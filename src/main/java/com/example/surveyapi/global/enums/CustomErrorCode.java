@@ -28,6 +28,10 @@ public enum CustomErrorCode {
 	// 통계 에러
 	STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),
 
+	// 참여 에러
+	NOT_FOUND_PARTICIPATION(HttpStatus.NOT_FOUND, "참여 응답이 존재하지 않습니다."),
+	ACCESS_DENIED_PARTICIPATION_VIEW(HttpStatus.FORBIDDEN, "본인의 참여 기록만 조회할 수 있습니다."),
+
 	// 서버 에러
 	USER_LIST_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "회원 목록이 비어 있습니다. 데이터 상태를 확인하세요."),
 	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다."),
@@ -43,4 +47,5 @@ public enum CustomErrorCode {
 		this.httpStatus = httpStatus;
 		this.message = message;
 	}
+
 }
