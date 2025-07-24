@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.example.surveyapi.domain.survey.application.SurveyService;
@@ -172,7 +172,7 @@ class SurveyControllerTest {
 			""";
 
 		// when & then
-		mockMvc.perform(post(createUri)
+		mockMvc.perform(put("/api/v1/survey/1/update")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isBadRequest());
