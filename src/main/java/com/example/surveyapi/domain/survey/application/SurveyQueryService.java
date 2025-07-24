@@ -20,6 +20,7 @@ public class SurveyQueryService {
 
 	private final QueryRepository surveyQueryRepository;
 
+	//TODO 질문(선택지) 표시 순서 정렬 쿼리 작성
 	@Transactional(readOnly = true)
 	public SearchSurveyDtailResponse findSurveyDetailById(Long surveyId) {
 		SurveyDetail surveyDetail = surveyQueryRepository.getSurveyDetail(surveyId)

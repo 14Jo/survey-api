@@ -1,9 +1,10 @@
-package com.example.surveyapi.domain.user.application.dtos.response;
+package com.example.surveyapi.domain.user.application.dtos.response.select;
 
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 
+import com.example.surveyapi.domain.user.application.dtos.response.UserResponse;
 import com.example.surveyapi.global.util.PageInfo;
 
 import lombok.AllArgsConstructor;
