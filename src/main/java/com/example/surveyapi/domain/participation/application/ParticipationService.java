@@ -122,11 +122,6 @@ public class ParticipationService {
 
 		participation.validateOwner(loginMemberId);
 
-		List<ReadParticipationResponse.AnswerDetail> answerDetails = participation.getResponses()
-			.stream()
-			.map(r -> new ReadParticipationResponse.AnswerDetail(r.getQuestionId(), r.getAnswer()))
-			.toList();
-
-		return new ReadParticipationResponse(participationId, answerDetails);
+		return ReadParticipationResponse.from(participation);
 	}
 }
