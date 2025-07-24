@@ -1,23 +1,27 @@
 package com.example.surveyapi.domain.user.application.service;
 
+import static com.example.surveyapi.domain.user.application.dtos.request.vo.update.UpdateData.*;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.user.application.dtos.request.SignupRequest;
-import com.example.surveyapi.domain.user.application.dtos.response.GradeResponse;
+import com.example.surveyapi.domain.user.application.dtos.request.auth.SignupRequest;
+import com.example.surveyapi.domain.user.application.dtos.request.UpdateRequest;
+import com.example.surveyapi.domain.user.application.dtos.request.auth.WithdrawRequest;
+import com.example.surveyapi.domain.user.application.dtos.request.vo.update.UpdateData;
+import com.example.surveyapi.domain.user.application.dtos.response.select.GradeResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.UserResponse;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
-import com.example.surveyapi.domain.user.application.dtos.request.LoginRequest;
-import com.example.surveyapi.domain.user.application.dtos.response.LoginResponse;
-import com.example.surveyapi.domain.user.application.dtos.response.MemberResponse;
-import com.example.surveyapi.domain.user.application.dtos.response.SignupResponse;
-import com.example.surveyapi.domain.user.application.dtos.response.UserListResponse;
+import com.example.surveyapi.domain.user.application.dtos.request.auth.LoginRequest;
+import com.example.surveyapi.domain.user.application.dtos.response.auth.LoginResponse;
+import com.example.surveyapi.domain.user.application.dtos.response.auth.MemberResponse;
+import com.example.surveyapi.domain.user.application.dtos.response.auth.SignupResponse;
+import com.example.surveyapi.domain.user.application.dtos.response.select.UserListResponse;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -30,23 +34,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
-
-    // Todo Command로 변경될 경우 사용할 메서드
-    // @Transactional
-    // public SignupResponse signup(SignupRequest request) {
-    //
-    //     SignupCommand command = request.toCommand();
-    //
-    //     if (userRepository.existsByEmail(command.getAuth().getEmail())) {
-    //         throw new CustomException(CustomErrorCode.EMAIL_NOT_FOUND);
-    //     }
-    //
-    //     User user = User.create(command, passwordEncoder);
-    //
-    //     User createUser = userRepository.save(user);
-    //
-    //     return SignupResponse.from(createUser);
-    // }
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -100,6 +87,7 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public UserResponse getUser(Long memberId) {
+
         User user = userRepository.findByIdAndIsDeletedFalse(memberId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
@@ -108,10 +96,40 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public GradeResponse getGrade(Long userId) {
+
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         return GradeResponse.from(user);
     }
 
+    @Transactional
+    public UserResponse update(UpdateRequest request, Long userId){
+
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        UpdateData data = extractUpdateData(request);
+
+        user.update(
+            data.getPassword(),data.getName(),
+            data.getProvince(),data.getDistrict(),
+            data.getDetailAddress(),data.getPostalCode());
+
+        return UserResponse.from(user);
+    }
+
+
+    @Transactional
+    public void withdraw(Long userId, WithdrawRequest request) {
+
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getAuth().getPassword())) {
+            throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
+        }
+
+        user.delete();
+    }
 }
