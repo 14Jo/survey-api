@@ -39,7 +39,6 @@ public class SurveyService {
 	}
 
 	//TODO 실제 업데이트 적용 컬럼 수 계산하는 쿼리 작성 필요
-	//TODO 질문 추가되면서 display_order 조절 필요
 	@Transactional
 	public String update(Long surveyId, Long userId, UpdateSurveyRequest request) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, userId)
