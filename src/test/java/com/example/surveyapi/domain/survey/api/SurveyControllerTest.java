@@ -22,6 +22,8 @@ class SurveyControllerTest {
 	@Autowired
 	MockMvc mockMvc;
 
+	private final String createUri = "/api/v1/survey/1/create";
+
 	@Test
 	@DisplayName("설문 생성 API - 정상 케이스")
 	void createSurvey_success() throws Exception {
@@ -40,7 +42,7 @@ class SurveyControllerTest {
 			""";
 
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isCreated())
@@ -61,7 +63,7 @@ class SurveyControllerTest {
 			}
 			""";
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isBadRequest());
@@ -82,7 +84,7 @@ class SurveyControllerTest {
 			}
 			""";
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isBadRequest());
@@ -103,7 +105,7 @@ class SurveyControllerTest {
 			}
 			""";
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isBadRequest());
@@ -128,7 +130,7 @@ class SurveyControllerTest {
 			}
 			""";
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isCreated())
@@ -151,7 +153,7 @@ class SurveyControllerTest {
 			}
 			""";
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isBadRequest());
@@ -177,7 +179,7 @@ class SurveyControllerTest {
 			}
 			""";
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isCreated())
@@ -201,7 +203,7 @@ class SurveyControllerTest {
 			}
 			""";
 		// when & then
-		mockMvc.perform(post("/api/v1/survey/1/create")
+		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
 			.andExpect(status().isBadRequest());
