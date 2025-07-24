@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.survey.domain.question;
 
+import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,9 +26,9 @@ class QuestionOrderServiceTest {
     void adjustDisplayOrder_firstInsert() {
         // given
         List<QuestionInfo> input = List.of(
-                new QuestionInfo("Q1", null, true, 2, List.of()),
-                new QuestionInfo("Q2", null, true, 3, List.of()),
-                new QuestionInfo("Q3", null, true, 3, List.of())
+                new QuestionInfo("Q1", QuestionType.LONG_ANSWER, true, 2, List.of()),
+                new QuestionInfo("Q2", QuestionType.SHORT_ANSWER, true, 3, List.of()),
+                new QuestionInfo("Q3", QuestionType.SHORT_ANSWER, true, 3, List.of())
         );
         
         // when
