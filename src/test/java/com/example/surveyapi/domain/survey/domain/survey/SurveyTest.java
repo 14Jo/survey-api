@@ -1,6 +1,5 @@
-package com.example.surveyapi.domain.survey.domain;
+package com.example.surveyapi.domain.survey.domain.survey;
 
-import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
