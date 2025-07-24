@@ -8,6 +8,7 @@ import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -32,6 +33,7 @@ public class CreateSurveyRequest {
 	@NotNull
 	private SurveyOption surveyOption;
 
+	@Valid
 	private List<QuestionInfo> questions;
 
 	@AssertTrue(message = "시작 일과 종료를 입력 해야 합니다.")

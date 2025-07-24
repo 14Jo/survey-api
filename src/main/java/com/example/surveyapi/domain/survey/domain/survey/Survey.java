@@ -86,16 +86,21 @@ public class Survey extends BaseEntity {
 	) {
 		Survey survey = new Survey();
 
-		survey.projectId = projectId;
-		survey.creatorId = creatorId;
-		survey.title = title;
-		survey.description = description;
-		survey.type = type;
-		survey.status = decideStatus(duration.getStartDate());
-		survey.duration = duration;
-		survey.option = option;
+		try {
+			survey.projectId = projectId;
+			survey.creatorId = creatorId;
+			survey.title = title;
+			survey.description = description;
+			survey.type = type;
+			survey.status = decideStatus(duration.getStartDate());
+			survey.duration = duration;
+			survey.option = option;
 
-		survey.createdEvent = Optional.of(new SurveyCreatedEvent(questions));
+			survey.createdEvent = Optional.of(new SurveyCreatedEvent(questions));
+		} catch (NullPointerException ex) {
+			log.error(ex.getMessage(), ex);
+			throw new CustomException(CustomErrorCode.SERVER_ERROR);
+		}
 
 		return survey;
 	}
