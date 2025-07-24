@@ -30,7 +30,7 @@ class SurveyTest {
                 1L, 1L, "title", "desc", SurveyType.VOTE,
                 new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
                 new SurveyOption(true, true),
-                List.of() // questions
+                List.of()
         );
         
         // then
@@ -47,7 +47,7 @@ class SurveyTest {
         assertThatThrownBy(() -> Survey.create(
                 null, null, null,
             null, null, null, null, null
-        )).isInstanceOf(CustomException.class); // 실제 예외 타입에 맞게 수정
+        )).isInstanceOf(CustomException.class);
     }
 
     @Test

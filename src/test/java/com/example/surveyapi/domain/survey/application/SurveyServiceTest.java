@@ -1,6 +1,8 @@
 package com.example.surveyapi.domain.survey.application;
 
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
@@ -48,7 +50,7 @@ class SurveyServiceTest {
         Long surveyId = surveyService.create(1L, 1L, request);
 
         // then
-        var survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
+        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
         assertThat(survey.getTitle()).isEqualTo("설문 제목");
         assertThat(survey.getType()).isEqualTo(SurveyType.VOTE);
     }
@@ -72,7 +74,7 @@ class SurveyServiceTest {
         Long surveyId = surveyService.create(1L, 1L, request);
 
         // then
-        var survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
+        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
         assertThat(survey.getTitle()).isEqualTo("설문 제목");
     }
 
@@ -97,7 +99,75 @@ class SurveyServiceTest {
         Long surveyId = surveyService.create(1L, 1L, request);
 
         // then
-        var survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
+        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
         assertThat(survey.getTitle()).isEqualTo("설문 제목");
+    }
+
+    @Test
+    @DisplayName("설문 수정 - 제목, 설명만 변경")
+    void updateSurvey_titleAndDescription() {
+        // given
+        CreateSurveyRequest createRequest = new CreateSurveyRequest();
+        ReflectionTestUtils.setField(createRequest, "title", "oldTitle");
+        ReflectionTestUtils.setField(createRequest, "surveyType", SurveyType.VOTE);
+        ReflectionTestUtils.setField(createRequest, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(createRequest, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(createRequest, "questions", List.of());
+        Long surveyId = surveyService.create(1L, 1L, createRequest);
+
+        UpdateSurveyRequest updateRequest = new UpdateSurveyRequest();
+        ReflectionTestUtils.setField(updateRequest, "title", "newTitle");
+        ReflectionTestUtils.setField(updateRequest, "description", "newDesc");
+
+        // when
+        String result = surveyService.update(surveyId, 1L, updateRequest);
+
+        // then
+        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
+        assertThat(survey.getTitle()).isEqualTo("newTitle");
+        assertThat(survey.getDescription()).isEqualTo("newDesc");
+        assertThat(result).contains("수정: 2개");
+    }
+
+    @Test
+    @DisplayName("설문 삭제 - isDeleted, status 변경")
+    void deleteSurvey() {
+        // given
+        CreateSurveyRequest createRequest = new CreateSurveyRequest();
+        ReflectionTestUtils.setField(createRequest, "title", "title");
+        ReflectionTestUtils.setField(createRequest, "surveyType", SurveyType.VOTE);
+        ReflectionTestUtils.setField(createRequest, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(createRequest, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(createRequest, "questions", List.of());
+        Long surveyId = surveyService.create(1L, 1L, createRequest);
+
+        // when
+        String result = surveyService.delete(surveyId, 1L);
+
+        // then
+        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
+        assertThat(survey.getIsDeleted()).isTrue();
+        assertThat(survey.getStatus().name()).isEqualTo("DELETED");
+        assertThat(result).contains("설문 삭제");
+    }
+
+    @Test
+    @DisplayName("설문 조회 - 정상 조회")
+    void getSurvey() {
+        // given
+        CreateSurveyRequest createRequest = new CreateSurveyRequest();
+        ReflectionTestUtils.setField(createRequest, "title", "title");
+        ReflectionTestUtils.setField(createRequest, "surveyType", SurveyType.VOTE);
+        ReflectionTestUtils.setField(createRequest, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(createRequest, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(createRequest, "questions", List.of());
+        Long surveyId = surveyService.create(1L, 1L, createRequest);
+
+        // when
+        Survey survey = surveyRepository.findBySurveyIdAndCreatorId(surveyId, 1L).orElseThrow();
+
+        // then
+        assertThat(survey.getTitle()).isEqualTo("title");
+        assertThat(survey.getSurveyId()).isEqualTo(surveyId);
     }
 } 

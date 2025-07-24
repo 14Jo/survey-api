@@ -162,4 +162,19 @@ class SurveyControllerTest {
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.success").value(true));
 	}
+
+	@Test
+	@DisplayName("설문 수정 API - 값 전부 누락 시 400")
+	void updateSurvey_requestValidation() throws Exception {
+		// given
+		String requestJson = """
+			{}
+			""";
+
+		// when & then
+		mockMvc.perform(post(createUri)
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(requestJson))
+			.andExpect(status().isBadRequest());
+	}
 } 
