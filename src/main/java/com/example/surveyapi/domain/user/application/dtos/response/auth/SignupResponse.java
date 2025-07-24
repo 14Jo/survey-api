@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.application.dtos.response;
+package com.example.surveyapi.domain.user.application.dtos.response.auth;
 
 import com.example.surveyapi.domain.user.domain.user.User;
 
