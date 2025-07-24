@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.project.infra.project;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
@@ -9,6 +10,8 @@ import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
 import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,5 +35,10 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	@Override
 	public List<ReadProjectResponse> findMyProjects(Long currentUserId) {
 		return projectQuerydslRepository.findMyProjects(currentUserId);
+	}
+
+	@Override
+	public Optional<Project> findByIdAndIsDeletedFalse(Long projectId) {
+		return projectJpaRepository.findByIdAndIsDeletedFalse(projectId);
 	}
 }
