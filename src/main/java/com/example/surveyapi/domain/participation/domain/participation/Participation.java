@@ -8,6 +8,8 @@ import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -58,5 +60,11 @@ public class Participation extends BaseEntity {
 	public void addResponse(Response response) {
 		this.responses.add(response);
 		response.setParticipation(this);
+	}
+
+	public void validateOwner(Long memberId) {
+		if (!this.memberId.equals(memberId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW);
+		}
 	}
 }

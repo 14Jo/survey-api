@@ -120,7 +120,7 @@ public class ParticipationService {
 		Participation participation = participationRepository.findById(participationId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
 
-		validateOwner(participation.getMemberId(), loginMemberId);
+		participation.validateOwner(loginMemberId);
 
 		List<ReadParticipationResponse.AnswerDetail> answerDetails = participation.getResponses()
 			.stream()
@@ -128,14 +128,5 @@ public class ParticipationService {
 			.toList();
 
 		return new ReadParticipationResponse(participationId, answerDetails);
-	}
-
-	/*
-	 private 메소드
-	 */
-	private void validateOwner(Long participationMemberId, Long loginMemberId) {
-		if (!participationMemberId.equals(loginMemberId)) {
-			throw new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW);
-		}
 	}
 }
