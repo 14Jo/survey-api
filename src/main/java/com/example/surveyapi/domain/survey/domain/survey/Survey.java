@@ -124,7 +124,10 @@ public class Survey extends BaseEntity {
 				case "type" -> this.type = (SurveyType)value;
 				case "duration" -> this.duration = (SurveyDuration)value;
 				case "option" -> this.option = (SurveyOption)value;
-				case "questions" -> registerUpdatedEvent((List<QuestionInfo>)value);
+				case "questions" -> {
+					List<QuestionInfo> questions = (List<QuestionInfo>)value;
+					registerUpdatedEvent(questions);
+				}
 			}
 		});
 	}
