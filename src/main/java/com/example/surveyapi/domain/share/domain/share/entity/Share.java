@@ -2,10 +2,9 @@ package com.example.surveyapi.domain.share.domain.share.entity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
-import com.example.surveyapi.domain.share.domain.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;

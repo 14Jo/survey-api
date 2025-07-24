@@ -6,8 +6,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
-import com.example.surveyapi.global.config.security.PasswordEncoder;
-import com.example.surveyapi.domain.user.domain.user.command.SignupCommand;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
@@ -72,8 +70,6 @@ public class User extends BaseEntity {
         String detailAddress,
         String postalCode){
 
-
-
         this.auth = new Auth(email,password);
         this.profile = new Profile(
             name,
@@ -84,18 +80,6 @@ public class User extends BaseEntity {
         this.role = Role.USER;
         this.grade = Grade.LV1;
     }
-
-    // Todo command 사용시 사용할 create 메서드
-    public static User create(SignupCommand command, PasswordEncoder passwordEncoder) {
-        Address address = Address.create(command);
-
-        Profile profile = Profile.create(command,address);
-
-        Auth auth =  Auth.create(command,passwordEncoder);
-
-        return new User(auth, profile);
-    }
-
 
     public static User create(String email,
         String password,
@@ -119,4 +103,42 @@ public class User extends BaseEntity {
             postalCode);
     }
 
+    public void update(
+        String password, String name,
+        String province, String district,
+        String detailAddress, String postalCode) {
+
+        if(password != null){
+            this.auth.setPassword(password);
+        }
+
+        if(name != null){
+            this.profile.setName(name);
+        }
+
+        Address address = this.profile.getAddress();
+        if (address != null) {
+            if(province != null){
+                address.setProvince(province);
+            }
+
+            if(district != null){
+                address.setDistrict(district);
+            }
+
+            if(detailAddress != null){
+                address.setDetailAddress(detailAddress);
+            }
+
+            if(postalCode != null){
+                address.setPostalCode(postalCode);
+            }
+        }
+
+        this.setUpdatedAt(LocalDateTime.now());
+    }
+
+    public void delete() {
+        this.isDeleted = true;
+    }
 }
