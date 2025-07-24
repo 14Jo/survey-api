@@ -65,6 +65,7 @@ public class Project extends BaseEntity {
 	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
 		LocalDateTime periodEnd) {
 		ProjectPeriod period = ProjectPeriod.toPeriod(periodStart, periodEnd);
+
 		Project project = new Project();
 		project.name = name;
 		project.description = description;
@@ -72,6 +73,7 @@ public class Project extends BaseEntity {
 		project.period = period;
 		// 프로젝트 생성자는 소유자로 등록
 		project.managers.add(Manager.createOwner(project, ownerId));
+
 		return project;
 	}
 

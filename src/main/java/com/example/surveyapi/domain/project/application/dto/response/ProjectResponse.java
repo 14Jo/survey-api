@@ -7,7 +7,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 
 @Getter
-public class ReadProjectResponse {
+public class ProjectResponse {
 	private final Long projectId;
 	private final String name;
 	private final String description;
@@ -21,7 +21,7 @@ public class ReadProjectResponse {
 	private final LocalDateTime updatedAt;
 
 	@QueryProjection
-	public ReadProjectResponse(Long projectId, String name, String description, Long ownerId, String myRole,
+	public ProjectResponse(Long projectId, String name, String description, Long ownerId, String myRole,
 		LocalDateTime periodStart, LocalDateTime periodEnd, String state, int managersCount, LocalDateTime createdAt,
 		LocalDateTime updatedAt) {
 		this.projectId = projectId;
