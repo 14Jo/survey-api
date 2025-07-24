@@ -15,13 +15,15 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class UserResponse {
-    private final Long memberId;
-    private final String email;
-    private final String name;
-    private final Role role;
-    private final Grade grade;
-    private final LocalDateTime createdAt;
-    private final ProfileResponse profile;
+    private Long memberId;
+    private String email;
+    private String name;
+    private Role role;
+    private Grade grade;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private ProfileResponse profile;
+
 
     public static UserResponse from(User user) {
         return new UserResponse(
@@ -31,6 +33,7 @@ public class UserResponse {
             user.getRole(),
             user.getGrade(),
             user.getCreatedAt(),
+            user.getUpdatedAt(),
             new ProfileResponse(
                 user.getProfile().getBirthDate(),
                 user.getProfile().getGender(),
@@ -43,4 +46,6 @@ public class UserResponse {
             )
         );
     }
+
+
 }
