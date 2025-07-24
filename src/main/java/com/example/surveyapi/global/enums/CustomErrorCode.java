@@ -31,6 +31,9 @@ public enum CustomErrorCode {
 	// 서버 에러
 	USER_LIST_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "회원 목록이 비어 있습니다. 데이터 상태를 확인하세요."),
 	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다."),
+
+	// 공유 에러
+	NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다.")
 	;
 
 	private final HttpStatus httpStatus;
