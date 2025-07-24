@@ -59,7 +59,7 @@ public class Project extends BaseEntity {
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
 
-	@OneToMany(mappedBy = "project", cascade = CascadeType.PERSIST, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
