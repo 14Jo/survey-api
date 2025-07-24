@@ -92,12 +92,12 @@ public class ProjectController {
 	}
 
 	@PostMapping("/{projectId}/managers")
-	public ResponseEntity<ApiResponse<CreateManagerResponse>> createManager(
+	public ResponseEntity<ApiResponse<CreateManagerResponse>> addManager(
 		@PathVariable Long projectId,
 		@RequestBody @Valid CreateManagerRequest request,
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		CreateManagerResponse response = projectService.createManager(projectId, request, currentUserId);
+		CreateManagerResponse response = projectService.addManager(projectId, request, currentUserId);
 		return ResponseEntity.ok(ApiResponse.success("협력자 추가 성공", response));
 	}
 

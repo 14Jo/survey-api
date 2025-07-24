@@ -82,7 +82,7 @@ public class ProjectService {
 	}
 
 	@Transactional
-	public CreateManagerResponse createManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
+	public CreateManagerResponse addManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		// TODO: 회원 존재 여부
 		Manager manager = project.addManager(currentUserId, request.getUserId());
