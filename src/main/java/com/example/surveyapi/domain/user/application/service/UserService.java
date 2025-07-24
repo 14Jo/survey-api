@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.user.application.dtos.request.auth.SignupRequest;
 import com.example.surveyapi.domain.user.application.dtos.request.UpdateRequest;
+import com.example.surveyapi.domain.user.application.dtos.request.auth.WithdrawRequest;
 import com.example.surveyapi.domain.user.application.dtos.request.vo.update.UpdateData;
 import com.example.surveyapi.domain.user.application.dtos.response.select.GradeResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.UserResponse;
@@ -116,5 +117,19 @@ public class UserService {
             data.getDetailAddress(),data.getPostalCode());
 
         return UserResponse.from(user);
+    }
+
+
+    @Transactional
+    public void withdraw(Long userId, WithdrawRequest request) {
+
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getAuth().getPassword())) {
+            throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
+        }
+
+        user.delete();
     }
 }
