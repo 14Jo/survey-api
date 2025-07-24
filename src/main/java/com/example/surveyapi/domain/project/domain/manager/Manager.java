@@ -45,6 +45,7 @@ public class Manager extends BaseEntity {
 		manager.project = project;
 		manager.userId = userId;
 		manager.role = ManagerRole.READ;
+
 		return manager;
 	}
 
@@ -53,6 +54,7 @@ public class Manager extends BaseEntity {
 		manager.project = project;
 		manager.userId = userId;
 		manager.role = ManagerRole.OWNER;
+
 		return manager;
 	}
 
