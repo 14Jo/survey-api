@@ -12,12 +12,15 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
@@ -27,34 +30,37 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader("Authorization");
+        try{
+            String token = resolveToken(request);
 
-        // Todo 예외처리 부분은 V2에서 수정 예정
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
+            if (token != null && jwtUtil.validateToken(token)) {
+                Claims claims = jwtUtil.extractToken(token);
+
+                Long userId = Long.parseLong(claims.getSubject());
+                Role userRole = Role.valueOf(claims.get("userRole", String.class));
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                    userId, null, List.of(new SimpleGrantedAuthority("ROLE_" + userRole.name())));
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        }catch (JwtException e) {
+            log.error("Jwt validation failed {}", e.getMessage());
+            SecurityContextHolder.clearContext();
+        }catch (Exception e){
+            log.error("Authentication error", e);
+            SecurityContextHolder.clearContext();
         }
-
-        String token = authorizationHeader.substring(7);
-
-        String errorMessage = jwtUtil.validateToken(token);
-        if (errorMessage != null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write(errorMessage);
-        }
-
-        Claims claims = jwtUtil.extractToken(token);
-
-        Long userId = Long.parseLong(claims.getSubject());
-        Role userRole = Role.valueOf(claims.get("userRole", String.class));
-
-
-        UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-            userId, null, List.of(new SimpleGrantedAuthority("ROLE_" + userRole.name())));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         filterChain.doFilter(request, response);
+    }
 
+    private String resolveToken (HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }
