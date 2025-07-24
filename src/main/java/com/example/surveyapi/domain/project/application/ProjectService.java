@@ -14,13 +14,11 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
-import com.example.surveyapi.domain.project.domain.manager.Manager;
 import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -28,7 +26,6 @@ import lombok.RequiredArgsConstructor;
 public class ProjectService {
 
 	private final ProjectRepository projectRepository;
-	private final EntityManager entityManager;
 
 	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
@@ -85,9 +82,9 @@ public class ProjectService {
 	public CreateManagerResponse addManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		// TODO: 회원 존재 여부
-		Manager manager = project.addManager(currentUserId, request.getUserId());
-		entityManager.flush();
-		return CreateManagerResponse.from(manager.getId());
+		project.addManager(currentUserId, request.getUserId());
+		projectRepository.save(project);
+		return CreateManagerResponse.from(project.getManagers().get(project.getManagers().size() - 1).getId());
 	}
 
 	@Transactional
