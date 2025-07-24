@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.application.dtos.response;
+package com.example.surveyapi.domain.user.application.dtos.response.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
