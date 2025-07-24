@@ -8,6 +8,7 @@ import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.infra.annotation.SurveyCreate;
 import com.example.surveyapi.domain.survey.infra.annotation.SurveyDelete;
+import com.example.surveyapi.domain.survey.infra.annotation.SurveyUpdate;
 import com.example.surveyapi.domain.survey.infra.survey.jpa.JpaSurveyRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,12 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	@Override
 	@SurveyDelete
 	public void delete(Survey survey) {
+		jpaRepository.save(survey);
+	}
+
+	@Override
+	@SurveyUpdate
+	public void update(Survey survey) {
 		jpaRepository.save(survey);
 	}
 

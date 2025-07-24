@@ -48,6 +48,7 @@ public class QueryDslRepository {
                 user.role,
                 user.grade,
                 user.createdAt,
+                user.updatedAt,
                 Projections.constructor(
                     ProfileResponse.class,
                     user.profile.birthDate,

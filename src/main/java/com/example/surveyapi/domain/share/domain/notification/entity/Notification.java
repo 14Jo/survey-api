@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.share.domain.notification.entity;
 
 import java.time.LocalDateTime;
 
-import com.example.surveyapi.domain.share.domain.vo.Status;
+import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
