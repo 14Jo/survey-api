@@ -86,13 +86,11 @@ public class ParticipationService {
 	}
 
 	@Transactional(readOnly = true)
-	public ReadParticipationResponse get(Long memberId, Long participationId) {
+	public ReadParticipationResponse get(Long loginMemberId, Long participationId) {
 		Participation participation = participationRepository.findById(participationId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
 
-		if (!participation.getMemberId().equals(memberId)) {
-			throw new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW);
-		}
+		validateOwner(participation.getMemberId(), loginMemberId);
 
 		List<ReadParticipationResponse.AnswerDetail> answerDetails = participation.getResponses()
 			.stream()
@@ -100,6 +98,15 @@ public class ParticipationService {
 			.toList();
 
 		return new ReadParticipationResponse(participationId, answerDetails);
+	}
+
+	/*
+	 private 메소드
+	 */
+	private void validateOwner(Long participationMemberId, Long loginMemberId) {
+		if (!participationMemberId.equals(loginMemberId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW);
+		}
 	}
 }
 
