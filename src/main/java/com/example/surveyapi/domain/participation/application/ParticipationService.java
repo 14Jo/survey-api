@@ -15,10 +15,13 @@ import com.example.surveyapi.domain.participation.application.dto.request.Create
 import com.example.surveyapi.domain.participation.application.dto.request.ResponseData;
 import com.example.surveyapi.domain.participation.application.dto.request.SurveyInfoOfParticipation;
 import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
+import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationResponse;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -80,6 +83,23 @@ public class ParticipationService {
 
 			return ReadParticipationPageResponse.of(p, surveyInfo);
 		});
+	}
+
+	@Transactional(readOnly = true)
+	public ReadParticipationResponse get(Long memberId, Long participationId) {
+		Participation participation = participationRepository.findById(participationId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+
+		if (!participation.getMemberId().equals(memberId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW);
+		}
+
+		List<ReadParticipationResponse.AnswerDetail> answerDetails = participation.getResponses()
+			.stream()
+			.map(r -> new ReadParticipationResponse.AnswerDetail(r.getQuestionId(), r.getAnswer()))
+			.toList();
+
+		return new ReadParticipationResponse(participationId, answerDetails);
 	}
 }
 

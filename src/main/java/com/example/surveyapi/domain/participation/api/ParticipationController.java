@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.surveyapi.domain.participation.application.ParticipationService;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
+import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -47,5 +48,13 @@ public class ParticipationController {
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("나의 전체 설문 참여 기록 조회에 성공하였습니다.",
 				participationService.gets(memberId, pageable)));
+	}
+
+	@GetMapping("/participations/{participationId}")
+	public ResponseEntity<ApiResponse<ReadParticipationResponse>> get(@AuthenticationPrincipal Long memberId,
+		@PathVariable Long participationId) {
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("나의 참여 기록 조회에 성공하였습니다.", participationService.get(memberId, participationId)));
 	}
 }
