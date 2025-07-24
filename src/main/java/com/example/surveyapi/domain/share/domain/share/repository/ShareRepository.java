@@ -10,4 +10,6 @@ public interface ShareRepository {
 	Optional<Share> findBySurveyId(Long surveyId);
 	Optional<Share> findByLink(String link);
 	Share save(Share share);
+
+	Optional<Share> findById(Long id);
 }
