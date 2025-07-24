@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.surveyapi.domain.user.application.dtos.request.auth.LoginRequest;
 import com.example.surveyapi.domain.user.application.dtos.request.auth.SignupRequest;
 import com.example.surveyapi.domain.user.application.dtos.request.UpdateRequest;
+import com.example.surveyapi.domain.user.application.dtos.request.auth.WithdrawRequest;
 import com.example.surveyapi.domain.user.application.dtos.response.select.GradeResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.auth.LoginResponse;
 import com.example.surveyapi.domain.user.application.dtos.response.auth.SignupResponse;
@@ -106,4 +107,17 @@ public class UserController {
 
         return ResponseEntity.status(HttpStatus.OK).body(success);
     }
+
+    @PostMapping("/users/withdraw")
+    public ResponseEntity<ApiResponse<Void>> withdraw(
+        @AuthenticationPrincipal Long userId,
+        @Valid @RequestBody WithdrawRequest request
+    ){
+        userService.withdraw(userId,request);
+
+        ApiResponse<Void> success = ApiResponse.success("회원 탈퇴가 완료되었습니다.", null);
+
+        return ResponseEntity.status(HttpStatus.OK).body(success);
+    }
+
 }
