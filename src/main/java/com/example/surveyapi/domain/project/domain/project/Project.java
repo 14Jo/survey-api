@@ -137,7 +137,7 @@ public class Project extends BaseEntity {
 		this.delete();
 	}
 
-	public Manager addManager(Long currentUserId, Long userId) {
+	public void addManager(Long currentUserId, Long userId) {
 		// 권한 체크 OWNER, WRITE, STAT만 가능
 		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
 		if (myRole == ManagerRole.READ) {
@@ -153,7 +153,6 @@ public class Project extends BaseEntity {
 
 		Manager newManager = Manager.create(this, userId);
 		this.managers.add(newManager);
-		return newManager;
 	}
 
 	public void updateManagerRole(Long currentUserId, Long userId, ManagerRole newRole) {
