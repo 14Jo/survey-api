@@ -137,7 +137,7 @@ public class Project extends BaseEntity {
 		this.delete();
 	}
 
-	public Manager createManager(Long currentUserId, Long userId) {
+	public Manager addManager(Long currentUserId, Long userId) {
 		// 권한 체크 OWNER, WRITE, STAT만 가능
 		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
 		if (myRole == ManagerRole.READ) {
