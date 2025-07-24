@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.participation.api;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,7 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.participation.application.ParticipationService;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
+import com.example.surveyapi.domain.participation.application.dto.request.SearchParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
+import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationResponse;
+import com.example.surveyapi.domain.participation.application.dto.response.SearchParticipationResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -47,5 +52,23 @@ public class ParticipationController {
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("나의 전체 설문 참여 기록 조회에 성공하였습니다.",
 				participationService.gets(memberId, pageable)));
+	}
+
+	@PostMapping("/surveys/participations/search")
+	public ResponseEntity<ApiResponse<List<SearchParticipationResponse>>> getAllBySurveyIds(
+		@RequestBody SearchParticipationRequest request) {
+
+		List<SearchParticipationResponse> result = participationService.getAllBySurveyIds(request.getSurveyIds());
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("각 설문에 대한 모든 참여 기록 조회에 성공하였습니다.", result));
+	}
+
+	@GetMapping("/participations/{participationId}")
+	public ResponseEntity<ApiResponse<ReadParticipationResponse>> get(@AuthenticationPrincipal Long memberId,
+		@PathVariable Long participationId) {
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("나의 참여 기록 조회에 성공하였습니다.", participationService.get(memberId, participationId)));
 	}
 }

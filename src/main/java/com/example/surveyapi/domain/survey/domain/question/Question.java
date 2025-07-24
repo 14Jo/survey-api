@@ -19,7 +19,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Entity
 @Getter
 @NoArgsConstructor
@@ -40,6 +43,7 @@ public class Question extends BaseEntity {
 	@Column(name = "type", nullable = false)
 	private QuestionType type = QuestionType.SINGLE_CHOICE;
 
+	@Setter
 	@Column(name = "display_order", nullable = false)
 	private Integer displayOrder;
 
@@ -67,6 +71,39 @@ public class Question extends BaseEntity {
 		question.isRequired = isRequired;
 		question.choices = choices;
 
+		if (choices != null && !choices.isEmpty()) {
+			question.duplicateChoiceOrder();
+		}
+
 		return question;
+	}
+
+	public void duplicateChoiceOrder() {
+		if (choices == null || choices.isEmpty()) {
+			return;
+		}
+
+		List<Choice> mutableChoices = new ArrayList<>(choices);
+
+		mutableChoices.sort((c1, c2) -> Integer.compare(c1.getDisplayOrder(), c2.getDisplayOrder()));
+
+		for (int i = 0; i < mutableChoices.size() - 1; i++) {
+			Choice current = mutableChoices.get(i);
+			Choice next = mutableChoices.get(i + 1);
+
+			if (current.getDisplayOrder() == next.getDisplayOrder()) {
+
+				for (int j = i + 1; j < mutableChoices.size(); j++) {
+					Choice choiceToUpdate = mutableChoices.get(j);
+
+					Choice updatedChoice = new Choice(choiceToUpdate.getContent(),
+						choiceToUpdate.getDisplayOrder() + 1);
+					mutableChoices.set(j, updatedChoice);
+				}
+			}
+		}
+
+		this.choices = mutableChoices;
+
 	}
 }

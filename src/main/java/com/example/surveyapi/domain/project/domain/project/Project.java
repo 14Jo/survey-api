@@ -59,17 +59,18 @@ public class Project extends BaseEntity {
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
 
-	@OneToMany(mappedBy = "project", cascade = CascadeType.PERSIST, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
 		LocalDateTime periodEnd) {
-		Project project = new Project();
 		ProjectPeriod period = ProjectPeriod.toPeriod(periodStart, periodEnd);
+		Project project = new Project();
 		project.name = name;
 		project.description = description;
 		project.ownerId = ownerId;
 		project.period = period;
+		// 프로젝트 생성자는 소유자로 등록
 		project.managers.add(Manager.createOwner(project, ownerId));
 		return project;
 	}
@@ -136,9 +137,42 @@ public class Project extends BaseEntity {
 		this.delete();
 	}
 
+	public void addManager(Long currentUserId, Long userId) {
+		// 권한 체크 OWNER, WRITE, STAT만 가능
+		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
+		if (myRole == ManagerRole.READ) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
+		}
+
+		// 이미 담당자로 등록되어있다면 중복 등록 불가
+		boolean exists = this.managers.stream()
+			.anyMatch(manager -> manager.getUserId().equals(userId) && !manager.getIsDeleted());
+		if (exists) {
+			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MANAGER);
+		}
+
+		Manager newManager = Manager.create(this, userId);
+		this.managers.add(newManager);
+	}
+
+	public void updateManagerRole(Long currentUserId, Long userId, ManagerRole newRole) {
+		checkOwner(currentUserId);
+		Manager manager = findManagerByUserId(userId);
+
+		// 본인 OWNER 권한 변경 불가
+		if (Objects.equals(currentUserId, userId)) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+		if (newRole == ManagerRole.OWNER) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+
+		manager.updateRole(newRole);
+	}
+
 	private void checkOwner(Long currentUserId) {
 		if (!this.ownerId.equals(currentUserId)) {
-			throw new CustomException(CustomErrorCode.OWNER_ONLY);
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
 		}
 	}
 

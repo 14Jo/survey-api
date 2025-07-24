@@ -15,10 +15,14 @@ import com.example.surveyapi.domain.participation.application.dto.request.Create
 import com.example.surveyapi.domain.participation.application.dto.request.ResponseData;
 import com.example.surveyapi.domain.participation.application.dto.request.SurveyInfoOfParticipation;
 import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
+import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationResponse;
+import com.example.surveyapi.domain.participation.application.dto.response.SearchParticipationResponse;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -81,5 +85,43 @@ public class ParticipationService {
 			return ReadParticipationPageResponse.of(p, surveyInfo);
 		});
 	}
-}
 
+	@Transactional(readOnly = true)
+	public List<SearchParticipationResponse> getAllBySurveyIds(List<Long> surveyIds) {
+		List<Participation> participations = participationRepository.findAllBySurveyIdIn(surveyIds);
+
+		// surveyId 기준으로 참여 기록을 Map 으로 그룹핑
+		Map<Long, List<Participation>> participationGroupBySurveyId = participations.stream()
+			.collect(Collectors.groupingBy(Participation::getSurveyId));
+
+		List<SearchParticipationResponse> result = new ArrayList<>();
+
+		for (Long surveyId : surveyIds) {
+			List<Participation> participationList = participationGroupBySurveyId.get(surveyId);
+
+			List<ReadParticipationResponse> participationDtos = new ArrayList<>();
+
+			for (Participation p : participationList) {
+				List<ReadParticipationResponse.AnswerDetail> answerDetails = p.getResponses().stream()
+					.map(r -> new ReadParticipationResponse.AnswerDetail(r.getQuestionId(), r.getAnswer()))
+					.toList();
+
+				participationDtos.add(new ReadParticipationResponse(p.getId(), answerDetails));
+			}
+
+			result.add(new SearchParticipationResponse(surveyId, participationDtos));
+		}
+
+		return result;
+	}
+
+	@Transactional(readOnly = true)
+	public ReadParticipationResponse get(Long loginMemberId, Long participationId) {
+		Participation participation = participationRepository.findById(participationId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+
+		participation.validateOwner(loginMemberId);
+
+		return ReadParticipationResponse.from(participation);
+	}
+}
