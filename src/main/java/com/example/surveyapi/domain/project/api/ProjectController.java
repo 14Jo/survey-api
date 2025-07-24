@@ -16,10 +16,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectService;
+import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
+import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
 import com.example.surveyapi.global.util.ApiResponse;
@@ -52,31 +55,31 @@ public class ProjectController {
 	}
 
 	@PutMapping("/{projectId}")
-	public ResponseEntity<ApiResponse<String>> updateProject(
+	public ResponseEntity<ApiResponse<Void>> updateProject(
 		@PathVariable Long projectId,
 		@RequestBody @Valid UpdateProjectRequest request
 	) {
 		projectService.updateProject(projectId, request);
-		return ResponseEntity.ok(ApiResponse.success("프로젝트 정보 수정 성공", null));
+		return ResponseEntity.ok(ApiResponse.success("프로젝트 정보 수정 성공"));
 	}
 
 	@PatchMapping("/{projectId}/state")
-	public ResponseEntity<ApiResponse<String>> updateState(
+	public ResponseEntity<ApiResponse<Void>> updateState(
 		@PathVariable Long projectId,
 		@RequestBody @Valid UpdateProjectStateRequest request
 	) {
 		projectService.updateState(projectId, request);
-		return ResponseEntity.ok(ApiResponse.success("프로젝트 상태 변경 성공", null));
+		return ResponseEntity.ok(ApiResponse.success("프로젝트 상태 변경 성공"));
 	}
 
 	@PatchMapping("/{projectId}/owner")
-	public ResponseEntity<ApiResponse<String>> updateOwner(
+	public ResponseEntity<ApiResponse<Void>> updateOwner(
 		@PathVariable Long projectId,
 		@RequestBody @Valid UpdateProjectOwnerRequest request,
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		projectService.updateOwner(projectId, request, currentUserId);
-		return ResponseEntity.ok(ApiResponse.success("프로젝트 소유자 위임 성공", null));
+		return ResponseEntity.ok(ApiResponse.success("프로젝트 소유자 위임 성공"));
 	}
 
 	@DeleteMapping("/{projectId}")
@@ -85,6 +88,27 @@ public class ProjectController {
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		projectService.deleteProject(projectId, currentUserId);
-		return ResponseEntity.ok(ApiResponse.success("프로젝트 삭제 성공", null));
+		return ResponseEntity.ok(ApiResponse.success("프로젝트 삭제 성공"));
+	}
+
+	@PostMapping("/{projectId}/managers")
+	public ResponseEntity<ApiResponse<CreateManagerResponse>> addManager(
+		@PathVariable Long projectId,
+		@RequestBody @Valid CreateManagerRequest request,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		CreateManagerResponse response = projectService.addManager(projectId, request, currentUserId);
+		return ResponseEntity.ok(ApiResponse.success("협력자 추가 성공", response));
+	}
+
+	@PatchMapping("/{projectId}/managers/{managerId}/role")
+	public ResponseEntity<ApiResponse<Void>> updateManagerRole(
+		@PathVariable Long projectId,
+		@PathVariable Long managerId,
+		@RequestBody @Valid UpdateManagerRoleRequest request,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		projectService.updateManagerRole(projectId, managerId, request, currentUserId);
+		return ResponseEntity.ok(ApiResponse.success("협력자 권한 수정 성공"));
 	}
 }
