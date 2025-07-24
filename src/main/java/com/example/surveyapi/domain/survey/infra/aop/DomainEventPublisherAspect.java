@@ -33,4 +33,12 @@ public class DomainEventPublisherAspect {
 			survey.clearDeletedEvent();
 		}
 	}
+
+	@AfterReturning(pointcut = "com.example.surveyapi.domain.survey.infra.aop.SurveyPointcuts.surveyUpdatePointcut(survey)", argNames = "survey")
+	public void publishUpdateEvent(Survey survey) {
+		if (survey != null && survey.getUpdatedEvent() != null) {
+			eventPublisher.publishEvent(survey.getUpdatedEvent());
+			survey.clearUpdatedEvent();
+		}
+	}
 }
