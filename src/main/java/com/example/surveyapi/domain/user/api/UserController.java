@@ -102,7 +102,7 @@ public class UserController {
     ) {
         UserResponse update = userService.update(request, userId);
 
-        ApiResponse<UserResponse> success = ApiResponse.success("회원 등급 조회 성공", update);
+        ApiResponse<UserResponse> success = ApiResponse.success("회원 정보 수정 성공", update);
 
         return ResponseEntity.status(HttpStatus.OK).body(success);
     }
