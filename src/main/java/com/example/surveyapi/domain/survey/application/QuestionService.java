@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.domain.question.Question;
+import com.example.surveyapi.domain.survey.domain.question.QuestionOrderService;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class QuestionService {
 
 	private final QuestionRepository questionRepository;
+	private final QuestionOrderService questionOrderService;
 
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void create(
@@ -48,5 +50,10 @@ public class QuestionService {
 	public void delete(Long surveyId) {
 		List<Question> questionList = questionRepository.findAllBySurveyId(surveyId);
 		questionList.forEach(BaseEntity::delete);
+	}
+
+	@Transactional
+	public List<QuestionInfo> adjustDisplayOrder(Long surveyId, List<QuestionInfo> newQuestions) {
+		return questionOrderService.adjustDisplayOrder(surveyId, newQuestions);
 	}
 }

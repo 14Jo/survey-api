@@ -9,7 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SurveyOption {
 	private boolean anonymous = false;
-	private boolean allowMultipleResponses = false;
 	private boolean allowResponseUpdate = false;
-
 }
