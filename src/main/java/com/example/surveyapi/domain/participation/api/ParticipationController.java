@@ -20,6 +20,7 @@ import com.example.surveyapi.domain.participation.application.ParticipationServi
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.request.SearchParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
+import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.SearchParticipationResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
@@ -61,5 +62,13 @@ public class ParticipationController {
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("각 설문에 대한 모든 참여 기록 조회에 성공하였습니다.", result));
+	}
+
+	@GetMapping("/participations/{participationId}")
+	public ResponseEntity<ApiResponse<ReadParticipationResponse>> get(@AuthenticationPrincipal Long memberId,
+		@PathVariable Long participationId) {
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("나의 참여 기록 조회에 성공하였습니다.", participationService.get(memberId, participationId)));
 	}
 }
