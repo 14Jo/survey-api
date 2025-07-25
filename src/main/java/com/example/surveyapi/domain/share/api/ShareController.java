@@ -23,8 +23,11 @@ public class ShareController {
 	private final NotificationService notificationService;
 
 	@PostMapping
-	public ResponseEntity<ApiResponse<ShareResponse>> createShare(@Valid @RequestBody CreateShareRequest request) {
-		ShareResponse response = shareService.createShare(request.getSurveyId());
+	public ResponseEntity<ApiResponse<ShareResponse>> createShare(
+		@Valid @RequestBody CreateShareRequest request,
+		@AuthenticationPrincipal Long creatorId
+	) {
+		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId);
 		ApiResponse<ShareResponse> body = ApiResponse.success("공유 캠페인 생성 완료", response);
 		return ResponseEntity
 			.status(HttpStatus.CREATED)

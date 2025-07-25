@@ -21,10 +21,10 @@ public class ShareService {
 	private final ShareDomainService shareDomainService;
 	private final ApplicationEventPublisher eventPublisher;
 
-	public ShareResponse createShare(Long surveyId) {
+	public ShareResponse createShare(Long surveyId, Long creatorId) {
 		//TODO : 설문 존재 여부 검증
 
-		Share share = shareDomainService.createShare(surveyId, ShareMethod.URL);
+		Share share = shareDomainService.createShare(surveyId, creatorId, ShareMethod.URL);
 		Share saved = shareRepository.save(share);
 
 		eventPublisher.publishEvent(new ShareCreateEvent(saved.getId(), saved.getSurveyId()));
