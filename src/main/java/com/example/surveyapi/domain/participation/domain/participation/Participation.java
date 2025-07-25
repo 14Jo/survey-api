@@ -2,6 +2,8 @@ package com.example.surveyapi.domain.participation.domain.participation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -67,4 +69,19 @@ public class Participation extends BaseEntity {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW);
 		}
 	}
+
+	public void update(List<Response> newResponses) {
+		Map<Long, Response> responseMap = this.responses.stream()
+			.collect(Collectors.toMap(Response::getQuestionId, response -> response));
+
+		// TODO: 고려할 점 - 설문이 수정되고 문항수가 늘어나거나 적어진다면? 문항의 타입 또는 필수 답변 여부가 달라진다면?
+		for (Response newResponse : newResponses) {
+			Response response = responseMap.get(newResponse.getQuestionId());
+
+			if (response != null) {
+				response.updateAnswer(newResponse.getAnswer());
+			}
+		}
+	}
 }
+

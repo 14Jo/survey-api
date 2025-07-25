@@ -18,5 +18,5 @@ public interface UserRepository {
 
     Page<User> gets(Pageable pageable);
 
-    Optional<User> findByIdAndIsDeletedFalse(Long memberId);
+    Optional<User> findByIdAndIsDeletedFalse(Long userId);
 }
