@@ -127,4 +127,15 @@ public class ProjectController {
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("협력자 권한 수정 성공"));
 	}
+
+	@DeleteMapping("/{projectId}/managers/{managerId}")
+	public ResponseEntity<ApiResponse<Void>> deleteManager(
+		@PathVariable Long projectId,
+		@PathVariable Long managerId,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		projectService.deleteManager(projectId, managerId, currentUserId);
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("협력자 삭제 성공"));
+	}
 }

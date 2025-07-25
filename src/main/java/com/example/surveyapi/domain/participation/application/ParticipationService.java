@@ -124,4 +124,18 @@ public class ParticipationService {
 
 		return ReadParticipationResponse.from(participation);
 	}
+
+	@Transactional
+	public void update(Long loginMemberId, Long participationId, CreateParticipationRequest request) {
+		Participation participation = participationRepository.findById(participationId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+
+		participation.validateOwner(loginMemberId);
+
+		List<Response> responses = request.getResponseDataList().stream()
+			.map(responseData -> Response.create(responseData.getQuestionId(), responseData.getAnswer()))
+			.toList();
+
+		participation.update(responses);
+	}
 }
