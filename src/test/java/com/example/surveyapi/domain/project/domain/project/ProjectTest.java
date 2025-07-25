@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.project.domain.project;
 
+import static java.time.temporal.ChronoUnit.*;
+import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
@@ -8,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 class ProjectTest {
 
@@ -60,5 +64,73 @@ class ProjectTest {
 		// then
 		assertEquals(originalName, project.getName());
 		assertEquals(originalDescription, project.getDescription());
+	}
+
+	@Test
+	void 프로젝트_상태_IN_PROGRESS_로_변경() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+
+		// when
+		project.updateState(ProjectState.IN_PROGRESS);
+
+		// then
+		assertEquals(ProjectState.IN_PROGRESS, project.getState());
+		assertThat(project.getPeriod().getPeriodStart())
+			.isCloseTo(LocalDateTime.now(), within(2, SECONDS));
+	}
+
+	@Test
+	void 프로젝트_상태_CLOSED_로_변경() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.updateState(ProjectState.IN_PROGRESS);
+
+		// when
+		project.updateState(ProjectState.CLOSED);
+
+		// then
+		assertEquals(ProjectState.CLOSED, project.getState());
+		assertThat(project.getPeriod().getPeriodEnd())
+			.isCloseTo(LocalDateTime.now(), within(2, SECONDS));
+	}
+
+	@Test
+	void 프로젝트_상태_변경_CLOSED에서_다른_상태로_변경_불가() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.updateState(ProjectState.IN_PROGRESS);
+		project.updateState(ProjectState.CLOSED);
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.updateState(ProjectState.IN_PROGRESS);
+		});
+		assertEquals(CustomErrorCode.INVALID_PROJECT_STATE, exception.getErrorCode());
+	}
+
+	@Test
+	void 프로젝트_상태_변경_PENDING_에서_CLOSED_로_직접_변경_불가() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.updateState(ProjectState.CLOSED);
+		});
+		assertEquals(CustomErrorCode.INVALID_STATE_TRANSITION, exception.getErrorCode());
+	}
+
+	@Test
+	void 프로젝트_상태_변경_IN_PROGRESS_에서_PENDING_으로_변경_불가() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.updateState(ProjectState.IN_PROGRESS);
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.updateState(ProjectState.PENDING);
+		});
+		assertEquals(CustomErrorCode.INVALID_STATE_TRANSITION, exception.getErrorCode());
 	}
 }
