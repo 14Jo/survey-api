@@ -29,4 +29,21 @@ class ProjectTest {
 		assertEquals(ManagerRole.OWNER, project.getManagers().get(0).getRole());
 		assertEquals(1L, project.getManagers().get(0).getUserId());
 	}
+
+	@Test
+	void 프로젝트_정보_수정_정상() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+
+		// when
+		project.updateProject("수정된이름", "수정된설명", LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(7));
+
+		// then
+		assertEquals("수정된이름", project.getName());
+		assertEquals("수정된설명", project.getDescription());
+		assertEquals(LocalDateTime.now().plusDays(2).getDayOfMonth(),
+			project.getPeriod().getPeriodStart().getDayOfMonth());
+		assertEquals(LocalDateTime.now().plusDays(7).getDayOfMonth(),
+			project.getPeriod().getPeriodEnd().getDayOfMonth());
+	}
 }
