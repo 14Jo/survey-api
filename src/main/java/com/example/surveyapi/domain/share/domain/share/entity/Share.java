@@ -36,8 +36,6 @@ public class Share extends BaseEntity {
 	private ShareMethod shareMethod;
 	@Column(name = "link", nullable = false, unique = true)
 	private String link;
-	@OneToMany(mappedBy = "id", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Notification> notifications = new ArrayList<>();
 
 	public Share(Long surveyId, ShareMethod shareMethod, String linkUrl) {
 		this.surveyId = surveyId;
