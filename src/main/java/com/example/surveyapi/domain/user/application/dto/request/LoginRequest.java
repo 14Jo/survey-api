@@ -1,6 +1,7 @@
-package com.example.surveyapi.domain.user.application.dtos.request.auth;
+package com.example.surveyapi.domain.user.application.dto.request;
 
 import lombok.Getter;
+
 
 @Getter
 public class LoginRequest {

@@ -1,25 +1,20 @@
-package com.example.surveyapi.domain.user.application.service;
-
-import static com.example.surveyapi.domain.user.application.dtos.request.vo.update.UpdateData.*;
+package com.example.surveyapi.domain.user.application;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.user.application.dtos.request.auth.SignupRequest;
-import com.example.surveyapi.domain.user.application.dtos.request.UpdateRequest;
-import com.example.surveyapi.domain.user.application.dtos.request.auth.WithdrawRequest;
-import com.example.surveyapi.domain.user.application.dtos.request.vo.update.UpdateData;
-import com.example.surveyapi.domain.user.application.dtos.response.select.GradeResponse;
-import com.example.surveyapi.domain.user.application.dtos.response.UserResponse;
+import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
+import com.example.surveyapi.domain.user.application.dto.request.UpdateRequest;
+import com.example.surveyapi.domain.user.application.dto.request.WithdrawRequest;
+import com.example.surveyapi.domain.user.application.dto.response.GradeResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
-import com.example.surveyapi.domain.user.application.dtos.request.auth.LoginRequest;
-import com.example.surveyapi.domain.user.application.dtos.response.auth.LoginResponse;
-import com.example.surveyapi.domain.user.application.dtos.response.auth.MemberResponse;
-import com.example.surveyapi.domain.user.application.dtos.response.auth.SignupResponse;
-import com.example.surveyapi.domain.user.application.dtos.response.select.UserListResponse;
+import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
+import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
+import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -70,19 +65,17 @@ public class UserService {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
         }
 
-        MemberResponse member = MemberResponse.from(user);
-
         String token = jwtUtil.createToken(user.getId(), user.getRole());
 
-        return LoginResponse.of(token, member);
+        return LoginResponse.of(token, user);
     }
 
     @Transactional(readOnly = true)
-    public UserListResponse getAll(Pageable pageable) {
+    public Page<UserResponse> getAll(Pageable pageable) {
 
-        Page<UserResponse> users = userRepository.gets(pageable);
+        Page<User> users = userRepository.gets(pageable);
 
-        return UserListResponse.from(users);
+        return users.map(UserResponse::from);
     }
 
     @Transactional(readOnly = true)
@@ -109,7 +102,7 @@ public class UserService {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        UpdateData data = extractUpdateData(request);
+        UpdateRequest.UpdateData data = UpdateRequest.UpdateData.from(request);
 
         user.update(
             data.getPassword(),data.getName(),
