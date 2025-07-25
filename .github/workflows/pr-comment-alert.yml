@@ -1,0 +1,115 @@
+name: Notify on PR Comment
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  notify-slack:
+    if: github.event.issue.pull_request != null
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Extract PR Author and Comment Author
+        id: extract-authors
+        run: |
+          PR_AUTHOR=$(jq -r .pull_request.user.login "$GITHUB_EVENT_PATH")
+          COMMENT_AUTHOR="${{ github.event.comment.user.login }}"
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          PR_URL=$(jq -r .issue.pull_request.html_url "$GITHUB_EVENT_PATH")
+
+          echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+          echo "comment_author=$COMMENT_AUTHOR" >> $GITHUB_OUTPUT
+          echo "comment_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMENT_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+
+          # 간단히 댓글이 답글인지 (인용문 > 로 시작) 확인
+          if [[ "$COMMENT_BODY" =~ ^"> " ]]; then
+            echo "is_reply=true" >> $GITHUB_OUTPUT
+            ORIGINAL_COMMENT_BODY=$(echo "$COMMENT_BODY" | head -1 | sed 's/^> //')
+            REPLY_BODY=$(echo "$COMMENT_BODY" | sed '1d' | sed '/^$/d')
+            echo "original_comment_body=$ORIGINAL_COMMENT_BODY" >> $GITHUB_OUTPUT
+            echo "reply_body<<EOF" >> $GITHUB_OUTPUT
+            echo "$REPLY_BODY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "is_reply=false" >> $GITHUB_OUTPUT
+            echo "original_comment_body=" >> $GITHUB_OUTPUT
+            echo "reply_body=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Map GitHub users to Slack IDs
+        id: map-users
+        run: |
+          declare -A GH_TO_SLACK_MAP
+          GH_TO_SLACK_MAP["Jindnjs"]="${{ secrets.SLACK_USER_JIN }}"
+          GH_TO_SLACK_MAP["LJY981008"]="${{ secrets.SLACK_USER_JUN }}"
+          GH_TO_SLACK_MAP["taeung515"]="${{ secrets.SLACK_USER_TAE }}"
+          GH_TO_SLACK_MAP["easter1201"]="${{ secrets.SLACK_USER_DOY }}"
+          GH_TO_SLACK_MAP["kcc5107"]="${{ secrets.SLACK_USER_GU }}"
+          GH_TO_SLACK_MAP["DG0702"]="${{ secrets.SLACK_USER_DONG }}"
+
+          PR_AUTHOR="${{ steps.extract-authors.outputs.pr_author }}"
+          COMMENT_AUTHOR="${{ steps.extract-authors.outputs.comment_author }}"
+
+          PR_AUTHOR_SLACK="${GH_TO_SLACK_MAP[$PR_AUTHOR]}"
+          COMMENT_AUTHOR_SLACK="${GH_TO_SLACK_MAP[$COMMENT_AUTHOR]}"
+
+          if [ -z "$PR_AUTHOR_SLACK" ]; then
+            PR_AUTHOR_SLACK="$PR_AUTHOR"
+          else
+            PR_AUTHOR_SLACK="<@$PR_AUTHOR_SLACK>"
+          fi
+
+          if [ -z "$COMMENT_AUTHOR_SLACK" ]; then
+            COMMENT_AUTHOR_SLACK="$COMMENT_AUTHOR"
+          else
+            COMMENT_AUTHOR_SLACK="<@$COMMENT_AUTHOR_SLACK>"
+          fi
+
+          echo "pr_author_slack=$PR_AUTHOR_SLACK" >> $GITHUB_OUTPUT
+          echo "comment_author_slack=$COMMENT_AUTHOR_SLACK" >> $GITHUB_OUTPUT
+        env:
+          SLACK_USER_JIN: ${{ secrets.SLACK_USER_JIN }}
+          SLACK_USER_JUN: ${{ secrets.SLACK_USER_JUN }}
+          SLACK_USER_TAE: ${{ secrets.SLACK_USER_TAE }}
+          SLACK_USER_DOY: ${{ secrets.SLACK_USER_DOY }}
+          SLACK_USER_GU: ${{ secrets.SLACK_USER_GU }}
+          SLACK_USER_DONG: ${{ secrets.SLACK_USER_DONG }}
+
+      - name: Send Slack message
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PR_TITLE: ${{ github.event.issue.title }}
+          PR_URL: ${{ steps.extract-authors.outputs.pr_url }}
+          COMMENT_BODY: ${{ steps.extract-authors.outputs.comment_body }}
+          IS_REPLY: ${{ steps.extract-authors.outputs.is_reply }}
+          ORIGINAL_COMMENT_BODY: ${{ steps.extract-authors.outputs.original_comment_body }}
+          REPLY_BODY: ${{ steps.extract-authors.outputs.reply_body }}
+          PR_AUTHOR_SLACK: ${{ steps.map-users.outputs.pr_author_slack }}
+          COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.comment_author_slack }}
+        run: |
+          if [ "$IS_REPLY" = "true" ]; then
+            msg="↪️ 댓글에 답글이 달렸습니다!\n\
+              원댓글 작성자: $PR_AUTHOR_SLACK\n\
+              원댓글 내용:\n> $ORIGINAL_COMMENT_BODY\n\n\
+              답글 작성자: $COMMENT_AUTHOR_SLACK\n\
+              답글 내용:\n> $REPLY_BODY\n\n\
+              PR 링크: $PR_URL"
+          else
+            msg="💬 PR에 새로운 댓글이 달렸습니다!\n\
+              제목: $PR_TITLE\n\
+              작성자: $PR_AUTHOR_SLACK\n\
+              링크: $PR_URL\n\
+              댓글 작성자: $COMMENT_AUTHOR_SLACK\n\
+              댓글 내용:\n> $COMMENT_BODY"
+          fi
+
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"text\": \"$msg\"
+          }" $SLACK_WEBHOOK_URL
