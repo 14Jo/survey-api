@@ -4,21 +4,24 @@ import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class LoginResponse {
 
     private String accessToken;
-    private MemberResponse member;
+    private MemberResponse member ;
 
     public static LoginResponse of(
-        String token, MemberResponse member
+        String token, User user
     ) {
-        return new LoginResponse(token, member);
+        LoginResponse dto = new LoginResponse();
+        dto.accessToken = token;
+        dto.member = MemberResponse.from(user);
+
+        return dto;
     }
 
     @Getter

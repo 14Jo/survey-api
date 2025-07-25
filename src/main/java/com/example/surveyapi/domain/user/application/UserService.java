@@ -65,11 +65,9 @@ public class UserService {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
         }
 
-        LoginResponse.MemberResponse member = LoginResponse.MemberResponse.from(user);
-
         String token = jwtUtil.createToken(user.getId(), user.getRole());
 
-        return LoginResponse.of(token, member);
+        return LoginResponse.of(token, user);
     }
 
     @Transactional(readOnly = true)
