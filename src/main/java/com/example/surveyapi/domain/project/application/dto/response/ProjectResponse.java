@@ -2,38 +2,41 @@ package com.example.surveyapi.domain.project.application.dto.response;
 
 import java.time.LocalDateTime;
 
-import com.querydsl.core.annotations.QueryProjection;
+import com.example.surveyapi.domain.project.domain.dto.ProjectResult;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProjectResponse {
-	private final Long projectId;
-	private final String name;
-	private final String description;
-	private final Long ownerId;
-	private final String myRole;
-	private final LocalDateTime periodStart;
-	private final LocalDateTime periodEnd;
-	private final String state;
-	private final int managersCount;
-	private final LocalDateTime createdAt;
-	private final LocalDateTime updatedAt;
+	private Long projectId;
+	private String name;
+	private String description;
+	private Long ownerId;
+	private String myRole;
+	private LocalDateTime periodStart;
+	private LocalDateTime periodEnd;
+	private String state;
+	private int managersCount;
+	private LocalDateTime createdAt;
+	private LocalDateTime updatedAt;
 
-	@QueryProjection
-	public ProjectResponse(Long projectId, String name, String description, Long ownerId, String myRole,
-		LocalDateTime periodStart, LocalDateTime periodEnd, String state, int managersCount, LocalDateTime createdAt,
-		LocalDateTime updatedAt) {
-		this.projectId = projectId;
-		this.name = name;
-		this.description = description;
-		this.ownerId = ownerId;
-		this.myRole = myRole;
-		this.periodStart = periodStart;
-		this.periodEnd = periodEnd;
-		this.state = state;
-		this.managersCount = managersCount;
-		this.createdAt = createdAt;
-		this.updatedAt = updatedAt;
+	public static ProjectResponse from(ProjectResult projectResult) {
+		ProjectResponse response = new ProjectResponse();
+		response.projectId = projectResult.getProjectId();
+		response.name = projectResult.getName();
+		response.description = projectResult.getDescription();
+		response.ownerId = projectResult.getOwnerId();
+		response.myRole = projectResult.getMyRole();
+		response.periodStart = projectResult.getPeriodStart();
+		response.periodEnd = projectResult.getPeriodEnd();
+		response.state = projectResult.getState();
+		response.managersCount = projectResult.getManagersCount();
+		response.createdAt = projectResult.getCreatedAt();
+		response.updatedAt = projectResult.getUpdatedAt();
+
+		return response;
 	}
 }

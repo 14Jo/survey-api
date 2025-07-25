@@ -47,7 +47,10 @@ public class ProjectService {
 
 	@Transactional(readOnly = true)
 	public List<ProjectResponse> getMyProjects(Long currentUserId) {
-		return projectRepository.findMyProjects(currentUserId);
+		return projectRepository.findMyProjects(currentUserId)
+			.stream()
+			.map(ProjectResponse::from)
+			.toList();
 	}
 
 	@Transactional
