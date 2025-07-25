@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.BDDMockito.given;
 import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.example.surveyapi.domain.survey.application.SurveyService;
@@ -161,5 +161,20 @@ class SurveyControllerTest {
 				.content(requestJson))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.success").value(true));
+	}
+
+	@Test
+	@DisplayName("설문 수정 API - 값 전부 누락 시 400")
+	void updateSurvey_requestValidation() throws Exception {
+		// given
+		String requestJson = """
+			{}
+			""";
+
+		// when & then
+		mockMvc.perform(put("/api/v1/survey/1/update")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(requestJson))
+			.andExpect(status().isBadRequest());
 	}
 } 

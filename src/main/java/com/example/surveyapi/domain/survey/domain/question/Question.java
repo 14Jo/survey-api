@@ -1,7 +1,9 @@
 package com.example.surveyapi.domain.survey.domain.question;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -83,27 +85,18 @@ public class Question extends BaseEntity {
 			return;
 		}
 
-		List<Choice> mutableChoices = new ArrayList<>(choices);
+		List<Choice> mutableChoices = new ArrayList<>();
+		Set<Integer> usedOrders = new HashSet<>();
 
-		mutableChoices.sort((c1, c2) -> Integer.compare(c1.getDisplayOrder(), c2.getDisplayOrder()));
-
-		for (int i = 0; i < mutableChoices.size() - 1; i++) {
-			Choice current = mutableChoices.get(i);
-			Choice next = mutableChoices.get(i + 1);
-
-			if (current.getDisplayOrder() == next.getDisplayOrder()) {
-
-				for (int j = i + 1; j < mutableChoices.size(); j++) {
-					Choice choiceToUpdate = mutableChoices.get(j);
-
-					Choice updatedChoice = new Choice(choiceToUpdate.getContent(),
-						choiceToUpdate.getDisplayOrder() + 1);
-					mutableChoices.set(j, updatedChoice);
-				}
+		for (Choice choice : choices) {
+			int candidate = choice.getDisplayOrder();
+			while (usedOrders.contains(candidate)) {
+				candidate++;
 			}
+			mutableChoices.add(new Choice(choice.getContent(), candidate));
+			usedOrders.add(candidate);
 		}
 
 		this.choices = mutableChoices;
-
 	}
 }
