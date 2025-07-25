@@ -2,66 +2,69 @@ name: PR Review Notification
 
 on:
   pull_request:
-    types: [review_requested]
+    types: [ready_for_review, synchronize]
 
 jobs:
-  notify-reviewers:
+  notify:
+    if: |
+      github.event.action == 'ready_for_review' || 
+      (github.event.action == 'synchronize' && github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get reviewers and pick 2 randomly
-        id: reviewers
+      - name: Set Notification Message
+        env:
+          ACTION: ${{ github.event.action }}
         run: |
-          reviewers=$(jq -r '.pull_request.requested_reviewers[].login' "$GITHUB_EVENT_PATH" || echo "")
-          mapfile -t arr <<< "$reviewers"
-
-          count=${#arr[@]}
-          if [ "$count" -lt 2 ]; then
-            echo "reviewer1=" >> $GITHUB_OUTPUT
-            echo "reviewer2=" >> $GITHUB_OUTPUT
-          else
-            shuffled=($(shuf -e "${arr[@]}"))
-            selected=("${shuffled[@]:0:2}")
-            echo "reviewer1=${selected[0]}" >> $GITHUB_OUTPUT
-            echo "reviewer2=${selected[1]}" >> $GITHUB_OUTPUT
+          if [ "$ACTION" = "ready_for_review" ]; then
+            echo "NOTIFY_MSG=✅ PR 리뷰 요청" >> $GITHUB_ENV
+          elif [ "$ACTION" = "synchronize" ]; then
+            echo "NOTIFY_MSG=✏️ PR 수정내용 반영" >> $GITHUB_ENV
           fi
 
-      - name: Map GitHub usernames to Slack user IDs (via Secrets)
-        id: slack_map
-        env:
-          USER1_SLACK_ID: ${{ secrets.SLACK_USER_JIN }}
-          USER2_SLACK_ID: ${{ secrets.SLACK_USER_JUN }}
-          USER3_SLACK_ID: ${{ secrets.SLACK_USER_TAE }}
-          USER4_SLACK_ID: ${{ secrets.SLACK_USER_DOY }}
-          USER5_SLACK_ID: ${{ secrets.SLACK_USER_GU }}
-          USER6_SLACK_ID: ${{ secrets.SLACK_USER_DONG }}
+      - name: Set up PR context
+        id: context
         run: |
-          declare -A SLACK_MAP=(
-            [Jindnjs]="$USER1_SLACK_ID"
-            [LJY981008]="$USER2_SLACK_ID"
-            [taeung515]="$USER3_SLACK_ID"
-            [easter1201]="$USER4_SLACK_ID"
-            [kcc5107]="$USER5_SLACK_ID"
-            [DG0702]="$USER6_SLACK_ID"
-          )
+          echo "PR_AUTHOR=$(jq -r .pull_request.user.login "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          echo "PR_TITLE=$(jq -r .pull_request.title "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
+          echo "PR_URL=$(jq -r .pull_request.html_url "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
-          reviewer1="${{ steps.reviewers.outputs.reviewer1 }}"
-          reviewer2="${{ steps.reviewers.outputs.reviewer2 }}"
+      - name: Select 2 random Slack IDs (excluding PR author)
+        id: slack-reviewers
+        run: |
+          # Declare mapping of GitHub usernames to Slack IDs
+          declare -A GH_TO_SLACK
+          GH_TO_SLACK["Jindnjs"]="${{ secrets.SLACK_USER_JIN }}"
+          GH_TO_SLACK["LJY981008"]="${{ secrets.SLACK_USER_JUN }}"
+          GH_TO_SLACK["taeung515"]="${{ secrets.SLACK_USER_TAE }}"
+          GH_TO_SLACK["easter1201"]="${{ secrets.SLACK_USER_DOY }}"
+          GH_TO_SLACK["kcc5107"]="${{ secrets.SLACK_USER_GU }}"
+          GH_TO_SLACK["DG0702"]="${{ secrets.SLACK_USER_DONG }}"
 
-          echo "Mapped reviewers: $reviewer1 -> ${SLACK_MAP[$reviewer1]}, $reviewer2 -> ${SLACK_MAP[$reviewer2]}"
+          # Build list excluding PR author
+          REVIEWERS=()
+          for user in "${!GH_TO_SLACK[@]}"; do
+            if [[ "$user" != "$PR_AUTHOR" ]]; then
+              REVIEWERS+=("$user")
+            fi
+          done
 
-          echo "slack1=${SLACK_MAP[$reviewer1]}" >> $GITHUB_OUTPUT
-          echo "slack2=${SLACK_MAP[$reviewer2]}" >> $GITHUB_OUTPUT
+          # Check if at least 2 remain
+          if (( ${#REVIEWERS[@]} < 2 )); then
+            echo "SLACK_REVIEWERS=리뷰어가 부족하여 랜덤 리뷰어를 선정하지 못했습니다." >> $GITHUB_ENV
+          else
+            # Shuffle and pick 2
+            SHUFFLED=($(printf "%s\n" "${REVIEWERS[@]}" | shuf -n 2))
+            SLACK1="${GH_TO_SLACK[${SHUFFLED[0]}]}"
+            SLACK2="${GH_TO_SLACK[${SHUFFLED[1]}]}"
+            echo "SLACK_REVIEWERS=<@${SLACK1}> <@${SLACK2}>" >> $GITHUB_ENV
+          fi
 
       - name: Send Slack message
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          if [ -z "${{ steps.slack_map.outputs.slack1 }}" ]; then
-            msg="📣 *PR 리뷰 요청 알림!*\n요청된 리뷰어: 없음.\nPR 링크: ${{ github.event.pull_request.html_url }}"
-          else
-            msg="📣 *PR 리뷰 요청 알림!*\n랜덤 선정 리뷰어: <@${{ steps.slack_map.outputs.slack1 }}>, <@${{ steps.slack_map.outputs.slack2 }}> 🙏\nPR 링크: ${{ github.event.pull_request.html_url }}"
-          fi
+          msg="📣 *PR 알림!*\n$NOTIFY_MSG\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR\n*링크:* $PR_URL\n*리뷰어:* $SLACK_REVIEWERS 🙏"
 
           curl -X POST -H 'Content-type: application/json' --data "{
             \"text\": \"$msg\"
