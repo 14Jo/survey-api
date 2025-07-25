@@ -155,4 +155,19 @@ class ProjectTest {
 		assertEquals(ManagerRole.OWNER, newOwner.getRole());
 		assertEquals(ManagerRole.READ, previousOwner.getRole());
 	}
+
+	@Test
+	void 프로젝트_소프트_삭제_정상() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.addManager(1L, 2L);
+
+		// when
+		project.softDelete(1L);
+
+		// then
+		assertEquals(ProjectState.CLOSED, project.getState());
+		assertTrue(project.getIsDeleted());
+		assertTrue(project.getManagers().stream().allMatch(Manager::getIsDeleted));
+	}
 }
