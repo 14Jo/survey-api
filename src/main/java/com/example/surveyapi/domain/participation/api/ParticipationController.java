@@ -12,6 +12,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,8 +37,10 @@ public class ParticipationController {
 
 	@PostMapping("/surveys/{surveyId}/participations")
 	public ResponseEntity<ApiResponse<Long>> create(
-		@RequestBody @Valid CreateParticipationRequest request, @PathVariable Long surveyId,
-		@AuthenticationPrincipal Long memberId) {
+		@Valid @RequestBody CreateParticipationRequest request,
+		@PathVariable Long surveyId,
+		@AuthenticationPrincipal Long memberId
+	) {
 		Long participationId = participationService.create(surveyId, memberId, request);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -70,5 +73,17 @@ public class ParticipationController {
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("나의 참여 기록 조회에 성공하였습니다.", participationService.get(memberId, participationId)));
+	}
+
+	@PutMapping("/participations/{participationId}")
+	public ResponseEntity<ApiResponse<Page<Void>>> update(
+		@PathVariable Long participationId,
+		@RequestBody CreateParticipationRequest request,
+		@AuthenticationPrincipal Long memberId
+	) {
+		participationService.update(memberId, participationId, request);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("수정이 완료되었습니다.", null));
 	}
 }
