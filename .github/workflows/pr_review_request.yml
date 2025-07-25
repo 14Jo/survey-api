@@ -2,13 +2,26 @@ name: PR Review Notification
 
 on:
   pull_request:
-    types: [review_requested]
+    types: [ready_for_review, synchronize]
 
 jobs:
-  notify-reviewers:
+  notify:
+    if: |
+      github.event.action == 'ready_for_review' || 
+      (github.event.action == 'synchronize' && github.event.pull_request.draft == false)
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set Notification Message
+        env:
+          ACTION: ${{ github.event.action }}
+        run: |
+          if [ "$ACTION" = "ready_for_review" ]; then
+            echo "NOTIFY_MSG= - ✅ PR 리뷰 요청" >> $GITHUB_ENV
+          elif [ "$ACTION" = "synchronize" ]; then
+            echo "NOTIFY_MSG= - ✏️ PR 수정내용 반영" >> $GITHUB_ENV
+          fi
+
       - name: Set up PR context
         id: context
         run: |
@@ -51,7 +64,7 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          msg="📣 *PR 알림!*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR\n*링크:* $PR_URL\n*리뷰어:* $SLACK_REVIEWERS 🙏"
+          msg="📣 *PR 알림!*\n$NOTIFY_MSG\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR\n*링크:* $PR_URL\n*리뷰어:* $SLACK_REVIEWERS 🙏"
 
           curl -X POST -H 'Content-type: application/json' --data "{
             \"text\": \"$msg\"
