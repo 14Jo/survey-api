@@ -94,6 +94,12 @@ public class ProjectService {
 		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
 	}
 
+	@Transactional
+	public void deleteManager(Long projectId, Long managerId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.deleteManager(currentUserId, managerId);
+	}
+
 	private void validateDuplicateName(String name) {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);

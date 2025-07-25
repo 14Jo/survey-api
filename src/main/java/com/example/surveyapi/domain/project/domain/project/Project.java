@@ -170,6 +170,17 @@ public class Project extends BaseEntity {
 		manager.updateRole(newRole);
 	}
 
+	public void deleteManager(Long currentUserId, Long managerId) {
+		checkOwner(currentUserId);
+		Manager manager = findManagerById(managerId);
+
+		if (Objects.equals(manager.getUserId(), currentUserId)) {
+			throw new CustomException(CustomErrorCode.CANNOT_DELETE_SELF_OWNER);
+		}
+
+		manager.delete();
+	}
+
 	private void checkOwner(Long currentUserId) {
 		if (!this.ownerId.equals(currentUserId)) {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
@@ -179,6 +190,13 @@ public class Project extends BaseEntity {
 	private Manager findManagerByUserId(Long userId) {
 		return this.managers.stream()
 			.filter(manager -> manager.getUserId().equals(userId))
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
+	}
+
+	private Manager findManagerById(Long managerId) {
+		return this.managers.stream()
+			.filter(manager -> manager.getId().equals(managerId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
