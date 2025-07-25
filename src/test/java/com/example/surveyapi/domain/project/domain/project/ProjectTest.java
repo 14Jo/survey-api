@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.surveyapi.domain.project.domain.manager.Manager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -132,5 +133,26 @@ class ProjectTest {
 			project.updateState(ProjectState.PENDING);
 		});
 		assertEquals(CustomErrorCode.INVALID_STATE_TRANSITION, exception.getErrorCode());
+	}
+
+	@Test
+	void 프로젝트_소유자_위임_정상() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.addManager(1L, 2L); // 새 매니저 추가
+
+		// when
+		project.updateOwner(1L, 2L);
+
+		// then
+		Manager newOwner = project.getManagers().stream()
+			.filter(m -> m.getUserId().equals(2L))
+			.findFirst().orElseThrow();
+		Manager previousOwner = project.getManagers().stream()
+			.filter(m -> m.getUserId().equals(1L))
+			.findFirst().orElseThrow();
+
+		assertEquals(ManagerRole.OWNER, newOwner.getRole());
+		assertEquals(ManagerRole.READ, previousOwner.getRole());
 	}
 }
