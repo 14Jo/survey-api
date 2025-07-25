@@ -2,6 +2,7 @@ package com.example.surveyapi.user.application;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
+
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -21,16 +24,19 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import com.example.surveyapi.domain.user.application.dtos.request.auth.SignupRequest;
-import com.example.surveyapi.domain.user.application.dtos.request.auth.WithdrawRequest;
-import com.example.surveyapi.domain.user.application.dtos.request.vo.select.AddressRequest;
-import com.example.surveyapi.domain.user.application.dtos.request.vo.select.AuthRequest;
-import com.example.surveyapi.domain.user.application.dtos.request.vo.select.ProfileRequest;
-import com.example.surveyapi.domain.user.application.dtos.response.auth.SignupResponse;
-import com.example.surveyapi.domain.user.application.service.UserService;
+import com.example.surveyapi.domain.user.application.UserService;
+import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
+import com.example.surveyapi.domain.user.application.dto.request.WithdrawRequest;
+import com.example.surveyapi.domain.user.application.dto.response.GradeResponse;
+import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
+import com.example.surveyapi.domain.user.domain.user.QUser;
+import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
+import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
+import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -62,7 +68,7 @@ public class UserServiceTest {
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest request = createSignupRequest(email,password);
+        SignupRequest request = createSignupRequest(email, password);
 
         // when
         SignupResponse signup = userService.signup(request);
@@ -78,8 +84,8 @@ public class UserServiceTest {
     void signup_fail_when_auth_is_null() throws Exception {
         // given
         SignupRequest request = new SignupRequest();
-        ProfileRequest profileRequest = new ProfileRequest();
-        AddressRequest addressRequest = new AddressRequest();
+        SignupRequest.ProfileRequest profileRequest = new SignupRequest.ProfileRequest();
+        SignupRequest.AddressRequest addressRequest = new SignupRequest.AddressRequest();
 
         ReflectionTestUtils.setField(addressRequest, "province", "서울특별시");
         ReflectionTestUtils.setField(addressRequest, "district", "강남구");
@@ -95,15 +101,16 @@ public class UserServiceTest {
 
         // when & then
         mockMvc.perform(post("/api/v1/auth/signup")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(request)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
-            .andExpect(result -> assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()));
+            .andExpect(
+                result -> assertInstanceOf(MethodArgumentNotValidException.class, result.getResolvedException()));
     }
-    
+
     @Test
     @DisplayName("비밀번호 암호화 확인")
-    void signup_passwordEncoder(){
+    void signup_passwordEncoder() {
 
         // given
         String email = "user@example.com";
@@ -115,17 +122,17 @@ public class UserServiceTest {
 
         // then
         var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
-        assertThat(passwordEncoder.matches("Password123",savedUser.getAuth().getPassword())).isTrue();
+        assertThat(passwordEncoder.matches("Password123", savedUser.getAuth().getPassword())).isTrue();
     }
 
     @Test
     @DisplayName("응답 Dto 반영 확인")
-    void signup_response(){
+    void signup_response() {
 
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest request = createSignupRequest(email,password);
+        SignupRequest request = createSignupRequest(email, password);
 
         // when
         SignupResponse signup = userService.signup(request);
@@ -134,16 +141,16 @@ public class UserServiceTest {
         var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
         assertThat(savedUser.getAuth().getEmail()).isEqualTo(signup.getEmail());
     }
-    
+
     @Test
     @DisplayName("이메일 중복 확인")
-    void signup_fail_when_email_duplication(){
+    void signup_fail_when_email_duplication() {
 
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest rq1 = createSignupRequest(email,password);
-        SignupRequest rq2 = createSignupRequest(email,password);
+        SignupRequest rq1 = createSignupRequest(email, password);
+        SignupRequest rq2 = createSignupRequest(email, password);
 
         // when
         userService.signup(rq1);
@@ -152,35 +159,126 @@ public class UserServiceTest {
         assertThatThrownBy(() -> userService.signup(rq2))
             .isInstanceOf(CustomException.class);
     }
-    
+
     @Test
     @DisplayName("회원 탈퇴된 id 중복 확인")
-    void signup_fail_withdraw_id(){
+    void signup_fail_withdraw_id() {
 
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest rq1 = createSignupRequest(email,password);
-        SignupRequest rq2 = createSignupRequest(email,password);
+        SignupRequest rq1 = createSignupRequest(email, password);
+        SignupRequest rq2 = createSignupRequest(email, password);
 
         WithdrawRequest withdrawRequest = new WithdrawRequest();
         ReflectionTestUtils.setField(withdrawRequest, "password", "Password123");
 
-
         // when
         SignupResponse signup = userService.signup(rq1);
-        userService.withdraw(signup.getUserId(), withdrawRequest);
+        userService.withdraw(signup.getMemberId(), withdrawRequest);
 
         // then
         assertThatThrownBy(() -> userService.signup(rq2))
             .isInstanceOf(CustomException.class);
     }
 
+    @Test
+    @DisplayName("모든 회원 조회 - 성공")
+    void getAllUsers_success() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq2 = createSignupRequest("user@example1.com", "Password123");
 
-    public static SignupRequest createSignupRequest(String email, String password) {
-        AuthRequest authRequest = new AuthRequest();
-        ProfileRequest profileRequest = new ProfileRequest();
-        AddressRequest addressRequest = new AddressRequest();
+        userService.signup(rq1);
+        userService.signup(rq2);
+
+        PageRequest pageable = PageRequest.of(0, 10);
+
+        // when
+        Page<UserResponse> all = userService.getAll(pageable);
+
+        // then
+        assertThat(all.getContent()).hasSize(2);
+        assertThat(all.getContent().get(0).getEmail()).isEqualTo("user@example1.com");
+    }
+
+    @Test
+    @DisplayName("회원조회 - 성공 (프로필 조회)")
+    void get_profile() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+
+        SignupResponse signup = userService.signup(rq1);
+
+        User user = userRepository.findByEmail(signup.getEmail())
+            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
+
+        UserResponse member = UserResponse.from(user);
+
+        // when
+        UserResponse userResponse = userService.getUser(member.getMemberId());
+
+        // then
+        assertThat(userResponse.getEmail()).isEqualTo("user@example.com");
+    }
+
+    @Test
+    @DisplayName("회원조회 - 실패 (프로필 조회)")
+    void get_profile_fail() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+
+        SignupResponse signup = userService.signup(rq1);
+
+        Long invalidId = 9999L;
+
+        // then
+        assertThatThrownBy(() -> userService.getUser(9999L))
+            .isInstanceOf(CustomException.class)
+            .hasMessageContaining("유저를 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("등급 조회 - 성공")
+    void grade_success() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+
+        SignupResponse signup = userService.signup(rq1);
+
+        User user = userRepository.findByEmail(signup.getEmail())
+            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
+
+        UserResponse member = UserResponse.from(user);
+
+        // when
+        GradeResponse grade = userService.getGrade(member.getMemberId());
+
+        // then
+        assertThat(grade.getGrade()).isEqualTo(Grade.valueOf("LV1"));
+    }
+
+    @Test
+    @DisplayName("등급 조회 - 실패 (다른사람, 탈퇴한 회원)")
+    void grade_fail() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+
+        SignupResponse signup = userService.signup(rq1);
+
+        Long userId = 9999L;
+
+        // then
+        assertThatThrownBy(() -> userService.getGrade(userId))
+            .isInstanceOf(CustomException.class)
+            .hasMessageContaining("유저를 찾을 수 없습니다")
+        ;
+    }
+
+    public SignupRequest createSignupRequest(String email, String password) {
+        SignupRequest.AuthRequest authRequest = new SignupRequest.AuthRequest();
+        SignupRequest.ProfileRequest profileRequest = new SignupRequest.ProfileRequest();
+        SignupRequest.AddressRequest addressRequest = new SignupRequest.AddressRequest();
 
         ReflectionTestUtils.setField(addressRequest, "province", "서울특별시");
         ReflectionTestUtils.setField(addressRequest, "district", "강남구");
@@ -201,4 +299,5 @@ public class UserServiceTest {
 
         return request;
     }
+
 }
