@@ -13,7 +13,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -46,10 +46,10 @@ public class ProjectService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ProjectResponse> getMyProjects(Long currentUserId) {
+	public List<ProjectInfoResponse> getMyProjects(Long currentUserId) {
 		return projectRepository.findMyProjects(currentUserId)
 			.stream()
-			.map(ProjectResponse::from)
+			.map(ProjectInfoResponse::from)
 			.toList();
 	}
 
