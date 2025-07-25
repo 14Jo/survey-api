@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Debug event payload
+        run: |
+          echo "EVENT_NAME: ${{ github.event_name }}"
+          echo "Full comment JSON:"
+          echo '${{ toJson(github.event.comment) }}'
       - name: Extract Info and Prepare Notification
         id: prepare-notification
         env:
@@ -63,7 +68,6 @@ jobs:
             COMMENT_AUTHOR="${{ github.event.user.login }}"
             COMMENT_BODY="${{ github.event.body }}"      
           fi
-          [ -z "$COMMENT_BODY" ] && COMMENT_BODY="X"
           REPLY_TO_COMMENT_ID="${{ github.event.comment.in_reply_to_id }}"
           
           echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
@@ -83,7 +87,6 @@ jobs:
             ORIGINAL_COMMENT_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$ORIGINAL_COMMENT_API_URL")
             ORIGINAL_COMMENT_AUTHOR=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.user.login')
             ORIGINAL_COMMENT_BODY=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.body')
-            [ -z "$ORIGINAL_COMMENT_BODY" ] && ORIGINAL_COMMENT_BODY="X"
           
             echo "original_comment_author=$ORIGINAL_COMMENT_AUTHOR" >> $GITHUB_OUTPUT
             echo "original_comment_body<<EOF" >> $GITHUB_OUTPUT
