@@ -3,7 +3,7 @@ package com.example.surveyapi.domain.project.domain.project;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
+import com.example.surveyapi.domain.project.domain.dto.ProjectResult;
 
 public interface ProjectRepository {
 
@@ -11,7 +11,7 @@ public interface ProjectRepository {
 
 	boolean existsByNameAndIsDeletedFalse(String name);
 
-	List<ReadProjectResponse> findMyProjects(Long currentUserId);
+	List<ProjectResult> findMyProjects(Long currentUserId);
 
 	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
 }

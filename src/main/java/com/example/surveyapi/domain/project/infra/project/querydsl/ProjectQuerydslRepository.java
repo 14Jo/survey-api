@@ -7,8 +7,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.project.application.dto.response.QReadProjectResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
+import com.example.surveyapi.domain.project.domain.dto.ProjectResult;
+import com.example.surveyapi.domain.project.domain.dto.QProjectResult;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -19,9 +19,9 @@ import lombok.RequiredArgsConstructor;
 public class ProjectQuerydslRepository {
 	private final JPAQueryFactory query;
 
-	public List<ReadProjectResponse> findMyProjects(Long currentUserId) {
+	public List<ProjectResult> findMyProjects(Long currentUserId) {
 
-		return query.select(new QReadProjectResponse(
+		return query.select(new QProjectResult(
 				project.id,
 				project.name,
 				project.description,
