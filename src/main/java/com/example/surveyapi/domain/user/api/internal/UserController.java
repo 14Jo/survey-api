@@ -59,10 +59,10 @@ public class UserController {
     public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(
         Pageable pageable
     ) {
-        Page<UserResponse> All = userService.getAll(pageable);
+        Page<UserResponse> all = userService.getAll(pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
-            .body(ApiResponse.success("회원 전체 조회 성공", All));
+            .body(ApiResponse.success("회원 전체 조회 성공", all));
     }
 
     @GetMapping("/users/me")
