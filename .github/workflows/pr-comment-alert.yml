@@ -5,12 +5,17 @@ on:
     types: [created]
   pull_request_review_comment:
     types: [created]
+  pull_request_review:
+    types: [submitted]
 
 jobs:
   notify-slack:
     if: |
-      (github.event.issue.pull_request != null || github.event.pull_request != null)
-      && !contains(github.event.comment.user.login, '[bot]')
+      (github.event.issue.pull_request != null || github.event.pull_request != null || github.event.review != null)
+      && (
+        (github.event.comment == null || !contains(github.event.comment.user.login, '[bot]')) &&
+        (github.event.review == null || !contains(github.event.review.user.login, '[bot]'))
+      )
     runs-on: ubuntu-latest
 
     steps:
@@ -19,8 +24,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PR_API_URL="${{ github.event.issue.pull_request.url }}"
-          PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$PR_API_URL")
+          if [ -n "${{ github.event.issue.pull_request.url }}" ]; then
+            PR_URL="${{ github.event.issue.pull_request.url }}"
+            PR_URL_HTML="${{ github.event.issue.pull_request.html_url }}"
+          elif [ -n "${{ github.event.pull_request.url }}" ]; then
+            PR_URL="${{ github.event.pull_request.url }}"
+            PR_URL_HTML="${{ github.event.pull_request.html_url }}"
+          elif [ -n "${{ github.event.review.pull_request_url }}" ]; then
+            PR_URL="${{ github.event.review.pull_request_url }}"
+            PR_DATA_URL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$PR_URL")
+            PR_URL_HTML=$(echo "$PR_DATA_URL" | jq -r '.html_url')
+          else
+            echo "No PR URL found"
+            exit 1
+          fi
+
+          echo "Fetching PR info from $PR_URL"
+          PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$PR_URL")
+          IS_DRAFT=$(echo "$PR_DATA" | jq -r '.draft')
+
+          echo "PR is draft: $IS_DRAFT"
+          if [ "$IS_DRAFT" = "true" ]; then
+            echo "Draft PR detected, exiting."
+            exit 1
+          fi
+
           HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
           PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
           
@@ -35,13 +63,12 @@ jobs:
 
           COMMENT_AUTHOR="${{ github.event.comment.user.login }}"
           COMMENT_BODY="${{ github.event.comment.body }}"
-          PR_URL="${{ github.event.issue.html_url }}"
           REPLY_TO_COMMENT_ID="${{ github.event.comment.in_reply_to_id }}"
           
           echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
           echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
           echo "comment_author=$COMMENT_AUTHOR" >> $GITHUB_OUTPUT
-          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+          echo "pr_url=$PR_URL_HTML" >> $GITHUB_OUTPUT
 
           if [ -n "$REPLY_TO_COMMENT_ID" ]; then
             echo "is_reply=true" >> $GITHUB_OUTPUT
@@ -117,9 +144,9 @@ jobs:
           ORIGINAL_COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.original_comment_author_slack }}
         run: |
           if [ "$IS_REPLY" = "true" ]; then
-            msg="📣 *PR 알림!*\n↪️ *댓글에 답글이 달렸습니다*\n*원댓글 작성자:* ORIGINAL_COMMENT_AUTHOR_SLACK\n*원댓글 내용:*\n> ORIGINAL_COMMENT_BODY\n\n*답글 작성자:* $COMMENT_AUTHOR_SLACK\n*답글 내용:*\n> $REPLY_BODY\n\n*PR 링크:* $PR_URL"
+            msg="📣 *리뷰 알림!*\n↪️ *댓글에 답글이 달렸습니다*\n*원댓글 작성자:* ORIGINAL_COMMENT_AUTHOR_SLACK\n*원댓글 내용:*\n> ORIGINAL_COMMENT_BODY\n\n*답글 작성자:* $COMMENT_AUTHOR_SLACK\n*답글 내용:*\n> $REPLY_BODY\n\n*PR 링크:* $PR_URL"
           else
-            msg="📣 *PR 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
+            msg="📣 *리뷰 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
           fi
 
           curl -X POST -H 'Content-type: application/json' --data "{
