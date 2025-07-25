@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 
-import com.example.surveyapi.domain.user.application.dtos.response.UserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
 
 public interface UserRepository {
 
@@ -16,7 +16,7 @@ public interface UserRepository {
 
     Optional<User> findByEmail(String email);
 
-    Page<UserResponse> gets(Pageable pageable);
+    Page<User> gets(Pageable pageable);
 
     Optional<User> findByIdAndIsDeletedFalse(Long memberId);
 }

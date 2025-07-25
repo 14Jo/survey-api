@@ -6,8 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-
-import com.example.surveyapi.domain.user.application.dtos.response.UserResponse;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.infra.user.dsl.QueryDslRepository;
@@ -38,7 +36,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Page<UserResponse> gets(Pageable pageable) {
+    public Page<User> gets(Pageable pageable) {
         return queryDslRepository.gets(pageable);
     }
 
