@@ -1,33 +1,33 @@
 package com.example.surveyapi.domain.participation.application;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.request.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 
-@TestPropertySource(properties = "SECRET_KEY=SecretKeyExample42534D@DAF!1243zvjnjw@")
-@SpringBootTest
-@Transactional
+@ExtendWith(MockitoExtension.class)
 class ParticipationServiceTest {
 
-	@Autowired
+	@InjectMocks
 	private ParticipationService participationService;
 
-	@Autowired
+	@Mock
 	private ParticipationRepository participationRepository;
 
 	@Test
@@ -43,25 +43,25 @@ class ParticipationServiceTest {
 
 		CreateParticipationRequest request = new CreateParticipationRequest(responseDataList);
 
+		Participation savedParticipation = Participation.create(memberId, surveyId, null);
+		ReflectionTestUtils.setField(savedParticipation, "id", 1L);
+
+		when(participationRepository.save(any(Participation.class))).thenReturn(savedParticipation);
+
 		// when
 		Long participationId = participationService.create(surveyId, memberId, request);
 
 		// then
-		Optional<Participation> savedParticipation = participationRepository.findById(participationId);
+		assertThat(participationId).isEqualTo(1L);
+		assertThat(savedParticipation.getMemberId()).isEqualTo(memberId);
+		assertThat(savedParticipation.getSurveyId()).isEqualTo(surveyId);
+		assertThat(savedParticipation.getResponses()).hasSize(2);
 
-		assertThat(savedParticipation).isPresent();
-
-		Participation participation = savedParticipation.get();
-
-		assertThat(participation.getMemberId()).isEqualTo(memberId);
-		assertThat(participation.getSurveyId()).isEqualTo(surveyId);
-		assertThat(participation.getResponses()).hasSize(2);
-
-		assertThat(participation.getResponses())
+		assertThat(savedParticipation.getResponses())
 			.extracting("questionId")
 			.containsExactlyInAnyOrder(1L, 2L);
 
-		assertThat(participation.getResponses())
+		assertThat(savedParticipation.getResponses())
 			.extracting("answer")
 			.containsExactlyInAnyOrder(
 				Map.of("textAnswer", "주관식 및 서술형"),
