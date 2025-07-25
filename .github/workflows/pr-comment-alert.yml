@@ -3,10 +3,14 @@ name: Notify on PR Comment
 on:
   issue_comment:
     types: [created]
+  pull_request_review_comment:
+    types: [created]
 
 jobs:
   notify-slack:
-    if: github.event.issue.pull_request != null && !contains(github.event.comment.user.login, '[bot]')
+    if: |
+      (github.event.issue.pull_request != null || github.event.pull_request != null)
+      && !contains(github.event.comment.user.login, '[bot]')
     runs-on: ubuntu-latest
 
     steps:
