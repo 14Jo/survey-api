@@ -60,8 +60,9 @@ class ParticipationControllerIntegrationTest {
 		ReflectionTestUtils.setField(responseData1, "questionId", 1L);
 		ReflectionTestUtils.setField(responseData1, "answer", Map.of("textAnswer", "주관식 및 서술형"));
 		ResponseData responseData2 = new ResponseData();
-		ReflectionTestUtils.setField(responseData1, "questionId", 2L);
-		ReflectionTestUtils.setField(responseData1, "answer", Map.of("choices", List.of(1, 3)));
+		ReflectionTestUtils.setField(responseData2, "questionId", 2L);
+		ReflectionTestUtils.setField(responseData2, "answer", Map.of("choices", List.of(1, 3)));
+
 		List<ResponseData> responseDataList = new ArrayList<>(List.of(responseData1, responseData2));
 
 		CreateParticipationRequest request = new CreateParticipationRequest();
@@ -96,7 +97,7 @@ class ParticipationControllerIntegrationTest {
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.message").value("유효성 검증 실패"))
+			.andExpect(jsonPath("$.message").value("요청 데이터 검증에 실패하였습니다."))
 			.andExpect(jsonPath("$.data.responseDataList").value("응답 데이터는 최소 1개 이상이어야 합니다."));
 	}
 }
