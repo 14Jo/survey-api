@@ -1,12 +1,12 @@
-package com.example.surveyapi.domain.share.api.share;
+package com.example.surveyapi.domain.share.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
+import com.example.surveyapi.domain.share.application.notification.NotificationService;
+import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.CreateShareRequest;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1/share-tasks")
 public class ShareController {
 	private final ShareService shareService;
+	private final NotificationService notificationService;
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<ShareResponse>> createShare(@Valid @RequestBody CreateShareRequest request) {
@@ -28,5 +29,16 @@ public class ShareController {
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
 			.body(body);
+	}
+
+	@GetMapping("/{shareId}/notifications")
+	public ResponseEntity<ApiResponse<NotificationPageResponse>> getAll(
+		@PathVariable Long shareId,
+		@RequestParam(defaultValue = "0") int page,
+		@RequestParam(defaultValue = "10") int size,
+		@AuthenticationPrincipal Long currentId
+	) {
+		NotificationPageResponse response = notificationService.gets(shareId, currentId, page, size);
+		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
 }
