@@ -60,21 +60,14 @@ public class User extends BaseEntity {
     }
 
     public User(
-        String email,
-        String password,
-        String name,
-        LocalDateTime birthDate,
-        Gender gender,
-        String province,
-        String district,
-        String detailAddress,
-        String postalCode){
+        String email, String password,
+        String name, LocalDateTime birthDate, Gender gender,
+        String province, String district,
+        String detailAddress, String postalCode){
 
         this.auth = new Auth(email,password);
         this.profile = new Profile(
-            name,
-            birthDate,
-            gender,
+            name, birthDate, gender,
             new Address(province,district,detailAddress,postalCode));
 
         this.role = Role.USER;
@@ -82,25 +75,16 @@ public class User extends BaseEntity {
     }
 
     public static User create(String email,
-        String password,
-        String name,
-        LocalDateTime birthDate,
-        Gender gender,
-        String province,
-        String district,
-        String detailAddress,
-        String postalCode) {
+        String password, String name,
+        LocalDateTime birthDate, Gender gender,
+        String province, String district,
+        String detailAddress, String postalCode) {
 
         return new User(
-            email,
-            password,
-            name,
-            birthDate,
-            gender,
-            province,
-            district,
-            detailAddress,
-            postalCode);
+            email, password,
+            name, birthDate, gender,
+            province, district,
+            detailAddress, postalCode);
     }
 
     public void update(
@@ -136,9 +120,5 @@ public class User extends BaseEntity {
         }
 
         this.setUpdatedAt(LocalDateTime.now());
-    }
-
-    public void delete() {
-        this.isDeleted = true;
     }
 }
