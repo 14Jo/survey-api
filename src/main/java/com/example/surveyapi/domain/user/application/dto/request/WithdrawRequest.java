@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.application.dtos.request.auth;
+package com.example.surveyapi.domain.user.application.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
