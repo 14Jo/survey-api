@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
+import com.example.surveyapi.domain.project.domain.dto.ProjectResult;
 import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
@@ -31,7 +31,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public List<ReadProjectResponse> findMyProjects(Long currentUserId) {
+	public List<ProjectResult> findMyProjects(Long currentUserId) {
 		return projectQuerydslRepository.findMyProjects(currentUserId);
 	}
 

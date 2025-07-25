@@ -13,7 +13,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectResponse;
 import com.example.surveyapi.domain.project.domain.project.Project;
 import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -46,8 +46,11 @@ public class ProjectService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ReadProjectResponse> getMyProjects(Long currentUserId) {
-		return projectRepository.findMyProjects(currentUserId);
+	public List<ProjectResponse> getMyProjects(Long currentUserId) {
+		return projectRepository.findMyProjects(currentUserId)
+			.stream()
+			.map(ProjectResponse::from)
+			.toList();
 	}
 
 	@Transactional
@@ -81,9 +84,12 @@ public class ProjectService {
 	@Transactional
 	public CreateManagerResponse addManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
+
 		// TODO: 회원 존재 여부
+
 		project.addManager(currentUserId, request.getUserId());
 		projectRepository.save(project);
+
 		return CreateManagerResponse.from(project.getManagers().get(project.getManagers().size() - 1).getId());
 	}
 
@@ -107,6 +113,7 @@ public class ProjectService {
 	}
 
 	private Project findByIdOrElseThrow(Long projectId) {
+
 		return projectRepository.findByIdAndIsDeletedFalse(projectId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
 	}
