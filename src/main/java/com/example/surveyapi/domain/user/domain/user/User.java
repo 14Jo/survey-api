@@ -82,15 +82,10 @@ public class User extends BaseEntity {
         String province, String district,
         String detailAddress, String postalCode) {
 
-        if(email == null ||
-            password == null ||
-            name == null ||
-            birthDate == null ||
-            gender == null ||
-            province == null ||
-            district == null ||
-            detailAddress == null ||
-            postalCode == null){
+        if(email == null || password == null ||
+            name == null || birthDate == null || gender == null ||
+            province == null || district == null ||
+            detailAddress == null || postalCode == null){
             throw new CustomException(CustomErrorCode.SERVER_ERROR);
         }
 
