@@ -68,7 +68,7 @@ public class ParticipationService {
 		// 더미데이터 생성
 		for (Long surveyId : surveyIds) {
 			surveyInfoOfParticipations.add(
-				new SurveyInfoOfParticipation(surveyId, "설문 제목" + surveyId, "진행 중", LocalDate.now().plusWeeks(1),
+				SurveyInfoOfParticipation.of(surveyId, "설문 제목" + surveyId, "진행 중", LocalDate.now().plusWeeks(1),
 					true));
 		}
 
