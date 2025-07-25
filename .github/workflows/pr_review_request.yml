@@ -17,9 +17,9 @@ jobs:
           ACTION: ${{ github.event.action }}
         run: |
           if [ "$ACTION" = "ready_for_review" ]; then
-            echo "NOTIFY_MSG= - ✅ PR 리뷰 요청" >> $GITHUB_ENV
+            echo "NOTIFY_MSG=✅ PR 리뷰 요청" >> $GITHUB_ENV
           elif [ "$ACTION" = "synchronize" ]; then
-            echo "NOTIFY_MSG= - ✏️ PR 수정내용 반영" >> $GITHUB_ENV
+            echo "NOTIFY_MSG=✏️ PR 수정내용 반영" >> $GITHUB_ENV
           fi
 
       - name: Set up PR context
