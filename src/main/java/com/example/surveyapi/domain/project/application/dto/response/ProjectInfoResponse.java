@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProjectResponse {
+public class ProjectInfoResponse {
 	private Long projectId;
 	private String name;
 	private String description;
@@ -23,8 +23,8 @@ public class ProjectResponse {
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 
-	public static ProjectResponse from(ProjectResult projectResult) {
-		ProjectResponse response = new ProjectResponse();
+	public static ProjectInfoResponse from(ProjectResult projectResult) {
+		ProjectInfoResponse response = new ProjectInfoResponse();
 		response.projectId = projectResult.getProjectId();
 		response.name = projectResult.getName();
 		response.description = projectResult.getDescription();
