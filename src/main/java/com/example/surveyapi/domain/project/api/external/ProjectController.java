@@ -24,7 +24,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -49,10 +49,10 @@ public class ProjectController {
 	}
 
 	@GetMapping("/me")
-	public ResponseEntity<ApiResponse<List<ProjectResponse>>> getMyProjects(
+	public ResponseEntity<ApiResponse<List<ProjectInfoResponse>>> getMyProjects(
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		List<ProjectResponse> result = projectService.getMyProjects(currentUserId);
+		List<ProjectInfoResponse> result = projectService.getMyProjects(currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("나의 프로젝트 목록 조회 성공", result));
