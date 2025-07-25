@@ -11,6 +11,8 @@ import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Auth;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -82,25 +84,28 @@ public class User extends BaseEntity {
     }
 
     public static User create(String email,
-        String password,
-        String name,
-        LocalDateTime birthDate,
-        Gender gender,
-        String province,
-        String district,
-        String detailAddress,
-        String postalCode) {
+        String password, String name,
+        LocalDateTime birthDate, Gender gender,
+        String province, String district,
+        String detailAddress, String postalCode) {
+
+        if(email == null ||
+            password == null ||
+            name == null ||
+            birthDate == null ||
+            gender == null ||
+            province == null ||
+            district == null ||
+            detailAddress == null ||
+            postalCode == null){
+            throw new CustomException(CustomErrorCode.SERVER_ERROR);
+        }
 
         return new User(
-            email,
-            password,
-            name,
-            birthDate,
-            gender,
-            province,
-            district,
-            detailAddress,
-            postalCode);
+            email, password,
+            name, birthDate, gender,
+            province, district,
+            detailAddress, postalCode);
     }
 
     public void update(
