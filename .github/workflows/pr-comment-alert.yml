@@ -24,35 +24,30 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -n "${{ github.event.issue.pull_request.url }}" ]; then
-            PR_URL="${{ github.event.issue.pull_request.url }}"
-            PR_URL_HTML="${{ github.event.issue.pull_request.html_url }}"
-          elif [ -n "${{ github.event.pull_request.url }}" ]; then
-            PR_URL="${{ github.event.pull_request.url }}"
-            PR_URL_HTML="${{ github.event.pull_request.html_url }}"
-          elif [ -n "${{ github.event.review.pull_request_url }}" ]; then
-            PR_URL="${{ github.event.review.pull_request_url }}"
-            PR_DATA_URL=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$PR_URL")
-            PR_URL_HTML=$(echo "$PR_DATA_URL" | jq -r '.html_url')
-          else
-            echo "No PR URL found"
-            exit 1
-          fi
+          get_pr_url() {
+            if [ -n "${{ github.event.issue.pull_request.url }}" ]; then
+              echo "${{ github.event.issue.pull_request.url }}"
+            elif [ -n "${{ github.event.pull_request.url }}" ]; then
+              echo "${{ github.event.pull_request.url }}"
+            elif [ -n "${{ github.event.review.pull_request_url }}" ]; then
+              echo "${{ github.event.review.pull_request_url }}"
+            fi
+          }
 
-          echo "Fetching PR info from $PR_URL"
+          PR_URL=$(get_pr_url)
+          [ -z "$PR_URL" ] && echo "No PR URL found" && exit 1
+
           PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$PR_URL")
+          PR_URL_HTML=$(echo "$PR_DATA" | jq -r '.html_url')
           IS_DRAFT=$(echo "$PR_DATA" | jq -r '.draft')
 
-          echo "PR is draft: $IS_DRAFT"
           if [ "$IS_DRAFT" = "true" ]; then
-            echo "Draft PR detected, exiting."
-            exit 1
+            echo "Draft PR detected, exiting." && exit 1
           fi
 
           HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
           PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
           
-          PR_AUTHOR=""
           if [ -z "$HEAD_SHA" ] || [ "$HEAD_SHA" == "null" ]; then
             PR_AUTHOR="${{ github.event.issue.user.login }}"
           else
@@ -61,8 +56,14 @@ jobs:
             PR_AUTHOR=$(echo "$COMMIT_DATA" | jq -r '.author.login // .committer.login')
           fi
 
-          COMMENT_AUTHOR="${{ github.event.comment.user.login }}"
-          COMMENT_BODY="${{ github.event.comment.body }}"
+          if [ -n "${{ github.event.comment.body }}" ]; then
+            COMMENT_AUTHOR="${{ github.event.comment.user.login }}"
+            COMMENT_BODY="${{ github.event.comment.body }}"
+          else
+            COMMENT_AUTHOR="${{ github.event.user.login }}"
+            COMMENT_BODY="${{ github.event.body }}"      
+          fi
+          [ -z "$COMMENT_BODY" ] && COMMENT_BODY="X"
           REPLY_TO_COMMENT_ID="${{ github.event.comment.in_reply_to_id }}"
           
           echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
@@ -70,15 +71,20 @@ jobs:
           echo "comment_author=$COMMENT_AUTHOR" >> $GITHUB_OUTPUT
           echo "pr_url=$PR_URL_HTML" >> $GITHUB_OUTPUT
 
+          if [ -n "${{ github.event.review.state }}" ] && [ "${{ github.event.review.state }}" = "approved" ]; then
+            echo "is_approved=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_approved=false" >> $GITHUB_OUTPUT
+          fi
+          
           if [ -n "$REPLY_TO_COMMENT_ID" ]; then
             echo "is_reply=true" >> $GITHUB_OUTPUT
-          
             ORIGINAL_COMMENT_API_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$REPLY_TO_COMMENT_ID"
             ORIGINAL_COMMENT_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$ORIGINAL_COMMENT_API_URL")
-          
             ORIGINAL_COMMENT_AUTHOR=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.user.login')
             ORIGINAL_COMMENT_BODY=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.body')
-
+            [ -z "$ORIGINAL_COMMENT_BODY" ] && ORIGINAL_COMMENT_BODY="X"
+          
             echo "original_comment_author=$ORIGINAL_COMMENT_AUTHOR" >> $GITHUB_OUTPUT
             echo "original_comment_body<<EOF" >> $GITHUB_OUTPUT
             echo "$ORIGINAL_COMMENT_BODY" >> $GITHUB_OUTPUT
@@ -133,9 +139,9 @@ jobs:
       - name: Send Slack message
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          PR_TITLE: ${{ steps.prepare-notification.outputs.pr_title }}
           PR_URL: ${{ steps.prepare-notification.outputs.pr_url }}
           IS_REPLY: ${{ steps.prepare-notification.outputs.is_reply }}
+          IS_APPROVED: ${{ steps.prepare-notification.outputs.is_approved }}
           COMMENT_BODY: ${{ steps.prepare-notification.outputs.comment_body }}
           ORIGINAL_COMMENT_BODY: ${{ steps.prepare-notification.outputs.original_comment_body }}
           REPLY_BODY: ${{ steps.prepare-notification.outputs.reply_body }}
@@ -143,8 +149,10 @@ jobs:
           COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.comment_author_slack }}
           ORIGINAL_COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.original_comment_author_slack }}
         run: |
-          if [ "$IS_REPLY" = "true" ]; then
-            msg="📣 *리뷰 알림!*\n↪️ *댓글에 답글이 달렸습니다*\n*원댓글 작성자:* ORIGINAL_COMMENT_AUTHOR_SLACK\n*원댓글 내용:*\n> ORIGINAL_COMMENT_BODY\n\n*답글 작성자:* $COMMENT_AUTHOR_SLACK\n*답글 내용:*\n> $REPLY_BODY\n\n*PR 링크:* $PR_URL"
+          if [ "$IS_APPROVED" = "true" ]; then
+            msg="⭕ *PR이 승인되었습니다!*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*승인:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
+          elif [ "$IS_REPLY" = "true" ]; then
+            msg="📣 *리뷰 알림!*\n↪️ *댓글에 답글이 달렸습니다*\n*원댓글 작성자:* $ORIGINAL_COMMENT_AUTHOR_SLACK\n*원댓글 내용:*\n> $ORIGINAL_COMMENT_BODY\n\n*답글 작성자:* $COMMENT_AUTHOR_SLACK\n*답글 내용:*\n> $REPLY_BODY\n\n*PR 링크:* $PR_URL"
           else
             msg="📣 *리뷰 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
           fi
