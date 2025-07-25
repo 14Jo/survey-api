@@ -24,9 +24,9 @@ jobs:
           echo "EVENT_NAME: ${{ github.event_name }}"
           echo "Full comment JSON:"
           echo '${{ toJson(github.event.comment) }}'
-          echo '${{ toJSON(github.event.user.login)}}'
-          echo '${{ toJSON(github.event.user.login)}}'
-          echo '${{ toJSON(github.event.body)}}'
+          echo '${{ toJSON(github.event.review.user.login)}}'
+          echo '${{ toJSON(github.event.review.state)}}'
+          echo '${{ toJSON(github.event.review.body)}}'
       - name: Extract Info and Prepare Notification
         id: prepare-notification
         env:
@@ -162,7 +162,3 @@ jobs:
           else
             msg="📣 *리뷰 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
           fi
-
-          curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \"$msg\"
-          }" $SLACK_WEBHOOK_URL
