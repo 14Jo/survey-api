@@ -65,11 +65,11 @@ public class UserController {
             .body(ApiResponse.success("회원 전체 조회 성공", All));
     }
 
-    @GetMapping("/users/{memberId}")
+    @GetMapping("/users/me")
     public ResponseEntity<ApiResponse<UserResponse>> getUser(
-        @PathVariable Long memberId
+        @AuthenticationPrincipal Long userId
     ) {
-        UserResponse user = userService.getUser(memberId);
+        UserResponse user = userService.getUser(userId);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 조회 성공", user));

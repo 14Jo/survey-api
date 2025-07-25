@@ -79,9 +79,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserResponse getUser(Long memberId) {
+    public UserResponse getUser(Long userId) {
 
-        User user = userRepository.findByIdAndIsDeletedFalse(memberId)
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         return UserResponse.from(user);
