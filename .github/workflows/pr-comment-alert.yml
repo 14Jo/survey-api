@@ -1,0 +1,127 @@
+name: Notify on PR Comment
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  notify-slack:
+    if: |
+      (github.event.issue.pull_request != null || github.event.pull_request != null)
+      && !contains(github.event.comment.user.login, '[bot]')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Extract Info and Prepare Notification
+        id: prepare-notification
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_API_URL="${{ github.event.issue.pull_request.url }}"
+          PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$PR_API_URL")
+          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+          PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
+          
+          PR_AUTHOR=""
+          if [ -z "$HEAD_SHA" ] || [ "$HEAD_SHA" == "null" ]; then
+            PR_AUTHOR="${{ github.event.issue.user.login }}"
+          else
+            COMMIT_API_URL="https://api.github.com/repos/${{ github.repository }}/commits/$HEAD_SHA"
+            COMMIT_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$COMMIT_API_URL")
+            PR_AUTHOR=$(echo "$COMMIT_DATA" | jq -r '.author.login // .committer.login')
+          fi
+
+          COMMENT_AUTHOR="${{ github.event.comment.user.login }}"
+          COMMENT_BODY="${{ github.event.comment.body }}"
+          PR_URL="${{ github.event.issue.html_url }}"
+          REPLY_TO_COMMENT_ID="${{ github.event.comment.in_reply_to_id }}"
+          
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
+          echo "comment_author=$COMMENT_AUTHOR" >> $GITHUB_OUTPUT
+          echo "pr_url=$PR_URL" >> $GITHUB_OUTPUT
+
+          if [ -n "$REPLY_TO_COMMENT_ID" ]; then
+            echo "is_reply=true" >> $GITHUB_OUTPUT
+          
+            ORIGINAL_COMMENT_API_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$REPLY_TO_COMMENT_ID"
+            ORIGINAL_COMMENT_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$ORIGINAL_COMMENT_API_URL")
+          
+            ORIGINAL_COMMENT_AUTHOR=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.user.login')
+            ORIGINAL_COMMENT_BODY=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.body')
+
+            echo "original_comment_author=$ORIGINAL_COMMENT_AUTHOR" >> $GITHUB_OUTPUT
+            echo "original_comment_body<<EOF" >> $GITHUB_OUTPUT
+            echo "$ORIGINAL_COMMENT_BODY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          
+            echo "reply_body<<EOF" >> $GITHUB_OUTPUT
+            echo "$COMMENT_BODY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "is_reply=false" >> $GITHUB_OUTPUT
+            echo "comment_body<<EOF" >> $GITHUB_OUTPUT
+            echo "$COMMENT_BODY" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Map GitHub users to Slack IDs
+        id: map-users
+        run: |
+          declare -A GH_TO_SLACK_MAP
+          GH_TO_SLACK_MAP["Jindnjs"]="${{ secrets.SLACK_USER_JIN }}"
+          GH_TO_SLACK_MAP["LJY981008"]="${{ secrets.SLACK_USER_JUN }}"
+          GH_TO_SLACK_MAP["taeung515"]="${{ secrets.SLACK_USER_TAE }}"
+          GH_TO_SLACK_MAP["easter1201"]="${{ secrets.SLACK_USER_DOY }}"
+          GH_TO_SLACK_MAP["kcc5107"]="${{ secrets.SLACK_USER_GU }}"
+          GH_TO_SLACK_MAP["DG0702"]="${{ secrets.SLACK_USER_DONG }}"
+
+          PR_AUTHOR="${{ steps.prepare-notification.outputs.pr_author }}"
+          COMMENT_AUTHOR="${{ steps.prepare-notification.outputs.comment_author }}"
+          ORIGINAL_COMMENT_AUTHOR="${{ steps.prepare-notification.outputs.original_comment_author }}"
+
+          map_user() {
+            local github_user=$1
+            local slack_id="${GH_TO_SLACK_MAP[$github_user]}"
+            if [ -z "$slack_id" ]; then
+              echo "$github_user"
+            else
+              echo "<@$slack_id>"
+            fi
+          }
+
+          echo "pr_author_slack=$(map_user "$PR_AUTHOR")" >> $GITHUB_OUTPUT
+          echo "comment_author_slack=$(map_user "$COMMENT_AUTHOR")" >> $GITHUB_OUTPUT
+          echo "original_comment_author_slack=$(map_user "$ORIGINAL_COMMENT_AUTHOR")" >> $GITHUB_OUTPUT
+        env:
+          SLACK_USER_JIN: ${{ secrets.SLACK_USER_JIN }}
+          SLACK_USER_JUN: ${{ secrets.SLACK_USER_JUN }}
+          SLACK_USER_TAE: ${{ secrets.SLACK_USER_TAE }}
+          SLACK_USER_DOY: ${{ secrets.SLACK_USER_DOY }}
+          SLACK_USER_GU: ${{ secrets.SLACK_USER_GU }}
+          SLACK_USER_DONG: ${{ secrets.SLACK_USER_DONG }}
+
+      - name: Send Slack message
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PR_TITLE: ${{ steps.prepare-notification.outputs.pr_title }}
+          PR_URL: ${{ steps.prepare-notification.outputs.pr_url }}
+          IS_REPLY: ${{ steps.prepare-notification.outputs.is_reply }}
+          COMMENT_BODY: ${{ steps.prepare-notification.outputs.comment_body }}
+          ORIGINAL_COMMENT_BODY: ${{ steps.prepare-notification.outputs.original_comment_body }}
+          REPLY_BODY: ${{ steps.prepare-notification.outputs.reply_body }}
+          PR_AUTHOR_SLACK: ${{ steps.map-users.outputs.pr_author_slack }}
+          COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.comment_author_slack }}
+          ORIGINAL_COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.original_comment_author_slack }}
+        run: |
+          if [ "$IS_REPLY" = "true" ]; then
+            msg="📣 *PR 알림!*\n↪️ *댓글에 답글이 달렸습니다*\n*원댓글 작성자:* ORIGINAL_COMMENT_AUTHOR_SLACK\n*원댓글 내용:*\n> ORIGINAL_COMMENT_BODY\n\n*답글 작성자:* $COMMENT_AUTHOR_SLACK\n*답글 내용:*\n> $REPLY_BODY\n\n*PR 링크:* $PR_URL"
+          else
+            msg="📣 *PR 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
+          fi
+
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"text\": \"$msg\"
+          }" $SLACK_WEBHOOK_URL
