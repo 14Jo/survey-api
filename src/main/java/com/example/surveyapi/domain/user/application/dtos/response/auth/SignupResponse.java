@@ -6,12 +6,12 @@ import lombok.Getter;
 
 @Getter
 public class SignupResponse {
-    private Long memberId;
+    private Long userId;
     private String email;
     private String name;
 
     public SignupResponse(User user){
-        this.memberId = user.getId();
+        this.userId = user.getId();
         this.email = user.getAuth().getEmail();
         this.name = user.getProfile().getName();
     }

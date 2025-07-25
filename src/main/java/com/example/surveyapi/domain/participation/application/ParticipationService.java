@@ -21,6 +21,8 @@ import com.example.surveyapi.domain.participation.domain.participation.Participa
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -111,5 +113,29 @@ public class ParticipationService {
 		}
 
 		return result;
+	}
+
+	@Transactional(readOnly = true)
+	public ReadParticipationResponse get(Long loginMemberId, Long participationId) {
+		Participation participation = participationRepository.findById(participationId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+
+		participation.validateOwner(loginMemberId);
+
+		return ReadParticipationResponse.from(participation);
+	}
+
+	@Transactional
+	public void update(Long loginMemberId, Long participationId, CreateParticipationRequest request) {
+		Participation participation = participationRepository.findById(participationId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+
+		participation.validateOwner(loginMemberId);
+
+		List<Response> responses = request.getResponseDataList().stream()
+			.map(responseData -> Response.create(responseData.getQuestionId(), responseData.getAnswer()))
+			.toList();
+
+		participation.update(responses);
 	}
 }

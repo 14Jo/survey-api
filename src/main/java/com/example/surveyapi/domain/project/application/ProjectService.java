@@ -5,10 +5,13 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
+import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ReadProjectResponse;
 import com.example.surveyapi.domain.project.domain.project.Project;
@@ -59,6 +62,7 @@ public class ProjectService {
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
+		// TODO: 이벤트 발행
 	}
 
 	@Transactional
@@ -71,6 +75,29 @@ public class ProjectService {
 	public void deleteProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.softDelete(currentUserId);
+		// TODO: 이벤트 발행
+	}
+
+	@Transactional
+	public CreateManagerResponse addManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		// TODO: 회원 존재 여부
+		project.addManager(currentUserId, request.getUserId());
+		projectRepository.save(project);
+		return CreateManagerResponse.from(project.getManagers().get(project.getManagers().size() - 1).getId());
+	}
+
+	@Transactional
+	public void updateManagerRole(Long projectId, Long managerId, UpdateManagerRoleRequest request,
+		Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
+	}
+
+	@Transactional
+	public void deleteManager(Long projectId, Long managerId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.deleteManager(currentUserId, managerId);
 	}
 
 	private void validateDuplicateName(String name) {
