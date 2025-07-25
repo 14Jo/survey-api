@@ -64,7 +64,8 @@ public class Project extends BaseEntity {
 
 	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
 		LocalDateTime periodEnd) {
-		ProjectPeriod period = ProjectPeriod.toPeriod(periodStart, periodEnd);
+		ProjectPeriod period = ProjectPeriod.of(periodStart, periodEnd);
+
 		Project project = new Project();
 		project.name = name;
 		project.description = description;
@@ -72,6 +73,7 @@ public class Project extends BaseEntity {
 		project.period = period;
 		// 프로젝트 생성자는 소유자로 등록
 		project.managers.add(Manager.createOwner(project, ownerId));
+
 		return project;
 	}
 
@@ -80,7 +82,7 @@ public class Project extends BaseEntity {
 		if (newPeriodStart != null || newPeriodEnd != null) {
 			LocalDateTime start = Objects.requireNonNullElse(newPeriodStart, this.period.getPeriodStart());
 			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
-			this.period = ProjectPeriod.toPeriod(start, end);
+			this.period = ProjectPeriod.of(start, end);
 		}
 		if (StringUtils.hasText(newName)) {
 			this.name = newName;
@@ -101,14 +103,14 @@ public class Project extends BaseEntity {
 			if (newState != ProjectState.IN_PROGRESS) {
 				throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
 			}
-			this.period = ProjectPeriod.toPeriod(LocalDateTime.now(), this.period.getPeriodEnd());
+			this.period = ProjectPeriod.of(LocalDateTime.now(), this.period.getPeriodEnd());
 		}
 		// IN_PROGRESS -> CLOSED만 허용 periodEnd를 now로 세팅
 		if (this.state == ProjectState.IN_PROGRESS) {
 			if (newState != ProjectState.CLOSED) {
 				throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
 			}
-			this.period = ProjectPeriod.toPeriod(this.period.getPeriodStart(), LocalDateTime.now());
+			this.period = ProjectPeriod.of(this.period.getPeriodStart(), LocalDateTime.now());
 		}
 
 		this.state = newState;

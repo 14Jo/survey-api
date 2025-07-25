@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.project.application.dto.response;
+package com.example.surveyapi.domain.project.domain.dto;
 
 import java.time.LocalDateTime;
 
@@ -7,7 +7,7 @@ import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 
 @Getter
-public class ReadProjectResponse {
+public class ProjectResult {
 	private final Long projectId;
 	private final String name;
 	private final String description;
@@ -21,7 +21,7 @@ public class ReadProjectResponse {
 	private final LocalDateTime updatedAt;
 
 	@QueryProjection
-	public ReadProjectResponse(Long projectId, String name, String description, Long ownerId, String myRole,
+	public ProjectResult(Long projectId, String name, String description, Long ownerId, String myRole,
 		LocalDateTime periodStart, LocalDateTime periodEnd, String state, int managersCount, LocalDateTime createdAt,
 		LocalDateTime updatedAt) {
 		this.projectId = projectId;
