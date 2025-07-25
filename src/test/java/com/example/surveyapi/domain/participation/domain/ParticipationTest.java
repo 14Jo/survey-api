@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 class ParticipationTest {
 
@@ -44,5 +46,31 @@ class ParticipationTest {
 		assertThat(participation.getResponses()).hasSize(1);
 		assertThat(participation.getResponses().get(0)).isEqualTo(response);
 		assertThat(response.getParticipation()).isEqualTo(participation);
+	}
+
+	@Test
+	@DisplayName("참여 기록 본인 검증 성공")
+	void validateOwner_notThrowException() {
+		// given
+		Long ownerId = 1L;
+		Participation participation = Participation.create(ownerId, 1L, new ParticipantInfo());
+
+		// when & then
+		assertThatCode(() -> participation.validateOwner(ownerId))
+			.doesNotThrowAnyException();
+	}
+
+	@Test
+	@DisplayName("참여 기록 본인 검증 실패")
+	void validateOwner_throwException() {
+		// given
+		Long ownerId = 1L;
+		Long otherId = 2L;
+		Participation participation = Participation.create(ownerId, 1L, new ParticipantInfo());
+
+		// when & then
+		assertThatThrownBy(() -> participation.validateOwner(otherId))
+			.isInstanceOf(CustomException.class)
+			.hasMessage(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW.getMessage());
 	}
 }
