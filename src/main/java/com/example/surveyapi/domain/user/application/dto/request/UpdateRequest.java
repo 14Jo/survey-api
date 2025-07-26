@@ -1,5 +1,8 @@
 package com.example.surveyapi.domain.user.application.dto.request;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,30 +10,40 @@ import lombok.NoArgsConstructor;
 @Getter
 public class UpdateRequest {
 
+    @Valid
     private UpdateAuthRequest auth;
+
+    @Valid
     private UpdateProfileRequest profile;
 
     @Getter
     public static class UpdateAuthRequest {
-
+        @Size(min = 6, max = 20, message = "비밀번호는 6자 이상 20자 이하이어야 합니다")
         private String password;
     }
 
     @Getter
     public static class UpdateProfileRequest {
+        @Size(max = 20, message = "이름은 최대 20자까지 가능합니다")
         private String name;
 
+        @Valid
         private UpdateAddressRequest address;
     }
 
     @Getter
     public static class UpdateAddressRequest {
+
+        @Size(max = 50, message = "시/도는 최대 50자까지 가능합니다")
         private String province;
 
+        @Size(max = 50, message = "구/군은 최대 50자까지 가능합니다")
         private String district;
 
+        @Size(max = 100, message = "상세주소는 최대 100자까지 가능합니다")
         private String detailAddress;
 
+        @Pattern(regexp = "\\d{5}", message = "우편번호는 5자리 숫자여야 합니다")
         private String postalCode;
     }
 
