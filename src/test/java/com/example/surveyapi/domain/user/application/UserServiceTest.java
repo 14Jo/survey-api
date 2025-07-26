@@ -1,4 +1,4 @@
-package com.example.surveyapi.user.application;
+package com.example.surveyapi.domain.user.application;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,12 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.example.surveyapi.domain.user.application.UserService;
+import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
+import com.example.surveyapi.domain.user.application.dto.request.UpdateRequest;
 import com.example.surveyapi.domain.user.application.dto.request.WithdrawRequest;
 import com.example.surveyapi.domain.user.application.dto.response.GradeResponse;
+import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
-import com.example.surveyapi.domain.user.domain.user.QUser;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
@@ -271,11 +275,99 @@ public class UserServiceTest {
         // then
         assertThatThrownBy(() -> userService.getGrade(userId))
             .isInstanceOf(CustomException.class)
-            .hasMessageContaining("유저를 찾을 수 없습니다")
-        ;
+            .hasMessageContaining("유저를 찾을 수 없습니다");
     }
 
-    public SignupRequest createSignupRequest(String email, String password) {
+    @Test
+    @DisplayName("회원 정보 수정 - 성공")
+    void update_success() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+
+        SignupResponse signup = userService.signup(rq1);
+
+        User user = userRepository.findByEmail(signup.getEmail())
+            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
+
+        UpdateRequest request = updateRequest("홍길동2");
+
+        UpdateRequest.UpdateData data = UpdateRequest.UpdateData.from(request);
+
+        user.update(
+            data.getPassword(), data.getName(),
+            data.getProvince(), data.getDistrict(),
+            data.getDetailAddress(), data.getPostalCode()
+        );
+
+        //when
+        UserResponse update = userService.update(request, user.getId());
+
+        // then
+        assertThat(update.getName()).isEqualTo("홍길동2");
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 - 실패(다른 Id, 존재하지 않은 ID)")
+    void update_fail() {
+        // given
+        Long userId = 9999L;
+
+        UpdateRequest request = updateRequest("홍길동2");
+
+        // when & then
+        assertThatThrownBy(() -> userService.update(request, userId))
+            .isInstanceOf(CustomException.class)
+            .hasMessageContaining("유저를 찾을 수 없습니다");
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 - 성공")
+    void withdraw_success() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+
+        SignupResponse signup = userService.signup(rq1);
+
+        User user = userRepository.findByEmail(signup.getEmail())
+            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
+
+        WithdrawRequest withdrawRequest = new WithdrawRequest();
+        ReflectionTestUtils.setField(withdrawRequest, "password", "Password123");
+
+        // when
+        userService.withdraw(user.getId(), withdrawRequest);
+
+        // then
+        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), withdrawRequest))
+            .isInstanceOf(CustomException.class)
+            .hasMessageContaining("유저를 찾을 수 없습니다");
+
+    }
+
+    @Test
+    @DisplayName("회원 탈퇴 - 실패 (탈퇴한 회원 = 존재하지 않은 ID)")
+    void withdraw_fail() {
+        // given
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+
+        SignupResponse signup = userService.signup(rq1);
+
+        User user = userRepository.findByEmail(signup.getEmail())
+            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
+
+        user.delete();
+        userRepository.save(user);
+
+        WithdrawRequest withdrawRequest = new WithdrawRequest();
+        ReflectionTestUtils.setField(withdrawRequest, "password", "Password123");
+
+        // when & then
+        assertThatThrownBy(() -> userService.withdraw(user.getId(), withdrawRequest))
+            .isInstanceOf(CustomException.class)
+            .hasMessageContaining("유저를 찾을 수 없습니다");
+    }
+
+    private SignupRequest createSignupRequest(String email, String password) {
         SignupRequest.AuthRequest authRequest = new SignupRequest.AuthRequest();
         SignupRequest.ProfileRequest profileRequest = new SignupRequest.ProfileRequest();
         SignupRequest.AddressRequest addressRequest = new SignupRequest.AddressRequest();
@@ -300,4 +392,25 @@ public class UserServiceTest {
         return request;
     }
 
+    private UpdateRequest updateRequest(String name) {
+        UpdateRequest updateRequest = new UpdateRequest();
+
+        UpdateRequest.UpdateAuthRequest auth = new UpdateRequest.UpdateAuthRequest();
+        ReflectionTestUtils.setField(auth, "password", null);
+
+        UpdateRequest.UpdateAddressRequest address = new UpdateRequest.UpdateAddressRequest();
+        ReflectionTestUtils.setField(address, "province", null);
+        ReflectionTestUtils.setField(address, "district", null);
+        ReflectionTestUtils.setField(address, "detailAddress", null);
+        ReflectionTestUtils.setField(address, "postalCode", null);
+
+        UpdateRequest.UpdateProfileRequest profile = new UpdateRequest.UpdateProfileRequest();
+        ReflectionTestUtils.setField(profile, "name", name);
+        ReflectionTestUtils.setField(profile, "address", address);
+
+        ReflectionTestUtils.setField(updateRequest, "auth", auth);
+        ReflectionTestUtils.setField(updateRequest, "profile", profile);
+
+        return updateRequest;
+    }
 }
