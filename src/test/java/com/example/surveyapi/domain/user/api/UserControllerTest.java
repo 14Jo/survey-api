@@ -1,4 +1,4 @@
-package com.example.surveyapi.user.api;
+package com.example.surveyapi.domain.user.api;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -16,6 +16,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -29,6 +30,7 @@ import java.util.List;
 
 import com.example.surveyapi.domain.user.application.UserService;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
+import com.example.surveyapi.domain.user.application.dto.request.UpdateRequest;
 import com.example.surveyapi.domain.user.application.dto.response.GradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
@@ -39,11 +41,11 @@ import com.example.surveyapi.domain.user.domain.user.vo.Auth;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = "SECRET_KEY=qwenakdfknzknnl1oq12316adfkakadfj12315ndjhufd893d")
-@WithMockUser(username = "testUser", roles = "USER")
 public class UserControllerTest {
 
     @Autowired
@@ -51,6 +53,9 @@ public class UserControllerTest {
 
     @MockitoBean
     UserService userService;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @Test
     @DisplayName("회원가입 - 성공")
@@ -132,6 +137,14 @@ public class UserControllerTest {
     }
 
     @Test
+    @DisplayName("회원 전체 조회 - 실패 (인증 안 됨)")
+    void getAllUsers_fail_unauthenticated() throws Exception {
+        mockMvc.perform(get("/api/v1/users"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "testUser", roles = "USER")
+    @Test
     @DisplayName("모든 회원 조회 - 성공")
     void getAllUsers_success() throws Exception {
         //given
@@ -160,6 +173,7 @@ public class UserControllerTest {
             .andExpect(jsonPath("$.message").value("회원 전체 조회 성공"));
     }
 
+    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("모든 회원 조회 - 실패 (인원이 맞지 않을 때)")
     void getAllUsers_fail() throws Exception {
@@ -183,6 +197,7 @@ public class UserControllerTest {
             .andExpect(status().isInternalServerError());
     }
 
+    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("회원조회 - 성공 (프로필 조회)")
     void get_profile() throws Exception {
@@ -200,6 +215,7 @@ public class UserControllerTest {
             .andExpect(jsonPath("$.data.name").value("홍길동"));
     }
 
+    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("회원조회 - 실패 (프로필 조회)")
     void get_profile_fail() throws Exception {
@@ -215,6 +231,7 @@ public class UserControllerTest {
             .andExpect(status().isNotFound());
     }
 
+    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("등급 조회 - 성공")
     void grade_success() throws Exception {
@@ -233,6 +250,7 @@ public class UserControllerTest {
             .andExpect(jsonPath("$.data.grade").value("LV1"));
     }
 
+    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("등급 조회 - 실패 (다른사람, 탈퇴한 회원)")
     void grade_fail() throws Exception {
@@ -246,6 +264,22 @@ public class UserControllerTest {
         // then
         mockMvc.perform(get("/api/v1/users/grade"))
             .andExpect(status().isNotFound());
+    }
+
+    @WithMockUser(username = "testUser", roles = "USER")
+    @DisplayName("회원정보 수정 - 실패 (@Valid 유효성 검사)")
+    @Test
+    void updateUser_invalidRequest_returns400() throws Exception {
+        // given
+        String longName = "a".repeat(21);
+        UpdateRequest invalidRequest = updateRequest(longName);
+
+        // when & then
+        mockMvc.perform(patch("/api/v1/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.message").value("요청 데이터 검증에 실패하였습니다."));
     }
 
     private SignupRequest createSignupRequest(String email) {
@@ -285,5 +319,27 @@ public class UserControllerTest {
             rq.getProfile().getAddress().getDetailAddress(),
             rq.getProfile().getAddress().getPostalCode()
         );
+    }
+
+    private UpdateRequest updateRequest(String name) {
+        UpdateRequest updateRequest = new UpdateRequest();
+
+        UpdateRequest.UpdateAuthRequest auth = new UpdateRequest.UpdateAuthRequest();
+        ReflectionTestUtils.setField(auth, "password", null);
+
+        UpdateRequest.UpdateAddressRequest address = new UpdateRequest.UpdateAddressRequest();
+        ReflectionTestUtils.setField(address, "province", null);
+        ReflectionTestUtils.setField(address, "district", null);
+        ReflectionTestUtils.setField(address, "detailAddress", null);
+        ReflectionTestUtils.setField(address, "postalCode", null);
+
+        UpdateRequest.UpdateProfileRequest profile = new UpdateRequest.UpdateProfileRequest();
+        ReflectionTestUtils.setField(profile, "name", name);
+        ReflectionTestUtils.setField(profile, "address", address);
+
+        ReflectionTestUtils.setField(updateRequest, "auth", auth);
+        ReflectionTestUtils.setField(updateRequest, "profile", profile);
+
+        return updateRequest;
     }
 }
