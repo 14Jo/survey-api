@@ -1,4 +1,4 @@
-package com.example.surveyapi.user.domain;
+package com.example.surveyapi.domain.user.domain;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -56,5 +56,49 @@ public class UserTest {
             null, null, null, null,
             null, null, null, null, null
         )).isInstanceOf(CustomException.class);
+    }
+
+    @Test
+    @DisplayName("회원 정보 수정 - 성공")
+    void update_success() {
+
+        // given
+        User user = createUser();
+
+        // when
+        user.update("Password124", null,
+            null, null, null, null);
+
+        // then
+        assertThat(user.getAuth().getPassword()).isEqualTo("Password124");
+    }
+
+    @Test
+    @DisplayName("회원탈퇴 - 성공")
+    void delete_setsIsDeletedTrue() {
+        User user = createUser();
+        assertThat(user.getIsDeleted()).isFalse();
+
+        user.delete();
+
+        assertThat(user.getIsDeleted()).isTrue();
+    }
+
+    private User createUser() {
+        String email = "user@example.com";
+        String password = "Password123";
+        String name = "홍길동";
+        LocalDateTime birthDate = LocalDateTime.of(1990, 1, 1, 9, 0);
+        Gender gender = Gender.MALE;
+        String province = "서울시";
+        String district = "강남구";
+        String detailAddress = "테헤란로 123";
+        String postalCode = "06134";
+
+        return User.create(
+            email, password, name, birthDate, gender,
+            province, district, detailAddress, postalCode
+        );
+
     }
 }
