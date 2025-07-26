@@ -87,7 +87,7 @@ public class UserController {
 
     @PatchMapping("/users")
     public ResponseEntity<ApiResponse<UserResponse>> update(
-        @RequestBody UpdateRequest request,
+        @Valid @RequestBody UpdateRequest request,
         @AuthenticationPrincipal Long userId
     ) {
         UserResponse update = userService.update(request, userId);
