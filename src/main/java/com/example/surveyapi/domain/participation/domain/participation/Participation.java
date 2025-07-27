@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -50,18 +51,25 @@ public class Participation extends BaseEntity {
 	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "participation")
 	private List<Response> responses = new ArrayList<>();
 
-	public static Participation create(Long memberId, Long surveyId, ParticipantInfo participantInfo) {
+	public static Participation create(Long memberId, Long surveyId, ParticipantInfo participantInfo,
+		List<ResponseData> responseDataList) {
 		Participation participation = new Participation();
 		participation.memberId = memberId;
 		participation.surveyId = surveyId;
 		participation.participantInfo = participantInfo;
+		participation.addResponse(responseDataList);
 
 		return participation;
 	}
 
-	public void addResponse(Response response) {
-		this.responses.add(response);
-		response.setParticipation(this);
+	private void addResponse(List<ResponseData> responseDataList) {
+		for (ResponseData responseData : responseDataList) {
+			// TODO: questionId가 해당 survey에 속하는지(보류), 받아온 questionType으로 answer의 key값이 올바른지 유효성 검증
+			Response response = Response.create(responseData.getQuestionId(), responseData.getAnswer());
+
+			this.responses.add(response);
+			response.setParticipation(this);
+		}
 	}
 
 	public void validateOwner(Long memberId) {
@@ -84,4 +92,3 @@ public class Participation extends BaseEntity {
 		}
 	}
 }
-
