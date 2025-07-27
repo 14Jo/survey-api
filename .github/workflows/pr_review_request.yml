@@ -2,7 +2,7 @@ name: PR Review Notification
 
 on:
   pull_request:
-    types: [ready_for_review]
+    types: [ready_for_review, synchronize]
 
 jobs:
   notify:
@@ -124,7 +124,7 @@ jobs:
 
       - name: Send Slack message
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TEST }}
         run: |
           msg="📣 *PR 알림!*\n$NOTIFY_MSG\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR\n*링크:* $PR_URL\n*리뷰어:* $SLACK_REVIEWERS 🙏"
 

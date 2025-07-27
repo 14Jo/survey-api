@@ -1,114 +1,144 @@
+# .github/workflows/slack-notify.yml
+
 name: Notify on PR Comment
 
 on:
   issue_comment:
     types: [created]
-  pull_request_review_comment:
-    types: [created]
   pull_request_review:
     types: [submitted]
+  pull_request_review_comment:
+    types: [created]
 
 jobs:
   notify-slack:
-    if: |
-      (github.event.issue.pull_request != null || github.event.pull_request != null || github.event.review != null)
-      && (
-        (github.event.comment == null || !contains(github.event.comment.user.login, '[bot]')) &&
-        (github.event.review == null || !contains(github.event.review.user.login, '[bot]'))
-      )
+    # 봇이 생성한 이벤트는 무시하고, PR과 관련된 이벤트에 대해서만 실행합니다.
+    if: github.event.sender.type != 'Bot' && (github.event.issue.pull_request || github.event.pull_request)
     runs-on: ubuntu-latest
 
     steps:
-      - name: Debug event payload
-        run: |
-          echo "EVENT_NAME: ${{ github.event_name }}"
-          echo "Full comment JSON:"
-          echo '${{ toJson(github.event.comment) }}'
-          echo '${{ toJSON(github.event.review.user.login)}}'
-          echo '${{ toJSON(github.event.review.state)}}'
-          echo '${{ toJSON(github.event.review.body)}}'
       - name: Extract Info and Prepare Notification
-        id: prepare-notification
+        id: prepare
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_CONTEXT: ${{ toJSON(github.event) }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
-          get_pr_url() {
-            if [ -n "${{ github.event.issue.pull_request.url }}" ]; then
-              echo "${{ github.event.issue.pull_request.url }}"
-            elif [ -n "${{ github.event.pull_request.url }}" ]; then
-              echo "${{ github.event.pull_request.url }}"
-            elif [ -n "${{ github.event.review.pull_request_url }}" ]; then
-              echo "${{ github.event.review.pull_request_url }}"
+          # ----------------------------------------------------------------
+          # 1. 이벤트 종류에 따라 기본 변수 설정
+          # ----------------------------------------------------------------
+          EVENT_TYPE=""
+          COMMENT_BODY=""
+          COMMENT_AUTHOR=""
+          PR_API_URL=""
+          COMMENT_HTML_URL=""
+          
+          # jq를 사용하여 이벤트 페이로드(JSON)를 안전하게 파싱합니다.
+          if [[ "$EVENT_NAME" == "issue_comment" ]]; then
+            # PR에 달린 일반 댓글
+            COMMENT_BODY=$(echo "$EVENT_CONTEXT" | jq -r '.comment.body')
+            # 댓글 내용이 없으면 알림을 보내지 않고 종료합니다.
+            if [[ -z "$COMMENT_BODY" || "$COMMENT_BODY" == "null" ]]; then
+              echo "Comment body is empty. Exiting."
+              exit 0
             fi
-          }
+          
+            EVENT_TYPE="comment"
+            COMMENT_AUTHOR=$(echo "$EVENT_CONTEXT" | jq -r '.comment.user.login')
+            PR_API_URL=$(echo "$EVENT_CONTEXT" | jq -r '.issue.pull_request.url')
+            COMMENT_HTML_URL=$(echo "$EVENT_CONTEXT" | jq -r '.comment.html_url')
 
-          PR_URL=$(get_pr_url)
-          [ -z "$PR_URL" ] && echo "No PR URL found" && exit 1
+          elif [[ "$EVENT_NAME" == "pull_request_review" ]]; then
+            # PR 리뷰 (approved, changes_requested, commented)
+            REVIEW_STATE=$(echo "$EVENT_CONTEXT" | jq -r '.review.state')
+            COMMENT_BODY=$(echo "$EVENT_CONTEXT" | jq -r '.review.body')
+            COMMENT_AUTHOR=$(echo "$EVENT_CONTEXT" | jq -r '.review.user.login')
+            PR_API_URL=$(echo "$EVENT_CONTEXT" | jq -r '.pull_request.url')
+            COMMENT_HTML_URL=$(echo "$EVENT_CONTEXT" | jq -r '.review.html_url')
 
-          PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$PR_URL")
-          PR_URL_HTML=$(echo "$PR_DATA" | jq -r '.html_url')
+            if [[ "$REVIEW_STATE" == "approved" ]]; then
+              EVENT_TYPE="approved" # 승인 시에는 댓글이 없어도 알림
+            elif [[ "$REVIEW_STATE" == "changes_requested" ]]; then
+              EVENT_TYPE="changes_requested" # 변경 요청 시에도 댓글이 없어도 알림
+            elif [[ "$REVIEW_STATE" == "commented" ]]; then
+              # 리뷰 코멘트의 경우, 내용이 없으면 알림을 보내지 않습니다.
+              if [[ -z "$COMMENT_BODY" || "$COMMENT_BODY" == "null" ]]; then
+                echo "Review comment body is empty. Exiting."
+                exit 0
+              fi
+              EVENT_TYPE="comment"
+            else
+              echo "Unknown review state: $REVIEW_STATE. Exiting."
+              exit 0
+            fi
+
+          elif [[ "$EVENT_NAME" == "pull_request_review_comment" ]]; then
+            # 코드 라인에 직접 달린 댓글
+            COMMENT_BODY=$(echo "$EVENT_CONTEXT" | jq -r '.comment.body')
+            # 댓글 내용이 없으면 알림을 보내지 않고 종료합니다.
+            if [[ -z "$COMMENT_BODY" || "$COMMENT_BODY" == "null" ]]; then
+              echo "Review comment body is empty. Exiting."
+              exit 0
+            fi
+          
+            EVENT_TYPE="comment"
+            COMMENT_AUTHOR=$(echo "$EVENT_CONTEXT" | jq -r '.comment.user.login')
+            PR_API_URL=$(echo "$EVENT_CONTEXT" | jq -r '.pull_request.url')
+            COMMENT_HTML_URL=$(echo "$EVENT_CONTEXT" | jq -r '.comment.html_url')
+          
+            # 답글인 경우를 확인합니다.
+            REPLY_TO_ID=$(echo "$EVENT_CONTEXT" | jq -r '.comment.in_reply_to_id')
+            if [[ "$REPLY_TO_ID" != "null" ]]; then
+              EVENT_TYPE="reply"
+              ORIGINAL_COMMENT_URL="https://api.github.com/repos/${{ github.repository }}/pulls/comments/$REPLY_TO_ID"
+              ORIGINAL_COMMENT_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$ORIGINAL_COMMENT_URL")
+              ORIGINAL_COMMENT_AUTHOR=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.user.login')
+              ORIGINAL_COMMENT_BODY=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.body')
+          
+              echo "original_comment_author=$ORIGINAL_COMMENT_AUTHOR" >> $GITHUB_OUTPUT
+              echo "original_comment_body<<EOF" >> $GITHUB_OUTPUT
+              echo "$ORIGINAL_COMMENT_BODY" >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+          # ----------------------------------------------------------------
+          # 2. PR 상세 정보 조회
+          # ----------------------------------------------------------------
+          if [[ -z "$PR_API_URL" || "$PR_API_URL" == "null" ]]; then
+            echo "Could not determine PR API URL. Exiting."
+            exit 1
+          fi
+
+          PR_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" "$PR_API_URL")
           IS_DRAFT=$(echo "$PR_DATA" | jq -r '.draft')
 
-          if [ "$IS_DRAFT" = "true" ]; then
-            echo "Draft PR detected, exiting." && exit 1
+          # Draft PR인 경우 알림을 보내지 않습니다.
+          if [[ "$IS_DRAFT" == "true" ]]; then
+            echo "This is a draft PR. No notification will be sent."
+            exit 0
           fi
 
-          HEAD_SHA=$(echo "$PR_DATA" | jq -r '.head.sha')
+          PR_AUTHOR=$(echo "$PR_DATA" | jq -r '.user.login')
           PR_TITLE=$(echo "$PR_DATA" | jq -r '.title')
-          
-          if [ -z "$HEAD_SHA" ] || [ "$HEAD_SHA" == "null" ]; then
-            PR_AUTHOR="${{ github.event.issue.user.login }}"
-          else
-            COMMIT_API_URL="https://api.github.com/repos/${{ github.repository }}/commits/$HEAD_SHA"
-            COMMIT_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$COMMIT_API_URL")
-            PR_AUTHOR=$(echo "$COMMIT_DATA" | jq -r '.author.login // .committer.login')
-          fi
+          PR_HTML_URL=$(echo "$PR_DATA" | jq -r '.html_url')
 
-          if [ -n "${{ github.event.comment.body }}" ]; then
-            COMMENT_AUTHOR="${{ github.event.comment.user.login }}"
-            COMMENT_BODY="${{ github.event.comment.body }}"
-          else
-            COMMENT_AUTHOR="${{ github.event.user.login }}"
-            COMMENT_BODY="${{ github.event.body }}"      
-          fi
-          REPLY_TO_COMMENT_ID="${{ github.event.comment.in_reply_to_id }}"
-          
-          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+          # ----------------------------------------------------------------
+          # 3. 다음 스텝으로 전달할 결과값(outputs) 설정
+          # ----------------------------------------------------------------
+          echo "event_type=$EVENT_TYPE" >> $GITHUB_OUTPUT
+          echo "pr_title<<EOF" >> $GITHUB_OUTPUT; echo "$PR_TITLE" >> $GITHUB_OUTPUT; echo "EOF" >> $GITHUB_OUTPUT
           echo "pr_author=$PR_AUTHOR" >> $GITHUB_OUTPUT
           echo "comment_author=$COMMENT_AUTHOR" >> $GITHUB_OUTPUT
-          echo "pr_url=$PR_URL_HTML" >> $GITHUB_OUTPUT
-
-          if [ -n "${{ github.event.review.state }}" ] && [ "${{ github.event.review.state }}" = "approved" ]; then
-            echo "is_approved=true" >> $GITHUB_OUTPUT
-          else
-            echo "is_approved=false" >> $GITHUB_OUTPUT
-          fi
-          
-          if [ -n "$REPLY_TO_COMMENT_ID" ]; then
-            echo "is_reply=true" >> $GITHUB_OUTPUT
-            ORIGINAL_COMMENT_API_URL="https://api.github.com/repos/${{ github.repository }}/issues/comments/$REPLY_TO_COMMENT_ID"
-            ORIGINAL_COMMENT_DATA=$(curl -s -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" "$ORIGINAL_COMMENT_API_URL")
-            ORIGINAL_COMMENT_AUTHOR=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.user.login')
-            ORIGINAL_COMMENT_BODY=$(echo "$ORIGINAL_COMMENT_DATA" | jq -r '.body')
-          
-            echo "original_comment_author=$ORIGINAL_COMMENT_AUTHOR" >> $GITHUB_OUTPUT
-            echo "original_comment_body<<EOF" >> $GITHUB_OUTPUT
-            echo "$ORIGINAL_COMMENT_BODY" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          
-            echo "reply_body<<EOF" >> $GITHUB_OUTPUT
-            echo "$COMMENT_BODY" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            echo "is_reply=false" >> $GITHUB_OUTPUT
-            echo "comment_body<<EOF" >> $GITHUB_OUTPUT
-            echo "$COMMENT_BODY" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
+          echo "pr_url=$PR_HTML_URL" >> $GITHUB_OUTPUT
+          echo "comment_url=$COMMENT_HTML_URL" >> $GITHUB_OUTPUT
+          echo "comment_body<<EOF" >> $GITHUB_OUTPUT; echo "$COMMENT_BODY" >> $GITHUB_OUTPUT; echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Map GitHub users to Slack IDs
         id: map-users
         run: |
+          # GitHub ID와 Slack 멤버 ID를 매핑합니다.
+          # Slack 멤버 ID는 프로필 보기 -> ... -> 멤버 ID 복사 로 얻을 수 있습니다.
           declare -A GH_TO_SLACK_MAP
           GH_TO_SLACK_MAP["Jindnjs"]="${{ secrets.SLACK_USER_JIN }}"
           GH_TO_SLACK_MAP["LJY981008"]="${{ secrets.SLACK_USER_JUN }}"
@@ -117,48 +147,65 @@ jobs:
           GH_TO_SLACK_MAP["kcc5107"]="${{ secrets.SLACK_USER_GU }}"
           GH_TO_SLACK_MAP["DG0702"]="${{ secrets.SLACK_USER_DONG }}"
 
-          PR_AUTHOR="${{ steps.prepare-notification.outputs.pr_author }}"
-          COMMENT_AUTHOR="${{ steps.prepare-notification.outputs.comment_author }}"
-          ORIGINAL_COMMENT_AUTHOR="${{ steps.prepare-notification.outputs.original_comment_author }}"
+          PR_AUTHOR="${{ steps.prepare.outputs.pr_author }}"
+          COMMENT_AUTHOR="${{ steps.prepare.outputs.comment_author }}"
+          ORIGINAL_COMMENT_AUTHOR="${{ steps.prepare.outputs.original_comment_author }}"
 
           map_user() {
             local github_user=$1
             local slack_id="${GH_TO_SLACK_MAP[$github_user]}"
             if [ -z "$slack_id" ]; then
-              echo "$github_user"
+              echo "$github_user" # 매핑 정보가 없으면 GitHub ID를 그대로 사용
             else
-              echo "<@$slack_id>"
+              echo "<@$slack_id>" # 매핑 정보가 있으면 Slack 태그
             fi
           }
 
           echo "pr_author_slack=$(map_user "$PR_AUTHOR")" >> $GITHUB_OUTPUT
           echo "comment_author_slack=$(map_user "$COMMENT_AUTHOR")" >> $GITHUB_OUTPUT
           echo "original_comment_author_slack=$(map_user "$ORIGINAL_COMMENT_AUTHOR")" >> $GITHUB_OUTPUT
-        env:
-          SLACK_USER_JIN: ${{ secrets.SLACK_USER_JIN }}
-          SLACK_USER_JUN: ${{ secrets.SLACK_USER_JUN }}
-          SLACK_USER_TAE: ${{ secrets.SLACK_USER_TAE }}
-          SLACK_USER_DOY: ${{ secrets.SLACK_USER_DOY }}
-          SLACK_USER_GU: ${{ secrets.SLACK_USER_GU }}
-          SLACK_USER_DONG: ${{ secrets.SLACK_USER_DONG }}
 
-      - name: Send Slack message
+      - name: Send Slack Message
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          PR_URL: ${{ steps.prepare-notification.outputs.pr_url }}
-          IS_REPLY: ${{ steps.prepare-notification.outputs.is_reply }}
-          IS_APPROVED: ${{ steps.prepare-notification.outputs.is_approved }}
-          COMMENT_BODY: ${{ steps.prepare-notification.outputs.comment_body }}
-          ORIGINAL_COMMENT_BODY: ${{ steps.prepare-notification.outputs.original_comment_body }}
-          REPLY_BODY: ${{ steps.prepare-notification.outputs.reply_body }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TEST }}
+          EVENT_TYPE: ${{ steps.prepare.outputs.event_type }}
+          PR_TITLE: ${{ steps.prepare.outputs.pr_title }}
+          PR_URL: ${{ steps.prepare.outputs.pr_url }}
+          COMMENT_URL: ${{ steps.prepare.outputs.comment_url }}
+          COMMENT_BODY: ${{ steps.prepare.outputs.comment_body }}
+          ORIGINAL_COMMENT_BODY: ${{ steps.prepare.outputs.original_comment_body }}
           PR_AUTHOR_SLACK: ${{ steps.map-users.outputs.pr_author_slack }}
           COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.comment_author_slack }}
           ORIGINAL_COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.original_comment_author_slack }}
         run: |
-          if [ "$IS_APPROVED" = "true" ]; then
-            msg="⭕ *PR이 승인되었습니다!*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*승인:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
-          elif [ "$IS_REPLY" = "true" ]; then
-            msg="📣 *리뷰 알림!*\n↪️ *댓글에 답글이 달렸습니다*\n*원댓글 작성자:* $ORIGINAL_COMMENT_AUTHOR_SLACK\n*원댓글 내용:*\n> $ORIGINAL_COMMENT_BODY\n\n*답글 작성자:* $COMMENT_AUTHOR_SLACK\n*답글 내용:*\n> $REPLY_BODY\n\n*PR 링크:* $PR_URL"
-          else
-            msg="📣 *리뷰 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
+          # Slack 메시지에서 줄바꿈 등을 올바르게 처리하기 위해 변수를 JSON 문자열로 이스케이프합니다.
+          escape_json() {
+            echo -n "$1" | sed 's/\\/\\\\/g' | sed 's/"/\\"/g' | sed 's/\n/\\n/g'
+          }
+
+          PR_TITLE_ESCAPED=$(escape_json "$PR_TITLE")
+          COMMENT_BODY_ESCAPED=$(escape_json "$COMMENT_BODY")
+          ORIGINAL_COMMENT_BODY_ESCAPED=$(escape_json "$ORIGINAL_COMMENT_BODY")
+
+          # 이벤트 타입에 따라 다른 메시지를 구성합니다.
+          if [[ "$EVENT_TYPE" == "approved" ]]; then
+            TEXT="✅ *PR 승인* ✅\n\n*PR:* <$PR_URL|$PR_TITLE_ESCAPED>\n*작성자:* $PR_AUTHOR_SLACK\n*승인자:* $COMMENT_AUTHOR_SLACK"
+            if [[ -n "$COMMENT_BODY" ]]; then
+              TEXT="$TEXT\n*코멘트:*\n> $COMMENT_BODY_ESCAPED"
+            fi
+          elif [[ "$EVENT_TYPE" == "changes_requested" ]]; then
+            TEXT="⚠️ *PR 변경 요청* ⚠️\n\n*PR:* <$PR_URL|$PR_TITLE_ESCAPED>\n*작성자:* $PR_AUTHOR_SLACK\n*요청자:* $COMMENT_AUTHOR_SLACK"
+            if [[ -n "$COMMENT_BODY" ]]; then
+              TEXT="$TEXT\n*코멘트:*\n> $COMMENT_BODY_ESCAPED"
+            fi
+          elif [[ "$EVENT_TYPE" == "reply" ]]; then
+            TEXT="💬 *댓글에 답글이 달렸습니다*\n\n*PR:* <$PR_URL|$PR_TITLE_ESCAPED>\n\n*원 댓글:* ($ORIGINAL_COMMENT_AUTHOR_SLACK)\n> $ORIGINAL_COMMENT_BODY_ESCAPED\n\n*답글:* ($COMMENT_AUTHOR_SLACK)\n> <$COMMENT_URL|답글 보기>\n> $COMMENT_BODY_ESCAPED"
+          else # "comment"
+            TEXT="💬 *새로운 리뷰 요청이 있습니다*\n\n*PR:* <$PR_URL|$PR_TITLE_ESCAPED>\n*작성자:* $PR_AUTHOR_SLACK\n*리뷰어:* $COMMENT_AUTHOR_SLACK\n*코멘트:*\n> <$COMMENT_URL|댓글 보기>\n> $COMMENT_BODY_ESCAPED"
           fi
+
+          # 최종 메시지를 JSON 페이로드로 만듭니다.
+          JSON_PAYLOAD="{\"text\": \"$TEXT\"}"
+
+          # Slack으로 메시지를 전송합니다.
+          curl -X POST -H 'Content-type: application/json' --data "$JSON_PAYLOAD" $SLACK_WEBHOOK_URL
