@@ -4,41 +4,29 @@ import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
-import com.example.surveyapi.domain.user.domain.user.enums.Role;
 
 import lombok.AccessLevel;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserResponse {
+public class UpdateUserResponse {
 
     private Long memberId;
-    private String email;
     private String name;
-    private Role role;
-    private Grade grade;
-    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private ProfileResponse profile;
 
-
-    public static UserResponse from(
+    public static UpdateUserResponse from(
         User user
     ) {
-        UserResponse dto = new UserResponse();
+        UpdateUserResponse dto = new UpdateUserResponse();
         ProfileResponse profileDto = new ProfileResponse();
         AddressResponse addressDto = new AddressResponse();
 
         dto.memberId = user.getId();
-        dto.email = user.getAuth().getEmail();
         dto.name = user.getProfile().getName();
-        dto.role = user.getRole();
-        dto.grade = user.getGrade();
-        dto.createdAt = user.getCreatedAt();
         dto.updatedAt = user.getUpdatedAt();
         dto.profile = profileDto;
 
@@ -53,7 +41,6 @@ public class UserResponse {
 
         return dto;
     }
-
 
     @Getter
     @NoArgsConstructor(access = AccessLevel.PRIVATE)

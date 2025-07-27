@@ -8,7 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-public class UpdateRequest {
+public class UpdateUserRequest {
 
     @Valid
     private UpdateAuthRequest auth;
@@ -58,12 +58,12 @@ public class UpdateRequest {
         private String detailAddress;
         private String postalCode;
 
-        public static UpdateData from(UpdateRequest request) {
+        public static UpdateData of(UpdateUserRequest request, String newPassword) {
 
             UpdateData dto = new UpdateData();
 
             if (request.getAuth() != null) {
-                dto.password = request.getAuth().getPassword();
+                dto.password = newPassword;
             }
 
             if (request.getProfile() != null) {
