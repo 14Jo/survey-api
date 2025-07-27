@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -15,13 +14,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
-import com.example.surveyapi.domain.user.application.dto.request.UpdateRequest;
-import com.example.surveyapi.domain.user.application.dto.request.WithdrawRequest;
-import com.example.surveyapi.domain.user.application.dto.response.GradeResponse;
+import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
+import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
+import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 
-import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.application.UserService;
 import com.example.surveyapi.global.util.ApiResponse;
 
@@ -56,41 +56,41 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<ApiResponse<Page<UserResponse>>> getUsers(
+    public ResponseEntity<ApiResponse<Page<UserInfoResponse>>> getUsers(
         Pageable pageable
     ) {
-        Page<UserResponse> all = userService.getAll(pageable);
+        Page<UserInfoResponse> all = userService.getAll(pageable);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 전체 조회 성공", all));
     }
 
     @GetMapping("/users/me")
-    public ResponseEntity<ApiResponse<UserResponse>> getUser(
+    public ResponseEntity<ApiResponse<UserInfoResponse>> getUser(
         @AuthenticationPrincipal Long userId
     ) {
-        UserResponse user = userService.getUser(userId);
+        UserInfoResponse user = userService.getUser(userId);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 조회 성공", user));
     }
 
     @GetMapping("/users/grade")
-    public ResponseEntity<ApiResponse<GradeResponse>> getGrade(
+    public ResponseEntity<ApiResponse<UserGradeResponse>> getGrade(
         @AuthenticationPrincipal Long userId
     ) {
-        GradeResponse grade = userService.getGrade(userId);
+        UserGradeResponse grade = userService.getGrade(userId);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 등급 조회 성공", grade));
     }
 
     @PatchMapping("/users")
-    public ResponseEntity<ApiResponse<UserResponse>> update(
-        @Valid @RequestBody UpdateRequest request,
+    public ResponseEntity<ApiResponse<UpdateUserResponse>> update(
+        @Valid @RequestBody UpdateUserRequest request,
         @AuthenticationPrincipal Long userId
     ) {
-        UserResponse update = userService.update(request, userId);
+        UpdateUserResponse update = userService.update(request, userId);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 정보 수정 성공", update));
@@ -98,10 +98,10 @@ public class UserController {
 
     @PostMapping("/users/withdraw")
     public ResponseEntity<ApiResponse<Void>> withdraw(
-        @Valid @RequestBody WithdrawRequest request,
+        @Valid @RequestBody UserWithdrawRequest request,
         @AuthenticationPrincipal Long userId
-    ){
-        userService.withdraw(userId,request);
+    ) {
+        userService.withdraw(userId, request);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));
