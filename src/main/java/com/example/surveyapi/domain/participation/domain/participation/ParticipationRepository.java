@@ -1,16 +1,12 @@
 package com.example.surveyapi.domain.participation.domain.participation;
 
 import java.util.List;
-
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationQueryRepository;
 
-public interface ParticipationRepository {
+public interface ParticipationRepository extends ParticipationQueryRepository {
 	Participation save(Participation participation);
-
-	Page<Participation> findAll(Long memberId, Pageable pageable);
 
 	List<Participation> findAllBySurveyIdIn(List<Long> surveyIds);
 

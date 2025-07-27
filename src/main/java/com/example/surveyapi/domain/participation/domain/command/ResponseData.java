@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.participation.application.dto.request;
+package com.example.surveyapi.domain.participation.domain.command;
 
 import java.util.Map;
 
