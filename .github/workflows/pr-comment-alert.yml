@@ -25,7 +25,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
         run: |
           # ----------------------------------------------------------------
-          # 1. 이벤트 종류에 따라 기본 변수 설정
+          # 1. 이벤트 종류에 따라 기본 변수 설정 및 알림 여부 결정
           # ----------------------------------------------------------------
           EVENT_TYPE=""
           COMMENT_BODY=""
@@ -33,7 +33,6 @@ jobs:
           PR_API_URL=""
           COMMENT_HTML_URL=""
           
-          # jq를 사용하여 이벤트 페이로드(JSON)를 안전하게 파싱합니다.
           if [[ "$EVENT_NAME" == "issue_comment" ]]; then
             # PR에 달린 일반 댓글
             COMMENT_BODY=$(echo "$EVENT_CONTEXT" | jq -r '.comment.body')
@@ -51,26 +50,21 @@ jobs:
           elif [[ "$EVENT_NAME" == "pull_request_review" ]]; then
             # PR 리뷰 (approved, changes_requested, commented)
             REVIEW_STATE=$(echo "$EVENT_CONTEXT" | jq -r '.review.state')
+
+            # 'commented' 상태는 개별 라인 코멘트와 함께 제출될 때 발생합니다.
+            # 이 경우, pull_request_review_comment 이벤트가 각 코멘트를 처리하므로,
+            # 중복 알림을 막기 위해 여기서는 이 이벤트를 무시합니다.
+            if [[ "$REVIEW_STATE" == "commented" ]]; then
+              echo "Review state is 'commented'. This event is ignored to prevent duplicate notifications."
+              exit 0
+            fi
+
+            # 'approved' 또는 'changes_requested' 상태일 때만 계속 진행합니다.
+            EVENT_TYPE="$REVIEW_STATE"
             COMMENT_BODY=$(echo "$EVENT_CONTEXT" | jq -r '.review.body')
             COMMENT_AUTHOR=$(echo "$EVENT_CONTEXT" | jq -r '.review.user.login')
             PR_API_URL=$(echo "$EVENT_CONTEXT" | jq -r '.pull_request.url')
             COMMENT_HTML_URL=$(echo "$EVENT_CONTEXT" | jq -r '.review.html_url')
-
-            if [[ "$REVIEW_STATE" == "approved" ]]; then
-              EVENT_TYPE="approved" # 승인 시에는 댓글이 없어도 알림
-            elif [[ "$REVIEW_STATE" == "changes_requested" ]]; then
-              EVENT_TYPE="changes_requested" # 변경 요청 시에도 댓글이 없어도 알림
-            elif [[ "$REVIEW_STATE" == "commented" ]]; then
-              # 리뷰 코멘트의 경우, 내용이 없으면 알림을 보내지 않습니다.
-              if [[ -z "$COMMENT_BODY" || "$COMMENT_BODY" == "null" ]]; then
-                echo "Review comment body is empty. Exiting."
-                exit 0
-              fi
-              EVENT_TYPE="comment"
-            else
-              echo "Unknown review state: $REVIEW_STATE. Exiting."
-              exit 0
-            fi
 
           elif [[ "$EVENT_NAME" == "pull_request_review_comment" ]]; then
             # 코드 라인에 직접 달린 댓글
@@ -136,6 +130,8 @@ jobs:
 
       - name: Map GitHub users to Slack IDs
         id: map-users
+        # 'prepare' 단계에서 알림을 보내기로 결정한 경우에만 이 단계를 실행합니다.
+        if: steps.prepare.outputs.event_type != ''
         run: |
           # GitHub ID와 Slack 멤버 ID를 매핑합니다.
           # Slack 멤버 ID는 프로필 보기 -> ... -> 멤버 ID 복사 로 얻을 수 있습니다.
@@ -166,6 +162,8 @@ jobs:
           echo "original_comment_author_slack=$(map_user "$ORIGINAL_COMMENT_AUTHOR")" >> $GITHUB_OUTPUT
 
       - name: Send Slack Message
+        # 'prepare' 단계에서 알림을 보내기로 결정한 경우에만 이 단계를 실행합니다.
+        if: steps.prepare.outputs.event_type != ''
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TEST }}
           EVENT_TYPE: ${{ steps.prepare.outputs.event_type }}
