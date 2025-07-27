@@ -12,7 +12,6 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 
-
 @Getter
 public class SignupRequest {
 
@@ -51,7 +50,6 @@ public class SignupRequest {
         @Valid
         @NotNull(message = "주소는 필수입니다.")
         private AddressRequest address;
-
     }
 
     @Getter
