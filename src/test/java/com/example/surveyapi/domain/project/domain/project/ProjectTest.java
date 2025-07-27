@@ -170,4 +170,42 @@ class ProjectTest {
 		assertTrue(project.getIsDeleted());
 		assertTrue(project.getManagers().stream().allMatch(Manager::getIsDeleted));
 	}
+
+	@Test
+	void 매니저_추가_정상() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+
+		// when
+		project.addManager(1L, 2L);
+
+		// then
+		assertEquals(2, project.getManagers().size());
+	}
+
+	@Test
+	void 매니저_추가_READ_권한으로_시도_실패() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.addManager(1L, 2L);
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.addManager(2L, 3L);
+		});
+		assertEquals(CustomErrorCode.ACCESS_DENIED, exception.getErrorCode());
+	}
+
+	@Test
+	void 매니저_중복_추가_실패() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.addManager(1L, 2L);
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.addManager(1L, 2L);
+		});
+		assertEquals(CustomErrorCode.ALREADY_REGISTERED_MANAGER, exception.getErrorCode());
+	}
 }
