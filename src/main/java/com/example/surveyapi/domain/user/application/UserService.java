@@ -1,15 +1,22 @@
 package com.example.surveyapi.domain.user.application;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
-import com.example.surveyapi.domain.user.application.dto.request.UpdateRequest;
-import com.example.surveyapi.domain.user.application.dto.request.WithdrawRequest;
-import com.example.surveyapi.domain.user.application.dto.response.GradeResponse;
-import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
+import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
+import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
+import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.domain.user.enums.Grade;
+import com.example.surveyapi.domain.user.domain.user.vo.Address;
+import com.example.surveyapi.domain.user.domain.user.vo.Auth;
+import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
@@ -39,23 +46,29 @@ public class UserService {
 
         String encryptedPassword = passwordEncoder.encode(request.getAuth().getPassword());
 
-        User user = User.create(
-            request.getAuth().getEmail(),
-            encryptedPassword,
-            request.getProfile().getName(),
-            request.getProfile().getBirthDate(),
-            request.getProfile().getGender(),
+        Address address = Address.of(
             request.getProfile().getAddress().getProvince(),
             request.getProfile().getAddress().getDistrict(),
             request.getProfile().getAddress().getDetailAddress(),
             request.getProfile().getAddress().getPostalCode());
+
+        Profile profile = Profile.of(
+            request.getProfile().getName(),
+            request.getProfile().getBirthDate(),
+            request.getProfile().getGender(),
+            address
+        );
+
+        Auth auth = Auth.of(request.getAuth().getEmail(), encryptedPassword);
+
+        User user = User.create(auth, profile);
 
         User createUser = userRepository.save(user);
 
         return SignupResponse.from(createUser);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
@@ -71,50 +84,53 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<UserResponse> getAll(Pageable pageable) {
+    public Page<UserInfoResponse> getAll(Pageable pageable) {
 
         Page<User> users = userRepository.gets(pageable);
 
-        return users.map(UserResponse::from);
+        return users.map(UserInfoResponse::from);
     }
 
     @Transactional(readOnly = true)
-    public UserResponse getUser(Long userId) {
+    public UserInfoResponse getUser(Long userId) {
 
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        return UserResponse.from(user);
+        return UserInfoResponse.from(user);
     }
 
     @Transactional(readOnly = true)
-    public GradeResponse getGrade(Long userId) {
+    public UserGradeResponse getGrade(Long userId) {
 
-        User user = userRepository.findByIdAndIsDeletedFalse(userId)
-            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+        Grade grade = userRepository.findByGrade(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.GRADE_NOT_FOUND));
 
-        return GradeResponse.from(user);
+        return UserGradeResponse.from(grade);
     }
 
     @Transactional
-    public UserResponse update(UpdateRequest request, Long userId){
+    public UpdateUserResponse update(UpdateUserRequest request, Long userId) {
 
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        UpdateRequest.UpdateData data = UpdateRequest.UpdateData.from(request);
+        String encryptedPassword = Optional.ofNullable(request.getAuth().getPassword())
+            .map(passwordEncoder::encode)
+            .orElse(null);
+
+        UpdateUserRequest.UpdateData data = UpdateUserRequest.UpdateData.of(request, encryptedPassword);
 
         user.update(
-            data.getPassword(),data.getName(),
-            data.getProvince(),data.getDistrict(),
-            data.getDetailAddress(),data.getPostalCode());
+            data.getPassword(), data.getName(),
+            data.getProvince(), data.getDistrict(),
+            data.getDetailAddress(), data.getPostalCode());
 
-        return UserResponse.from(user);
+        return UpdateUserResponse.from(user);
     }
 
-
     @Transactional
-    public void withdraw(Long userId, WithdrawRequest request) {
+    public void withdraw(Long userId, UserWithdrawRequest request) {
 
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
