@@ -16,7 +16,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -26,15 +25,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import com.example.surveyapi.domain.user.application.UserService;
-import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
-import com.example.surveyapi.domain.user.application.dto.request.UpdateRequest;
-import com.example.surveyapi.domain.user.application.dto.request.WithdrawRequest;
-import com.example.surveyapi.domain.user.application.dto.response.GradeResponse;
-import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
+import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
+import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
+import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
-import com.example.surveyapi.domain.user.application.dto.response.UserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
@@ -174,12 +171,12 @@ public class UserServiceTest {
         SignupRequest rq1 = createSignupRequest(email, password);
         SignupRequest rq2 = createSignupRequest(email, password);
 
-        WithdrawRequest withdrawRequest = new WithdrawRequest();
-        ReflectionTestUtils.setField(withdrawRequest, "password", "Password123");
+        UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
+        ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
         // when
         SignupResponse signup = userService.signup(rq1);
-        userService.withdraw(signup.getMemberId(), withdrawRequest);
+        userService.withdraw(signup.getMemberId(), userWithdrawRequest);
 
         // then
         assertThatThrownBy(() -> userService.signup(rq2))
@@ -199,7 +196,7 @@ public class UserServiceTest {
         PageRequest pageable = PageRequest.of(0, 10);
 
         // when
-        Page<UserResponse> all = userService.getAll(pageable);
+        Page<UserInfoResponse> all = userService.getAll(pageable);
 
         // then
         assertThat(all.getContent()).hasSize(2);
@@ -217,13 +214,13 @@ public class UserServiceTest {
         User user = userRepository.findByEmail(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
-        UserResponse member = UserResponse.from(user);
+        UserInfoResponse member = UserInfoResponse.from(user);
 
         // when
-        UserResponse userResponse = userService.getUser(member.getMemberId());
+        UserInfoResponse userInfoResponse = userService.getUser(member.getMemberId());
 
         // then
-        assertThat(userResponse.getEmail()).isEqualTo("user@example.com");
+        assertThat(userInfoResponse.getEmail()).isEqualTo("user@example.com");
     }
 
     @Test
@@ -232,7 +229,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        SignupResponse signup = userService.signup(rq1);
+        userService.signup(rq1);
 
         Long invalidId = 9999L;
 
@@ -253,10 +250,10 @@ public class UserServiceTest {
         User user = userRepository.findByEmail(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
-        UserResponse member = UserResponse.from(user);
+        UserInfoResponse member = UserInfoResponse.from(user);
 
         // when
-        GradeResponse grade = userService.getGrade(member.getMemberId());
+        UserGradeResponse grade = userService.getGrade(member.getMemberId());
 
         // then
         assertThat(grade.getGrade()).isEqualTo(Grade.valueOf("LV1"));
@@ -268,14 +265,14 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        SignupResponse signup = userService.signup(rq1);
+        userService.signup(rq1);
 
         Long userId = 9999L;
 
         // then
         assertThatThrownBy(() -> userService.getGrade(userId))
             .isInstanceOf(CustomException.class)
-            .hasMessageContaining("유저를 찾을 수 없습니다");
+            .hasMessageContaining("등급을 조회 할 수 없습니다");
     }
 
     @Test
@@ -289,9 +286,13 @@ public class UserServiceTest {
         User user = userRepository.findByEmail(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
-        UpdateRequest request = updateRequest("홍길동2");
+        UpdateUserRequest request = updateRequest("홍길동2");
 
-        UpdateRequest.UpdateData data = UpdateRequest.UpdateData.from(request);
+        String encryptedPassword = Optional.ofNullable(request.getAuth().getPassword())
+            .map(passwordEncoder::encode)
+            .orElse(null);
+
+        UpdateUserRequest.UpdateData data = UpdateUserRequest.UpdateData.of(request, encryptedPassword);
 
         user.update(
             data.getPassword(), data.getName(),
@@ -300,7 +301,7 @@ public class UserServiceTest {
         );
 
         //when
-        UserResponse update = userService.update(request, user.getId());
+        UpdateUserResponse update = userService.update(request, user.getId());
 
         // then
         assertThat(update.getName()).isEqualTo("홍길동2");
@@ -312,7 +313,7 @@ public class UserServiceTest {
         // given
         Long userId = 9999L;
 
-        UpdateRequest request = updateRequest("홍길동2");
+        UpdateUserRequest request = updateRequest("홍길동2");
 
         // when & then
         assertThatThrownBy(() -> userService.update(request, userId))
@@ -331,14 +332,14 @@ public class UserServiceTest {
         User user = userRepository.findByEmail(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
-        WithdrawRequest withdrawRequest = new WithdrawRequest();
-        ReflectionTestUtils.setField(withdrawRequest, "password", "Password123");
+        UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
+        ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
         // when
-        userService.withdraw(user.getId(), withdrawRequest);
+        userService.withdraw(user.getId(), userWithdrawRequest);
 
         // then
-        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), withdrawRequest))
+        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), userWithdrawRequest))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
 
@@ -358,11 +359,11 @@ public class UserServiceTest {
         user.delete();
         userRepository.save(user);
 
-        WithdrawRequest withdrawRequest = new WithdrawRequest();
-        ReflectionTestUtils.setField(withdrawRequest, "password", "Password123");
+        UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
+        ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
         // when & then
-        assertThatThrownBy(() -> userService.withdraw(user.getId(), withdrawRequest))
+        assertThatThrownBy(() -> userService.withdraw(user.getId(), userWithdrawRequest))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
     }
@@ -392,25 +393,25 @@ public class UserServiceTest {
         return request;
     }
 
-    private UpdateRequest updateRequest(String name) {
-        UpdateRequest updateRequest = new UpdateRequest();
+    private UpdateUserRequest updateRequest(String name) {
+        UpdateUserRequest updateUserRequest = new UpdateUserRequest();
 
-        UpdateRequest.UpdateAuthRequest auth = new UpdateRequest.UpdateAuthRequest();
+        UpdateUserRequest.UpdateAuthRequest auth = new UpdateUserRequest.UpdateAuthRequest();
         ReflectionTestUtils.setField(auth, "password", null);
 
-        UpdateRequest.UpdateAddressRequest address = new UpdateRequest.UpdateAddressRequest();
+        UpdateUserRequest.UpdateAddressRequest address = new UpdateUserRequest.UpdateAddressRequest();
         ReflectionTestUtils.setField(address, "province", null);
         ReflectionTestUtils.setField(address, "district", null);
         ReflectionTestUtils.setField(address, "detailAddress", null);
         ReflectionTestUtils.setField(address, "postalCode", null);
 
-        UpdateRequest.UpdateProfileRequest profile = new UpdateRequest.UpdateProfileRequest();
+        UpdateUserRequest.UpdateProfileRequest profile = new UpdateUserRequest.UpdateProfileRequest();
         ReflectionTestUtils.setField(profile, "name", name);
         ReflectionTestUtils.setField(profile, "address", address);
 
-        ReflectionTestUtils.setField(updateRequest, "auth", auth);
-        ReflectionTestUtils.setField(updateRequest, "profile", profile);
+        ReflectionTestUtils.setField(updateUserRequest, "auth", auth);
+        ReflectionTestUtils.setField(updateUserRequest, "profile", profile);
 
-        return updateRequest;
+        return updateUserRequest;
     }
 }

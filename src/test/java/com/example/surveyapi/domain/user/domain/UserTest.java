@@ -6,9 +6,13 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
+import com.example.surveyapi.domain.user.domain.user.vo.Address;
+import com.example.surveyapi.domain.user.domain.user.vo.Auth;
+import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.exception.CustomException;
 
 public class UserTest {
@@ -29,10 +33,7 @@ public class UserTest {
         String postalCode = "06134";
 
         // when
-        User user = User.create(
-            email, password, name, birthDate, gender,
-            province, district, detailAddress, postalCode
-        );
+        User user = createUser();
 
         // then
         assertThat(user.getAuth().getEmail()).isEqualTo(email);
@@ -52,10 +53,9 @@ public class UserTest {
         // given
 
         // when & then
-        assertThatThrownBy(() -> User.create(
-            null, null, null, null,
-            null, null, null, null, null
-        )).isInstanceOf(CustomException.class);
+        assertThatThrownBy(() ->
+            User.create(null, null))
+            .isInstanceOf(CustomException.class);
     }
 
     @Test
@@ -95,10 +95,22 @@ public class UserTest {
         String detailAddress = "테헤란로 123";
         String postalCode = "06134";
 
-        return User.create(
-            email, password, name, birthDate, gender,
-            province, district, detailAddress, postalCode
-        );
+        Address address = new Address();
+        ReflectionTestUtils.setField(address, "province", province);
+        ReflectionTestUtils.setField(address, "district", district);
+        ReflectionTestUtils.setField(address, "detailAddress", detailAddress);
+        ReflectionTestUtils.setField(address, "postalCode", postalCode);
 
+        Profile profile = new Profile();
+        ReflectionTestUtils.setField(profile, "name", name);
+        ReflectionTestUtils.setField(profile, "birthDate", birthDate);
+        ReflectionTestUtils.setField(profile, "gender", gender);
+        ReflectionTestUtils.setField(profile, "address", address);
+
+        Auth auth = new Auth();
+        ReflectionTestUtils.setField(auth, "email", email);
+        ReflectionTestUtils.setField(auth, "password", password);
+
+        return User.create(auth, profile);
     }
 }
