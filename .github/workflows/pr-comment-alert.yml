@@ -152,7 +152,7 @@ jobs:
       - name: Send Slack Message
         if: steps.prepare.outputs.event_type != ''
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TEST }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           EVENT_TYPE: ${{ steps.prepare.outputs.event_type }}
           PR_TITLE: ${{ steps.prepare.outputs.pr_title }}
           PR_URL: ${{ steps.prepare.outputs.pr_url }}

@@ -25,7 +25,6 @@ jobs:
           fi
 
       - name: Set up PR context from last commit
-        if: env.NOTIFY_TYPE == 'pr_request'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -39,6 +38,7 @@ jobs:
           echo "PR_URL=$(jq -r .pull_request.html_url "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
       - name: Select reviewers based on rules
+        if: env.NOTIFY_TYPE == 'pr_request'
         id: slack-reviewers
         env:
           SLACK_USER_JIN: ${{ secrets.SLACK_USER_JIN }}
@@ -127,7 +127,7 @@ jobs:
 
       - name: Send Slack message
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_BOT_TEST }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
           msg="📣 *PR 알림!*\n$NOTIFY_MSG\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR\n*링크:* $PR_URL\n*리뷰어:* $SLACK_REVIEWERS 🙏"
 
