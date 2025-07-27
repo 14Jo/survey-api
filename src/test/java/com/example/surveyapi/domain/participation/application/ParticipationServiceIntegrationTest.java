@@ -19,8 +19,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
-import com.example.surveyapi.domain.participation.application.dto.request.ResponseData;
-import com.example.surveyapi.domain.participation.application.dto.response.ReadParticipationPageResponse;
+import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
