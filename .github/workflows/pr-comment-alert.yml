@@ -50,18 +50,24 @@ jobs:
           elif [[ "$EVENT_NAME" == "pull_request_review" ]]; then
             # PR 리뷰 (approved, changes_requested, commented)
             REVIEW_STATE=$(echo "$EVENT_CONTEXT" | jq -r '.review.state')
-
-            # 'commented' 상태는 개별 라인 코멘트와 함께 제출될 때 발생합니다.
-            # 이 경우, pull_request_review_comment 이벤트가 각 코멘트를 처리하므로,
-            # 중복 알림을 막기 위해 여기서는 이 이벤트를 무시합니다.
-            if [[ "$REVIEW_STATE" == "commented" ]]; then
-              echo "Review state is 'commented'. This event is ignored to prevent duplicate notifications."
-              exit 0
-            fi
-
-            # 'approved' 또는 'changes_requested' 상태일 때만 계속 진행합니다.
-            EVENT_TYPE="$REVIEW_STATE"
             COMMENT_BODY=$(echo "$EVENT_CONTEXT" | jq -r '.review.body')
+
+            if [[ "$REVIEW_STATE" == "commented" ]]; then
+              # 'commented' 상태일 경우, 리뷰에 달린 전체 코멘트 내용이 있는지 확인합니다.
+              # 내용이 없으면 (보통 개별 라인 코멘트만 있는 경우), 중복/빈 알림을 막기 위해 무시합니다.
+              if [[ -z "$COMMENT_BODY" || "$COMMENT_BODY" == "null" ]]; then
+                echo "Review state is 'commented' and review body is empty. Ignoring."
+                exit 0
+              fi
+              # 내용이 있으면 일반 코멘트로 처리합니다.
+              EVENT_TYPE="comment"
+            else
+              # 'approved' 또는 'changes_requested' 상태로 설정합니다.
+              # 이 경우, 코멘트 내용이 없어도 알림이 갑니다.
+              EVENT_TYPE="$REVIEW_STATE"
+            fi
+          
+            # 공통 변수들을 설정합니다.
             COMMENT_AUTHOR=$(echo "$EVENT_CONTEXT" | jq -r '.review.user.login')
             PR_API_URL=$(echo "$EVENT_CONTEXT" | jq -r '.pull_request.url')
             COMMENT_HTML_URL=$(echo "$EVENT_CONTEXT" | jq -r '.review.html_url')
