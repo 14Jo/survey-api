@@ -24,7 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
-import com.example.surveyapi.domain.participation.application.dto.request.ResponseData;
+import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @TestPropertySource(properties = "SECRET_KEY=SecretKeyExample42534D@DAF!1243zvjnjw@")
