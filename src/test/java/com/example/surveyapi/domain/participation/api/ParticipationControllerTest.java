@@ -152,7 +152,7 @@ class ParticipationControllerTest {
 		mockMvc.perform(get("/api/v1/members/me/participations")
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.message").value("나의 전체 참여 목록 조회에 성공하였습니다."))
+			.andExpect(jsonPath("$.message").value("나의 참여 목록 조회에 성공하였습니다."))
 			.andExpect(jsonPath("$.data.content[0].surveyInfo.surveyTitle").value("설문 제목1"))
 			.andExpect(jsonPath("$.data.content[1].surveyInfo.surveyTitle").value("설문 제목2"));
 	}
@@ -193,13 +193,13 @@ class ParticipationControllerTest {
 
 		ParticipationDetailResponse detail1 = ParticipationDetailResponse.from(
 			Participation.create(memberId, 10L, new ParticipantInfo(),
-				List.of(createResponseData(1L, Map.of("text", "answer1"))))
+				List.of(createResponseData(1L, Map.of("textAnswer", "answer1"))))
 		);
 		ReflectionTestUtils.setField(detail1, "participationId", 1L);
 
 		ParticipationDetailResponse detail2 = ParticipationDetailResponse.from(
 			Participation.create(memberId, 10L, new ParticipantInfo(),
-				List.of(createResponseData(2L, Map.of("text", "answer2"))))
+				List.of(createResponseData(2L, Map.of("textAnswer", "answer2"))))
 		);
 		ReflectionTestUtils.setField(detail2, "participationId", 2L);
 
@@ -211,15 +211,15 @@ class ParticipationControllerTest {
 		when(participationService.getAllBySurveyIds(eq(surveyIds))).thenReturn(serviceResult);
 
 		// when & then
-		mockMvc.perform(post("/api/v1/surveys/participations/search")
+		mockMvc.perform(post("/api/v1/surveys/participations")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.message").value("여러 설문에 대한 모든 참여 응답 기록 조회에 성공하였습니다."))
+			.andExpect(jsonPath("$.message").value("여러 참여 기록 조회에 성공하였습니다."))
 			.andExpect(jsonPath("$.data.length()").value(2))
 			.andExpect(jsonPath("$.data[0].surveyId").value(10L))
 			.andExpect(jsonPath("$.data[0].participations[0].participationId").value(1L))
-			.andExpect(jsonPath("$.data[0].participations[0].responses[0].answer.text").value("answer1"))
+			.andExpect(jsonPath("$.data[0].participations[0].responses[0].answer.textAnswer").value("answer1"))
 			.andExpect(jsonPath("$.data[1].surveyId").value(20L))
 			.andExpect(jsonPath("$.data[1].participations").isEmpty());
 	}
@@ -234,7 +234,7 @@ class ParticipationControllerTest {
 		ReflectionTestUtils.setField(request, "surveyIds", Collections.emptyList());
 
 		// when & then
-		mockMvc.perform(post("/api/v1/surveys/participations/search")
+		mockMvc.perform(post("/api/v1/surveys/participations")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isBadRequest())
@@ -263,7 +263,7 @@ class ParticipationControllerTest {
 		mockMvc.perform(get("/api/v1/participations/{participationId}", participationId)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.message").value("나의 참여 응답 상세 조회에 성공하였습니다."))
+			.andExpect(jsonPath("$.message").value("참여 응답 상세 조회에 성공하였습니다."))
 			.andExpect(jsonPath("$.data.participationId").value(participationId))
 			.andExpect(jsonPath("$.data.responses[0].answer.text").value("응답 상세 조회"));
 	}
