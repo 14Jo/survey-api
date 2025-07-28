@@ -6,16 +6,9 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import com.example.surveyapi.domain.user.domain.auth.Auth;
-import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
-import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
-import com.example.surveyapi.domain.user.domain.user.vo.Address;
-import com.example.surveyapi.domain.user.domain.user.vo.Profile;
-import com.example.surveyapi.global.exception.CustomException;
 
 public class UserTest {
 
@@ -47,17 +40,6 @@ public class UserTest {
         assertThat(user.getProfile().getAddress().getDistrict()).isEqualTo(district);
         assertThat(user.getProfile().getAddress().getDetailAddress()).isEqualTo(detailAddress);
         assertThat(user.getProfile().getAddress().getPostalCode()).isEqualTo(postalCode);
-    }
-
-    @Test
-    @DisplayName("회원가입 - 실패 (요청값 누락 시)")
-    void signup_fail() {
-        // given
-
-        // when & then
-        assertThatThrownBy(() ->
-            User.create(null))
-            .isInstanceOf(CustomException.class);
     }
 
     @Test
@@ -97,28 +79,12 @@ public class UserTest {
         String detailAddress = "테헤란로 123";
         String postalCode = "06134";
 
-        Address address = new Address();
-        ReflectionTestUtils.setField(address, "province", province);
-        ReflectionTestUtils.setField(address, "district", district);
-        ReflectionTestUtils.setField(address, "detailAddress", detailAddress);
-        ReflectionTestUtils.setField(address, "postalCode", postalCode);
-
-        Profile profile = new Profile();
-        ReflectionTestUtils.setField(profile, "name", name);
-        ReflectionTestUtils.setField(profile, "birthDate", birthDate);
-        ReflectionTestUtils.setField(profile, "gender", gender);
-        ReflectionTestUtils.setField(profile, "address", address);
-
-        User user = User.create(profile);
-
-        Demographics.create(
-            user, birthDate,
-            gender, address);
-
-        Auth.create(
-            user, email,
-            password, Provider.LOCAL,
-            null);
+        User user = User.create(
+            email, password,
+            name, birthDate, gender,
+            province, district,
+            detailAddress, postalCode
+        );
 
         return user;
     }

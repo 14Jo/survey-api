@@ -32,13 +32,9 @@ import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
-import com.example.surveyapi.domain.user.domain.auth.Auth;
-import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
-import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
-import com.example.surveyapi.domain.user.domain.user.vo.Address;
-import com.example.surveyapi.domain.user.domain.user.vo.Profile;
+
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -295,30 +291,17 @@ public class UserControllerTest {
 
     private User create(SignupRequest request) {
 
-        Address address = new Address();
-        ReflectionTestUtils.setField(address, "province", request.getProfile().getAddress().getProvince());
-        ReflectionTestUtils.setField(address, "district", request.getProfile().getAddress().getDistrict());
-        ReflectionTestUtils.setField(address, "detailAddress", request.getProfile().getAddress().getDetailAddress());
-        ReflectionTestUtils.setField(address, "postalCode", request.getProfile().getAddress().getPostalCode());
-
-        Profile profile = new Profile();
-        ReflectionTestUtils.setField(profile, "name", request.getProfile().getName());
-        ReflectionTestUtils.setField(profile, "birthDate", request.getProfile().getBirthDate());
-        ReflectionTestUtils.setField(profile, "gender", request.getProfile().getGender());
-        ReflectionTestUtils.setField(profile, "address", address);
-
-        User user = User.create(profile);
-
-        Demographics.create(
-            user, request.getProfile().getBirthDate(),
-            request.getProfile().getGender(), address);
-
-        Auth.create(
-            user, request.getAuth().getEmail(),
-            request.getAuth().getPassword(), Provider.LOCAL,
-            null);
-
-        return user;
+        return User.create(
+            request.getAuth().getEmail(),
+            request.getAuth().getPassword(),
+            request.getProfile().getName(),
+            request.getProfile().getBirthDate(),
+            request.getProfile().getGender(),
+            request.getProfile().getAddress().getProvince(),
+            request.getProfile().getAddress().getDistrict(),
+            request.getProfile().getAddress().getDetailAddress(),
+            request.getProfile().getAddress().getPostalCode()
+        );
     }
 
     private UpdateUserRequest updateRequest(String name) {
