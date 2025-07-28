@@ -14,8 +14,9 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
-import com.example.surveyapi.domain.project.domain.project.Project;
-import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
+import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -26,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class ProjectService {
 
 	private final ProjectRepository projectRepository;
+	private final ProjectEventPublisher projectEventPublisher;
 
 	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
@@ -39,8 +41,6 @@ public class ProjectService {
 			request.getPeriodEnd()
 		);
 		projectRepository.save(project);
-
-		// TODO: 이벤트 발행
 
 		return CreateProjectResponse.from(project.getId());
 	}
@@ -65,7 +65,7 @@ public class ProjectService {
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
-		// TODO: 이벤트 발행
+		project.pullDomainEvents().forEach(projectEventPublisher::publish);
 	}
 
 	@Transactional
@@ -78,7 +78,7 @@ public class ProjectService {
 	public void deleteProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.softDelete(currentUserId);
-		// TODO: 이벤트 발행
+		project.pullDomainEvents().forEach(projectEventPublisher::publish);
 	}
 
 	@Transactional
