@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.surveyapi.domain.project.domain.manager.Manager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
@@ -255,5 +256,45 @@ class ProjectTest {
 			project.updateManagerRole(1L, 2L, ManagerRole.OWNER);
 		});
 		assertEquals(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE, exception.getErrorCode());
+	}
+
+	@Test
+	void 매니저_삭제_정상() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		project.addManager(1L, 2L);
+		Manager targetManager = project.findManagerByUserId(2L);
+		ReflectionTestUtils.setField(targetManager, "id", 2L);
+
+		// when
+		project.deleteManager(1L, 2L);
+
+		// then
+		assertTrue(targetManager.getIsDeleted());
+	}
+
+	@Test
+	void 존재하지_않는_매니저_ID로_삭제_실패() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.deleteManager(1L, 999L);
+		});
+		assertEquals(CustomErrorCode.NOT_FOUND_MANAGER, exception.getErrorCode());
+	}
+
+	@Test
+	void 매니저_삭제_본인_소유자_삭제_시도_실패() {
+		// given
+		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Manager ownerManager = project.findManagerByUserId(1L);
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.deleteManager(1L, ownerManager.getId());
+		});
+		assertEquals(CustomErrorCode.CANNOT_DELETE_SELF_OWNER, exception.getErrorCode());
 	}
 }
