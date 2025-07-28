@@ -11,6 +11,7 @@ import lombok.Getter;
 public class ShareResponse {
 	private final Long id;
 	private final Long surveyId;
+	private final Long creatorId;
 	private final ShareMethod shareMethod;
 	private final String shareLink;
 	private final LocalDateTime createdAt;
@@ -19,6 +20,7 @@ public class ShareResponse {
 	private ShareResponse(Share share) {
 		this.id = share.getId();
 		this.surveyId = share.getSurveyId();
+		this.creatorId = share.getCreatorId();
 		this.shareMethod = share.getShareMethod();
 		this.shareLink = share.getLink();
 		this.createdAt = share.getCreatedAt();

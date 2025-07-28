@@ -52,4 +52,11 @@ public class Share extends BaseEntity {
 		boolean isExist = this.link.equals(link);
 		return isExist;
 	}
+
+	public boolean isOwner(Long currentUserId) {
+		if (!creatorId.equals(currentUserId)) {
+			return true;
+		}
+		return false;
+	}
 }
