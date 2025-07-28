@@ -52,10 +52,10 @@ public class ParticipationService {
 
 	@Transactional(readOnly = true)
 	public Page<ParticipationInfoResponse> gets(Long memberId, Pageable pageable) {
-		Page<ParticipationInfo> participationsInfo = participationRepository.findParticipationsInfo(memberId,
+		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationsInfo(memberId,
 			pageable);
 
-		List<Long> surveyIds = participationsInfo.getContent().stream()
+		List<Long> surveyIds = participationInfos.getContent().stream()
 			.map(ParticipationInfo::getSurveyId)
 			.toList();
 
@@ -77,7 +77,7 @@ public class ParticipationService {
 			));
 
 		// TODO: stream 한번만 사용하여서 map 수정
-		return participationsInfo.map(p -> {
+		return participationInfos.map(p -> {
 			ParticipationInfoResponse.SurveyInfoOfParticipation surveyInfo = surveyInfoMap.get(p.getSurveyId());
 
 			return ParticipationInfoResponse.of(p, surveyInfo);
@@ -86,20 +86,20 @@ public class ParticipationService {
 
 	@Transactional(readOnly = true)
 	public List<ParticipationGroupResponse> getAllBySurveyIds(List<Long> surveyIds) {
-		List<Participation> participations = participationRepository.findAllBySurveyIdIn(surveyIds);
+		List<Participation> participationList = participationRepository.findAllBySurveyIdIn(surveyIds);
 
 		// surveyId 기준으로 참여 기록을 Map 으로 그룹핑
-		Map<Long, List<Participation>> participationGroupBySurveyId = participations.stream()
+		Map<Long, List<Participation>> participationGroupBySurveyId = participationList.stream()
 			.collect(Collectors.groupingBy(Participation::getSurveyId));
 
 		List<ParticipationGroupResponse> result = new ArrayList<>();
 
 		for (Long surveyId : surveyIds) {
-			List<Participation> participationList = participationGroupBySurveyId.get(surveyId);
+			List<Participation> participationGroup = participationGroupBySurveyId.get(surveyId);
 
 			List<ParticipationDetailResponse> participationDtos = new ArrayList<>();
 
-			for (Participation p : participationList) {
+			for (Participation p : participationGroup) {
 				List<ParticipationDetailResponse.AnswerDetail> answerDetails = p.getResponses().stream()
 					.map(ParticipationDetailResponse.AnswerDetail::from)
 					.toList();
