@@ -28,11 +28,10 @@ public class ShareController {
 		@AuthenticationPrincipal Long creatorId
 	) {
 		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId, request.getShareMethod());
-		ApiResponse<ShareResponse> body = ApiResponse.success("공유 캠페인 생성 완료", response);
 
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
-			.body(body);
+			.body(ApiResponse.success("공유 캠페인 생성 완료", response));
 	}
 
 	@GetMapping("/{shareId}")
@@ -41,11 +40,10 @@ public class ShareController {
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		ShareResponse response = shareService.getShare(shareId, currentUserId);
-		ApiResponse<ShareResponse> body = ApiResponse.success("공유 작업 조회 성공", response);
 
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(body);
+			.body(ApiResponse.success("공유 작업 조회 성공", response));
 	}
 
 	@GetMapping("/{shareId}/notifications")
