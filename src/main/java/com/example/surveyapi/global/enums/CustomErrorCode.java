@@ -22,7 +22,7 @@ public enum CustomErrorCode {
 	INVALID_STATE_TRANSITION(HttpStatus.BAD_REQUEST, "PENDING -> IN_PROGRESS -> CLOSED 순서로만 변경 가능합니다."),
 	ACCESS_DENIED(HttpStatus.FORBIDDEN, "접근이 거부되었습니다."),
 	ALREADY_REGISTERED_MANAGER(HttpStatus.CONFLICT, "이미 등록된 담당자입니다."),
-    USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다"),
+	USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다"),
 	CANNOT_CHANGE_OWNER_ROLE(HttpStatus.BAD_REQUEST, "OWNER는(로) 변경할 수 없습니다"),
 	CANNOT_DELETE_SELF_OWNER(HttpStatus.BAD_REQUEST, "OWNER 본인은 삭제할 수 없습니다."),
 
@@ -32,14 +32,14 @@ public enum CustomErrorCode {
 	// 참여 에러
 	NOT_FOUND_PARTICIPATION(HttpStatus.NOT_FOUND, "참여 응답이 존재하지 않습니다."),
 	ACCESS_DENIED_PARTICIPATION_VIEW(HttpStatus.FORBIDDEN, "본인의 참여 기록만 조회할 수 있습니다."),
+	SURVEY_ALREADY_PARTICIPATED(HttpStatus.CONFLICT, "이미 참여한 설문입니다."),
 
 	// 서버 에러
 	USER_LIST_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "회원 목록이 비어 있습니다. 데이터 상태를 확인하세요."),
 	SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다."),
 
 	// 공유 에러
-	NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다.")
-	;
+	NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다.");
 
 	private final HttpStatus httpStatus;
 	private final String message;
