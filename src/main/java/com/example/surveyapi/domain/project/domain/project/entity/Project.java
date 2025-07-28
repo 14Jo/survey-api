@@ -40,24 +40,31 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseEntity {
 
-	@Transient
-	private final List<Object> domainEvents = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	@Column(nullable = false, unique = true)
 	private String name;
+
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String description;
+
 	@Column(nullable = false)
 	private Long ownerId;
+
 	@Embedded
 	private ProjectPeriod period;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
+
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
+
+	@Transient
+	private final List<Object> domainEvents = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
 		LocalDateTime periodEnd) {
