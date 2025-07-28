@@ -5,15 +5,17 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.example.surveyapi.domain.user.domain.auth.Auth;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.demographics.Demographics;
+import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
-import com.example.surveyapi.domain.user.domain.user.vo.Auth;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,6 +23,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,10 +39,6 @@ public class User extends BaseEntity {
     private Long id;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "auth", nullable = false, columnDefinition = "jsonb")
-    private Auth auth;
-
-    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "profile", nullable = false, columnDefinition = "jsonb")
     private Profile profile;
 
@@ -51,18 +50,55 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Grade grade;
 
-    private User(Auth auth, Profile profile) {
-        this.auth = auth;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Auth auth;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Demographics demographics;
+
+    private User(Profile profile) {
         this.profile = profile;
         this.role = Role.USER;
         this.grade = Grade.LV1;
     }
 
-    public static User create(Auth auth, Profile profile) {
-        if (auth == null || profile == null) {
-            throw new CustomException(CustomErrorCode.SERVER_ERROR);
-        }
-        return new User(auth, profile);
+    public void setAuth(Auth auth) {
+        this.auth = auth;
+    }
+
+    public void setDemographics(Demographics demographics) {
+        this.demographics = demographics;
+    }
+
+    public static User create(
+        String email, String password,
+        String name, LocalDateTime birthDate, Gender gender,
+        String province, String district,
+        String detailAddress, String postalCode
+    ) {
+        Address address = Address.of(
+            province, district,
+            detailAddress, postalCode);
+
+        Profile profile = Profile.of(
+            name, birthDate,
+            gender, address);
+
+        User user = new User(profile);
+
+        Auth auth = Auth.create(
+            user, email, password,
+            Provider.LOCAL, null);
+
+        user.auth = auth;
+
+        Demographics demographics = Demographics.create(
+            user, birthDate,
+            gender, address);
+
+        user.demographics = demographics;
+
+        return user;
     }
 
     public void update(
