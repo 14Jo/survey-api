@@ -29,6 +29,7 @@ public class ShareController {
 	) {
 		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId);
 		ApiResponse<ShareResponse> body = ApiResponse.success("공유 캠페인 생성 완료", response);
+
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
 			.body(body);
@@ -41,6 +42,7 @@ public class ShareController {
 	) {
 		ShareResponse response = shareService.getShare(shareId, currentUserId);
 		ApiResponse<ShareResponse> body = ApiResponse.success("공유 작업 조회 성공", response);
+
 		return ResponseEntity
 			.status(HttpStatus.OK)
 			.body(body);
@@ -54,6 +56,7 @@ public class ShareController {
 		@AuthenticationPrincipal Long currentId
 	) {
 		NotificationPageResponse response = notificationService.gets(shareId, currentId, page, size);
+
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
 }
