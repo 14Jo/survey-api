@@ -16,7 +16,7 @@ public class SignupResponse {
 
     public static SignupResponse from(
         User user
-    ){
+    ) {
         SignupResponse dto = new SignupResponse();
 
         dto.memberId = user.getId();

@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.user.domain.user.vo;
 
 import java.time.LocalDateTime;
+
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 
 import jakarta.persistence.Embeddable;
@@ -21,6 +22,12 @@ public class Profile {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public static Profile of(
+        String name, LocalDateTime birthDate, Gender gender, Address address) {
+        return new Profile(
+            name, birthDate, gender, address);
     }
 
 }
