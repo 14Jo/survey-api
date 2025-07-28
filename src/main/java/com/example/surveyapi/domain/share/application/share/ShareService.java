@@ -10,6 +10,8 @@ import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.share.event.ShareCreateEvent;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,5 +32,15 @@ public class ShareService {
 		eventPublisher.publishEvent(new ShareCreateEvent(saved.getId(), saved.getSurveyId()));
 
 		return ShareResponse.from(saved);
+	}
+
+	@Transactional(readOnly = true)
+	public ShareResponse getShare(Long shareId, Long currentUserId) {
+		Share share = shareRepository.findById(shareId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+
+		// TODO : 권한 검증
+
+		return ShareResponse.from(share);
 	}
 }
