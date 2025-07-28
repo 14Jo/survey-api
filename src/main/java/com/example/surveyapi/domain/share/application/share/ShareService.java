@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.share.application.share;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 public class ShareService {
 	private final ShareRepository shareRepository;
 	private final ShareDomainService shareDomainService;
-	private final ApplicationEventPublisher eventPublisher;
 
 	public ShareResponse createShare(Long surveyId, Long creatorId, ShareMethod shareMethod) {
 		//TODO : 설문 존재 여부 검증
@@ -38,7 +36,7 @@ public class ShareService {
 
 		// TODO : 권한 검증 - 관리자(admin)의 경우 추후 추가 예정
 
-		if(!share.getCreatorId().equals(currentUserId)) {
+		if (!share.getCreatorId().equals(currentUserId)) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 
