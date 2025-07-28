@@ -8,10 +8,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.example.surveyapi.domain.user.domain.auth.Auth;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
-import com.example.surveyapi.domain.user.domain.user.vo.Auth;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -54,7 +56,7 @@ public class UserTest {
 
         // when & then
         assertThatThrownBy(() ->
-            User.create(null, null))
+            User.create(null))
             .isInstanceOf(CustomException.class);
     }
 
@@ -107,10 +109,17 @@ public class UserTest {
         ReflectionTestUtils.setField(profile, "gender", gender);
         ReflectionTestUtils.setField(profile, "address", address);
 
-        Auth auth = new Auth();
-        ReflectionTestUtils.setField(auth, "email", email);
-        ReflectionTestUtils.setField(auth, "password", password);
+        User user = User.create(profile);
 
-        return User.create(auth, profile);
+        Demographics.create(
+            user, birthDate,
+            gender, address);
+
+        Auth.create(
+            user, email,
+            password, Provider.LOCAL,
+            null);
+
+        return user;
     }
 }

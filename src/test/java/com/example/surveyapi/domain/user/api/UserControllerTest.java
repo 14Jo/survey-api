@@ -32,10 +32,12 @@ import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.domain.auth.Auth;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
-import com.example.surveyapi.domain.user.domain.user.vo.Auth;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -305,11 +307,18 @@ public class UserControllerTest {
         ReflectionTestUtils.setField(profile, "gender", request.getProfile().getGender());
         ReflectionTestUtils.setField(profile, "address", address);
 
-        Auth auth = new Auth();
-        ReflectionTestUtils.setField(auth, "email", request.getAuth().getEmail());
-        ReflectionTestUtils.setField(auth, "password", request.getAuth().getPassword());
+        User user = User.create(profile);
 
-        return User.create(auth, profile);
+        Demographics.create(
+            user, request.getProfile().getBirthDate(),
+            request.getProfile().getGender(), address);
+
+        Auth.create(
+            user, request.getAuth().getEmail(),
+            request.getAuth().getPassword(), Provider.LOCAL,
+            null);
+
+        return user;
     }
 
     private UpdateUserRequest updateRequest(String name) {
