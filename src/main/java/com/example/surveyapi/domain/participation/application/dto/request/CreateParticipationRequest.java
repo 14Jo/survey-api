@@ -2,6 +2,8 @@ package com.example.surveyapi.domain.participation.application.dto.request;
 
 import java.util.List;
 
+import com.example.surveyapi.domain.participation.domain.command.ResponseData;
+
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 
