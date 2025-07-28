@@ -11,9 +11,9 @@ import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 public class ShareDomainService {
 	private static final String BASE_URL = "https://everysurvey.com/surveys/share/";
 
-	public Share createShare(Long surveyId, ShareMethod shareMethod) {
+	public Share createShare(Long surveyId, Long creatorId, ShareMethod shareMethod) {
 		String link = generateLink();
-		return new Share(surveyId, shareMethod, link);
+		return new Share(surveyId, creatorId, shareMethod, link);
 	}
 
 	public String generateLink() {

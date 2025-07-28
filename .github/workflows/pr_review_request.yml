@@ -18,8 +18,10 @@ jobs:
         run: |
           if [ "$ACTION" = "ready_for_review" ]; then
             echo "NOTIFY_MSG=✅ PR 리뷰 요청" >> $GITHUB_ENV
+            echo "NOTIFY_TYPE=pr_request" >> $GITHUB_ENV
           elif [ "$ACTION" = "synchronize" ]; then
             echo "NOTIFY_MSG=✏️ PR 수정내용 반영" >> $GITHUB_ENV
+            echo "SLACK_REVIEWERS=없음" >> $GITHUB_ENV
           fi
 
       - name: Set up PR context from last commit
@@ -36,6 +38,7 @@ jobs:
           echo "PR_URL=$(jq -r .pull_request.html_url "$GITHUB_EVENT_PATH")" >> $GITHUB_ENV
 
       - name: Select reviewers based on rules
+        if: env.NOTIFY_TYPE == 'pr_request'
         id: slack-reviewers
         env:
           SLACK_USER_JIN: ${{ secrets.SLACK_USER_JIN }}

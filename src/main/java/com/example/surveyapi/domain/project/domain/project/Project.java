@@ -189,16 +189,16 @@ public class Project extends BaseEntity {
 		}
 	}
 
-	private Manager findManagerByUserId(Long userId) {
+	public Manager findManagerByUserId(Long userId) {
 		return this.managers.stream()
 			.filter(manager -> manager.getUserId().equals(userId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
-	private Manager findManagerById(Long managerId) {
+	public Manager findManagerById(Long managerId) {
 		return this.managers.stream()
-			.filter(manager -> manager.getId().equals(managerId))
+			.filter(manager -> Objects.equals(manager.getId(), managerId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}

@@ -53,17 +53,17 @@ public class ParticipationController {
 		Page<ParticipationInfoResponse> result = participationService.gets(memberId, pageable);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("나의 전체 참여 응답 목록 조회에 성공하였습니다.", result));
+			.body(ApiResponse.success("나의 참여 목록 조회에 성공하였습니다.", result));
 	}
 
-	@PostMapping("/surveys/participations/search")
+	@PostMapping("/surveys/participations")
 	public ResponseEntity<ApiResponse<List<ParticipationGroupResponse>>> getAllBySurveyIds(
 		@Valid @RequestBody ParticipationGroupRequest request
 	) {
 		List<ParticipationGroupResponse> result = participationService.getAllBySurveyIds(request.getSurveyIds());
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("여러 설문에 대한 모든 참여 응답 기록 조회에 성공하였습니다.", result));
+			.body(ApiResponse.success("여러 참여 기록 조회에 성공하였습니다.", result));
 	}
 
 	@GetMapping("/participations/{participationId}")
@@ -74,7 +74,7 @@ public class ParticipationController {
 		ParticipationDetailResponse result = participationService.get(memberId, participationId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("나의 참여 응답 상세 조회에 성공하였습니다.", result));
+			.body(ApiResponse.success("참여 응답 상세 조회에 성공하였습니다.", result));
 	}
 
 	@PutMapping("/participations/{participationId}")

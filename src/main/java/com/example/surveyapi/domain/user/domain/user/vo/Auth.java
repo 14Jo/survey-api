@@ -18,4 +18,8 @@ public class Auth {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    public static Auth of(String email, String password) {
+        return new Auth(email, password);
+    }
 }

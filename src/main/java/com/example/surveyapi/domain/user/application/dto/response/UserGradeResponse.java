@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.user.application.dto.response;
 
-import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 
 import lombok.AccessLevel;
@@ -9,16 +8,16 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class GradeResponse {
+public class UserGradeResponse {
 
     private Grade grade;
 
-    public static GradeResponse from(
-        User user
+    public static UserGradeResponse from(
+        Grade grade
     ) {
-        GradeResponse dto = new GradeResponse();
+        UserGradeResponse dto = new UserGradeResponse();
 
-        dto.grade = user.getGrade();
+        dto.grade = grade;
 
         return dto;
     }
