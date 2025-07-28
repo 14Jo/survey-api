@@ -1,7 +1,7 @@
 package com.example.surveyapi.domain.project.infra.project.querydsl;
 
-import static com.example.surveyapi.domain.project.domain.manager.QManager.*;
-import static com.example.surveyapi.domain.project.domain.project.QProject.*;
+import static com.example.surveyapi.domain.project.domain.manager.entity.QManager.*;
+import static com.example.surveyapi.domain.project.domain.project.entity.QProject.*;
 
 import java.util.List;
 
