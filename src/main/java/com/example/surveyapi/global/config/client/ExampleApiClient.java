@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.config.examplclient;
+package com.example.surveyapi.global.config.client;
 
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
