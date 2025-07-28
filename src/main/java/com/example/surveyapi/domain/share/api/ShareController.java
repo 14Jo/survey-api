@@ -27,11 +27,23 @@ public class ShareController {
 		@Valid @RequestBody CreateShareRequest request,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId);
-		ApiResponse<ShareResponse> body = ApiResponse.success("공유 캠페인 생성 완료", response);
+		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId, request.getShareMethod());
+
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
-			.body(body);
+			.body(ApiResponse.success("공유 캠페인 생성 완료", response));
+	}
+
+	@GetMapping("/{shareId}")
+	public ResponseEntity<ApiResponse<ShareResponse>> get(
+		@PathVariable Long shareId,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		ShareResponse response = shareService.getShare(shareId, currentUserId);
+
+		return ResponseEntity
+			.status(HttpStatus.OK)
+			.body(ApiResponse.success("공유 작업 조회 성공", response));
 	}
 
 	@GetMapping("/{shareId}/notifications")
@@ -42,6 +54,7 @@ public class ShareController {
 		@AuthenticationPrincipal Long currentId
 	) {
 		NotificationPageResponse response = notificationService.gets(shareId, currentId, page, size);
+
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
 }
