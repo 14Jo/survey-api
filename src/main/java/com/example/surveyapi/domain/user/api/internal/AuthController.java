@@ -46,7 +46,7 @@ public class AuthController {
             .body(ApiResponse.success("로그인 성공", login));
     }
 
-    @PostMapping("/users/withdraw")
+    @PostMapping("/auth/withdraw")
     public ResponseEntity<ApiResponse<Void>> withdraw(
         @Valid @RequestBody UserWithdrawRequest request,
         @AuthenticationPrincipal Long userId
