@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
 
     private String accessToken;
-    private MemberResponse member ;
+    private MemberResponse member;
 
     public static LoginResponse of(
         String token, User user
@@ -35,7 +35,7 @@ public class LoginResponse {
 
         public static MemberResponse from(
             User user
-        ){
+        ) {
             MemberResponse dto = new MemberResponse();
 
             dto.memberId = user.getId();

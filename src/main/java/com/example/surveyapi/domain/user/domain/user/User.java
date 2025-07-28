@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
@@ -23,12 +22,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Getter
 @Table(name = "users")
@@ -54,46 +51,18 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Grade grade;
 
-    public User(Auth auth , Profile profile) {
+    private User(Auth auth, Profile profile) {
         this.auth = auth;
         this.profile = profile;
         this.role = Role.USER;
         this.grade = Grade.LV1;
     }
 
-    public User(
-        String email, String password,
-        String name, LocalDateTime birthDate, Gender gender,
-        String province, String district,
-        String detailAddress, String postalCode){
-
-        this.auth = new Auth(email,password);
-        this.profile = new Profile(
-            name, birthDate, gender,
-            new Address(province,district,detailAddress,postalCode));
-
-        this.role = Role.USER;
-        this.grade = Grade.LV1;
-    }
-
-    public static User create(String email,
-        String password, String name,
-        LocalDateTime birthDate, Gender gender,
-        String province, String district,
-        String detailAddress, String postalCode) {
-
-        if(email == null || password == null ||
-            name == null || birthDate == null || gender == null ||
-            province == null || district == null ||
-            detailAddress == null || postalCode == null){
+    public static User create(Auth auth, Profile profile) {
+        if (auth == null || profile == null) {
             throw new CustomException(CustomErrorCode.SERVER_ERROR);
         }
-
-        return new User(
-            email, password,
-            name, birthDate, gender,
-            province, district,
-            detailAddress, postalCode);
+        return new User(auth, profile);
     }
 
     public void update(
@@ -101,29 +70,29 @@ public class User extends BaseEntity {
         String province, String district,
         String detailAddress, String postalCode) {
 
-        if(password != null){
+        if (password != null) {
             this.auth.setPassword(password);
         }
 
-        if(name != null){
+        if (name != null) {
             this.profile.setName(name);
         }
 
         Address address = this.profile.getAddress();
         if (address != null) {
-            if(province != null){
+            if (province != null) {
                 address.setProvince(province);
             }
 
-            if(district != null){
+            if (district != null) {
                 address.setDistrict(district);
             }
 
-            if(detailAddress != null){
+            if (detailAddress != null) {
                 address.setDetailAddress(detailAddress);
             }
 
-            if(postalCode != null){
+            if (postalCode != null) {
                 address.setPostalCode(postalCode);
             }
         }
