@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ProjectDeletedEvent {
+public class ProjectDeletedEvent implements DomainEvent {
 
 	private final Long projectId;
 	private final String projectName;

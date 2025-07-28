@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class ProjectStateChangedEvent {
+public class ProjectStateChangedEvent implements DomainEvent {
 
 	private final Long projectId;
 	private final ProjectState newState;
