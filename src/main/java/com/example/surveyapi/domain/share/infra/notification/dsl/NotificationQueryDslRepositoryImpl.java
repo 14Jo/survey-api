@@ -61,6 +61,7 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 			.fetchOne();
 
 		Page<Notification> pageResult = new PageImpl<>(content, pageable, Optional.ofNullable(total).orElse(0L));
+
 		return NotificationPageResponse.from(pageResult);
 	}
 }
