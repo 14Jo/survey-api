@@ -13,9 +13,11 @@ import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawReq
 import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.domain.auth.Auth;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
-import com.example.surveyapi.domain.user.domain.user.vo.Auth;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
@@ -46,24 +48,11 @@ public class UserService {
 
         String encryptedPassword = passwordEncoder.encode(request.getAuth().getPassword());
 
-        Address address = Address.of(
-            request.getProfile().getAddress().getProvince(),
-            request.getProfile().getAddress().getDistrict(),
-            request.getProfile().getAddress().getDetailAddress(),
-            request.getProfile().getAddress().getPostalCode());
-
-        Profile profile = Profile.of(
-            request.getProfile().getName(),
-            request.getProfile().getBirthDate(),
-            request.getProfile().getGender(),
-            address
-        );
-
-        Auth auth = Auth.of(request.getAuth().getEmail(), encryptedPassword);
-
-        User user = User.create(auth, profile);
+        User user = createUser(request, encryptedPassword);
 
         User createUser = userRepository.save(user);
+
+        user.getAuth().updateProviderId(createUser.getId().toString());
 
         return SignupResponse.from(createUser);
     }
@@ -140,5 +129,35 @@ public class UserService {
         }
 
         user.delete();
+    }
+
+    private User createUser(SignupRequest request, String encryptedPassword) {
+        Address address = Address.of(
+            request.getProfile().getAddress().getProvince(),
+            request.getProfile().getAddress().getDistrict(),
+            request.getProfile().getAddress().getDetailAddress(),
+            request.getProfile().getAddress().getPostalCode());
+
+        Profile profile = Profile.of(
+            request.getProfile().getName(),
+            request.getProfile().getBirthDate(),
+            request.getProfile().getGender(),
+            address
+        );
+
+        User user = User.create(profile);
+
+        Demographics.create(user,
+            request.getProfile().getBirthDate(),
+            request.getProfile().getGender(),
+            address);
+
+        Auth.create(user,
+            request.getAuth().getEmail(),
+            encryptedPassword,
+            Provider.LOCAL,
+            null);
+
+        return user;
     }
 }
