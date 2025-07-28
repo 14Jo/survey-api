@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.share.application.share.dto;
 
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -9,4 +11,6 @@ import lombok.NoArgsConstructor;
 public class CreateShareRequest {
 	@NotNull
 	private Long surveyId;
+	@NotNull
+	private ShareMethod shareMethod;
 }
