@@ -31,16 +31,19 @@ public class Share extends BaseEntity {
 	private Long id;
 	@Column(name = "survey_id", nullable = false)
 	private Long surveyId;
+	@Column(name = "creator_id", nullable = false)
+	private Long creatorId;
 	@Enumerated(EnumType.STRING)
 	@Column(name = "method", nullable = false)
 	private ShareMethod shareMethod;
 	@Column(name = "link", nullable = false, unique = true)
 	private String link;
-	@OneToMany(mappedBy = "id", cascade = CascadeType.ALL, orphanRemoval = true)
-	private List<Notification> notifications = new ArrayList<>();
 
-	public Share(Long surveyId, ShareMethod shareMethod, String linkUrl) {
+
+
+	public Share(Long surveyId, Long creatorId, ShareMethod shareMethod, String linkUrl) {
 		this.surveyId = surveyId;
+		this.creatorId = creatorId;
 		this.shareMethod = shareMethod;
 		this.link = linkUrl;
 	}
