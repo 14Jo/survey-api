@@ -174,8 +174,7 @@ jobs:
             msg="📣 *리뷰 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
           fi
           
-          # 줄바꿈 유지되도록 --rawfile 방식 사용
-          echo "$msg" > /tmp/slack_message.txt
+          echo -e "$msg" > /tmp/slack_message.txt
           JSON_PAYLOAD=$(jq -n --rawfile text /tmp/slack_message.txt '{text: $text}')
           
           curl -X POST -H 'Content-type: application/json' --data "$JSON_PAYLOAD" "$SLACK_WEBHOOK_URL"
