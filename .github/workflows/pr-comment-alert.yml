@@ -164,21 +164,18 @@ jobs:
           ORIGINAL_COMMENT_AUTHOR_SLACK: ${{ steps.map-users.outputs.original_comment_author_slack }}
         run: |
           if [[ "$EVENT_TYPE" == "approved" ]]; then
-            TEXT="⭕️ *PR 승인* ⭕️\n\n*PR:* <$PR_URL|$PR_TITLE>\n*작성자:* $PR_AUTHOR_SLACK\n*승인자:* $COMMENT_AUTHOR_SLACK"
+            msg="⭕ *PR이 승인되었습니다!*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*승인:* $COMMENT_AUTHOR_SLACK"
             if [[ -n "$COMMENT_BODY" ]]; then
-              TEXT="$TEXT\n*코멘트:*\n> $COMMENT_BODY"
-            fi
-          elif [[ "$EVENT_TYPE" == "changes_requested" ]]; then
-            TEXT="⚠️ *PR 변경 요청* ⚠️\n\n*PR:* <$PR_URL|$PR_TITLE>\n*작성자:* $PR_AUTHOR_SLACK\n*요청자:* $COMMENT_AUTHOR_SLACK"
-            if [[ -n "$COMMENT_BODY" ]]; then
-              TEXT="$TEXT\n*코멘트:*\n> $COMMENT_BODY"
+              msg="$msg\n*댓글 내용:*\n> $COMMENT_BODY"
             fi
           elif [[ "$EVENT_TYPE" == "reply" ]]; then
-            TEXT="💬 *댓글에 답글이 달렸습니다*\n\n*PR:* <$PR_URL|$PR_TITLE>\n\n*원 댓글:* ($ORIGINAL_COMMENT_AUTHOR_SLACK)\n> $ORIGINAL_COMMENT_BODY\n\n*답글:* ($COMMENT_AUTHOR_SLACK)\n> <$COMMENT_URL|답글 보기>\n> $COMMENT_BODY"
-          else # comment
-            TEXT="💬 *새로운 의견이 있습니다*\n\n*PR:* <$PR_URL|$PR_TITLE>\n*작성자:* $PR_AUTHOR_SLACK\n*리뷰어:* $COMMENT_AUTHOR_SLACK\n*코멘트:*\n> <$COMMENT_URL|댓글 보기>\n> $COMMENT_BODY"
+            msg="📣 *리뷰 알림!*\n↪️ *댓글에 답글이 달렸습니다*\n*원댓글 작성자:* $ORIGINAL_COMMENT_AUTHOR_SLACK\n*원댓글 내용:*\n> $ORIGINAL_COMMENT_BODY\n\n*답글 작성자:* $COMMENT_AUTHOR_SLACK\n*답글 내용:*\n> $COMMENT_BODY\n\n*PR 링크:* $PR_URL"
+          else
+            msg="📣 *리뷰 알림!*\n💬 *PR에 새로운 댓글이 달렸습니다*\n*제목:* $PR_TITLE\n*작성자:* $PR_AUTHOR_SLACK\n*링크:* $PR_URL\n*댓글 작성자:* $COMMENT_AUTHOR_SLACK\n*댓글 내용:*\n> $COMMENT_BODY"
           fi
-
-          JSON_PAYLOAD=$(jq -n --arg text "$TEXT" '{text: $text}')
-
+          
+          # 줄바꿈 유지되도록 --rawfile 방식 사용
+          echo "$msg" > /tmp/slack_message.txt
+          JSON_PAYLOAD=$(jq -n --rawfile text /tmp/slack_message.txt '{text: $text}')
+          
           curl -X POST -H 'Content-type: application/json' --data "$JSON_PAYLOAD" "$SLACK_WEBHOOK_URL"
