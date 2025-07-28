@@ -6,13 +6,13 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.user.domain.auth.Auth;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.demographics.Demographics;
+import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -70,11 +70,35 @@ public class User extends BaseEntity {
         this.demographics = demographics;
     }
 
-    public static User create(Profile profile) {
-        if (profile == null) {
-            throw new CustomException(CustomErrorCode.SERVER_ERROR);
-        }
-        return new User(profile);
+    public static User create(
+        String email, String password,
+        String name, LocalDateTime birthDate, Gender gender,
+        String province, String district,
+        String detailAddress, String postalCode
+    ) {
+        Address address = Address.of(
+            province, district,
+            detailAddress, postalCode);
+
+        Profile profile = Profile.of(
+            name, birthDate,
+            gender, address);
+
+        User user = new User(profile);
+
+        Auth auth = Auth.create(
+            user, email, password,
+            Provider.LOCAL, null);
+
+        user.auth = auth;
+
+        Demographics demographics = Demographics.create(
+            user, birthDate,
+            gender, address);
+
+        user.demographics = demographics;
+
+        return user;
     }
 
     public void update(

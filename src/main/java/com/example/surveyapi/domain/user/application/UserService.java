@@ -48,7 +48,17 @@ public class UserService {
 
         String encryptedPassword = passwordEncoder.encode(request.getAuth().getPassword());
 
-        User user = createUser(request, encryptedPassword);
+        User user = User.create(
+            request.getAuth().getEmail(),
+            encryptedPassword,
+            request.getProfile().getName(),
+            request.getProfile().getBirthDate(),
+            request.getProfile().getGender(),
+            request.getProfile().getAddress().getProvince(),
+            request.getProfile().getAddress().getDistrict(),
+            request.getProfile().getAddress().getDetailAddress(),
+            request.getProfile().getAddress().getPostalCode()
+        );
 
         User createUser = userRepository.save(user);
 
@@ -131,33 +141,4 @@ public class UserService {
         user.delete();
     }
 
-    private User createUser(SignupRequest request, String encryptedPassword) {
-        Address address = Address.of(
-            request.getProfile().getAddress().getProvince(),
-            request.getProfile().getAddress().getDistrict(),
-            request.getProfile().getAddress().getDetailAddress(),
-            request.getProfile().getAddress().getPostalCode());
-
-        Profile profile = Profile.of(
-            request.getProfile().getName(),
-            request.getProfile().getBirthDate(),
-            request.getProfile().getGender(),
-            address
-        );
-
-        User user = User.create(profile);
-
-        Demographics.create(user,
-            request.getProfile().getBirthDate(),
-            request.getProfile().getGender(),
-            address);
-
-        Auth.create(user,
-            request.getAuth().getEmail(),
-            encryptedPassword,
-            Provider.LOCAL,
-            null);
-
-        return user;
-    }
 }
