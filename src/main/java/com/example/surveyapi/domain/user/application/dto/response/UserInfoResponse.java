@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class UserResponse {
+public class UserInfoResponse {
 
     private Long memberId;
     private String email;
@@ -25,11 +25,10 @@ public class UserResponse {
     private LocalDateTime updatedAt;
     private ProfileResponse profile;
 
-
-    public static UserResponse from(
+    public static UserInfoResponse from(
         User user
     ) {
-        UserResponse dto = new UserResponse();
+        UserInfoResponse dto = new UserInfoResponse();
         ProfileResponse profileDto = new ProfileResponse();
         AddressResponse addressDto = new AddressResponse();
 
@@ -53,7 +52,6 @@ public class UserResponse {
 
         return dto;
     }
-
 
     @Getter
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
