@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.project.domain.dto.ProjectResult;
-import com.example.surveyapi.domain.project.domain.project.Project;
-import com.example.surveyapi.domain.project.domain.project.ProjectRepository;
+import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
 import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
 

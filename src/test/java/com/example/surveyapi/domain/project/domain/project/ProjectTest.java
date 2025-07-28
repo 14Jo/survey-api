@@ -9,8 +9,9 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.example.surveyapi.domain.project.domain.manager.Manager;
+import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
