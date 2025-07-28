@@ -8,6 +8,7 @@ import java.util.Objects;
 import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.event.DomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedEvent;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
@@ -40,31 +41,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseEntity {
 
+	@Transient
+	private final List<DomainEvent> domainEvents = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
 	@Column(nullable = false, unique = true)
 	private String name;
-
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String description;
-
 	@Column(nullable = false)
 	private Long ownerId;
-
 	@Embedded
 	private ProjectPeriod period;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
-
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
-
-	@Transient
-	private final List<Object> domainEvents = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
 		LocalDateTime periodEnd) {
@@ -212,12 +206,12 @@ public class Project extends BaseEntity {
 	}
 
 	// 이벤트 등록/ 관리
-	private void registerEvent(Object event) {
+	private void registerEvent(DomainEvent event) {
 		this.domainEvents.add(event);
 	}
 
-	public List<Object> pullDomainEvents() {
-		List<Object> events = new ArrayList<>(domainEvents);
+	public List<DomainEvent> pullDomainEvents() {
+		List<DomainEvent> events = new ArrayList<>(domainEvents);
 		domainEvents.clear();
 		return events;
 	}
