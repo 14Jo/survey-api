@@ -1,28 +1,38 @@
-package com.example.surveyapi.domain.share.api.notification;
+package com.example.surveyapi.domain.share.api;
 
-import java.awt.print.Pageable;
-
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
+import com.example.surveyapi.domain.share.application.share.ShareService;
+import com.example.surveyapi.domain.share.application.share.dto.CreateShareRequest;
+import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/share-tasks")
-public class NotificationController {
+public class ShareController {
+	private final ShareService shareService;
 	private final NotificationService notificationService;
+
+	@PostMapping
+	public ResponseEntity<ApiResponse<ShareResponse>> createShare(
+		@Valid @RequestBody CreateShareRequest request,
+		@AuthenticationPrincipal Long creatorId
+	) {
+		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId);
+		ApiResponse<ShareResponse> body = ApiResponse.success("공유 캠페인 생성 완료", response);
+		return ResponseEntity
+			.status(HttpStatus.CREATED)
+			.body(body);
+	}
 
 	@GetMapping("/{shareId}/notifications")
 	public ResponseEntity<ApiResponse<NotificationPageResponse>> getAll(
