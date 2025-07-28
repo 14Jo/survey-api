@@ -36,7 +36,7 @@ public class ShareService {
 
 		// TODO : 권한 검증 - 관리자(admin)의 경우 추후 추가 예정
 
-		if (!share.getCreatorId().equals(currentUserId)) {
+		if (share.isOwner(currentUserId)) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 
