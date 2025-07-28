@@ -31,16 +31,18 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 		QNotification notification = QNotification.notification;
 		QShare share = QShare.share;
 
-		Share foudnShare = queryFactory
+		Share foundShare = queryFactory
 			.selectFrom(share)
 			.where(share.id.eq(shareId))
 			.fetchOne();
 
-		if(foudnShare == null) {
+		if(foundShare == null) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 
-		// TODO : 권한 체크
+		if(!foundShare.getCreatorId().equals(requesterId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED_SHARE);
+		}
 
 		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "sentAt"));
 

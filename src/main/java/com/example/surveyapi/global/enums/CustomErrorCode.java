@@ -38,7 +38,8 @@ public enum CustomErrorCode {
     SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버에 장애가 생겼습니다."),
 
     // 공유 에러
-    NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다.");
+    NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다."),
+    ACCESS_DENIED_SHARE(HttpStatus.FORBIDDEN, "본인의 공유 작업 내역만 조회할 수 있습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
