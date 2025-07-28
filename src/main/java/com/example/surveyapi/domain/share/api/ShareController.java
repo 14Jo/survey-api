@@ -27,7 +27,7 @@ public class ShareController {
 		@Valid @RequestBody CreateShareRequest request,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId);
+		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId, request.getShareMethod());
 		ApiResponse<ShareResponse> body = ApiResponse.success("공유 캠페인 생성 완료", response);
 
 		return ResponseEntity
