@@ -12,10 +12,14 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.project.application.dto.request.CreateGroupRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
+import com.example.surveyapi.domain.project.application.dto.response.CreateGroupResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
+import com.example.surveyapi.domain.project.domain.group.entity.Group;
+import com.example.surveyapi.domain.project.domain.group.enums.AgeGroup;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
@@ -128,5 +132,25 @@ class ProjectServiceIntegrationTest {
 		ReflectionTestUtils.setField(request, "periodStart", LocalDateTime.now());
 		ReflectionTestUtils.setField(request, "periodEnd", LocalDateTime.now().plusDays(5));
 		return projectService.createProject(request, 1L).getProjectId();
+	}
+
+	@Test
+	void 그룹_생성시_DB에_저장된다() {
+		// given
+		Long projectId = createSampleProject();
+
+		CreateGroupRequest request = new CreateGroupRequest();
+		ReflectionTestUtils.setField(request, "ageGroup", AgeGroup.OTHERS);
+
+		// when
+		CreateGroupResponse response = projectService.createGroup(projectId, request, 1L);
+
+		// then
+		Project project = projectRepository.findById(projectId).orElseThrow();
+		assertThat(project.getGroups()).hasSize(1);
+		Group group = project.getGroups().get(0);
+		assertThat(group.getAgeGroup()).isEqualTo(AgeGroup.OTHERS);
+		assertThat(response.getGroupId()).isEqualTo(group.getId());
+		assertThat(response.getGroupName()).isEqualTo(AgeGroup.OTHERS.getGroupName());
 	}
 }
