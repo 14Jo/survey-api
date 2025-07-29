@@ -10,8 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateProjectResponse {
 	private Long projectId;
+	private int maxMembers;
 
-	public static CreateProjectResponse from(Long projectId) {
-		return new CreateProjectResponse(projectId);
+	public static CreateProjectResponse of(Long projectId, int maxMembers) {
+		return new CreateProjectResponse(projectId, maxMembers);
 	}
 }
