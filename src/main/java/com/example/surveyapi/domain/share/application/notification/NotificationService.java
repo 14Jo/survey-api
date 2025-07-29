@@ -20,6 +20,7 @@ public class NotificationService {
 
 	private boolean isAdmin(Long userId) {
 		//TODO : 관리자 권한 조회 기능, 접근 권한 확인 기능 구현 시 동시에 구현 및 사용
+
 		return false;
 	}
 }
