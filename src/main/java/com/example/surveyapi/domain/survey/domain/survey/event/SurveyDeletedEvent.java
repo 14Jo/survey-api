@@ -3,7 +3,7 @@ package com.example.surveyapi.domain.survey.domain.survey.event;
 import lombok.Getter;
 
 @Getter
-public class SurveyDeletedEvent {
+public class SurveyDeletedEvent implements DomainEvent {
 
 	private Long surveyId;
 

@@ -7,7 +7,7 @@ import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import lombok.Getter;
 
 @Getter
-public class SurveyUpdatedEvent {
+public class SurveyUpdatedEvent implements DomainEvent {
 
 	private Long surveyId;
 	private List<QuestionInfo> questions;

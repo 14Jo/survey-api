@@ -10,7 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-public class SurveyCreatedEvent {
+public class SurveyCreatedEvent implements DomainEvent {
 
 	private Optional<Long> surveyId;
 	private final List<QuestionInfo> questions;

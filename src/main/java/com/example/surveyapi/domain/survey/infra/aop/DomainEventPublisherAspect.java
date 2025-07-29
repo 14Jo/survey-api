@@ -6,6 +6,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
+import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,29 +17,18 @@ public class DomainEventPublisherAspect {
 
 	private final ApplicationEventPublisher eventPublisher;
 
-	@AfterReturning(pointcut = "com.example.surveyapi.domain.survey.infra.aop.SurveyPointcuts.surveyCreatePointcut(survey)", argNames = "survey")
-	public void publishCreateEvent(Survey survey) {
-		if (survey != null) {
-			survey.registerCreatedEvent();
-			eventPublisher.publishEvent(survey.getCreatedEvent());
-			survey.clearCreatedEvent();
+	@AfterReturning(pointcut = "com.example.surveyapi.domain.survey.infra.aop.SurveyPointcuts.surveyPointCut(entity)", argNames = "entity")
+	public void afterSave(Object entity) {
+		if (entity instanceof AbstractRoot aggregateRoot) {
+			registerEvent(aggregateRoot);
+			aggregateRoot.pollAllEvents()
+				.forEach(eventPublisher::publishEvent);
 		}
 	}
 
-	@AfterReturning(pointcut = "com.example.surveyapi.domain.survey.infra.aop.SurveyPointcuts.surveyDeletePointcut(survey)", argNames = "survey")
-	public void publishDeleteEvent(Survey survey) {
-		if (survey != null) {
-			survey.registerDeletedEvent();
-			eventPublisher.publishEvent(survey.getDeletedEvent());
-			survey.clearDeletedEvent();
-		}
-	}
-
-	@AfterReturning(pointcut = "com.example.surveyapi.domain.survey.infra.aop.SurveyPointcuts.surveyUpdatePointcut(survey)", argNames = "survey")
-	public void publishUpdateEvent(Survey survey) {
-		if (survey != null && survey.getUpdatedEvent() != null) {
-			eventPublisher.publishEvent(survey.getUpdatedEvent());
-			survey.clearUpdatedEvent();
+	private void registerEvent(AbstractRoot root) {
+		if (root instanceof Survey survey) {
+			root.setCreateEventId(survey.getSurveyId());
 		}
 	}
 }

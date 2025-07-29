@@ -10,6 +10,7 @@ import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
+import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyDeletedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyUpdatedEvent;
@@ -36,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Survey extends BaseEntity {
+public class Survey extends AbstractRoot {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,14 +67,6 @@ public class Survey extends BaseEntity {
 	@Column(name = "survey_duration", nullable = false, columnDefinition = "jsonb")
 	private SurveyDuration duration;
 
-	//TODO 필드 하나로 이벤트 관리할 수 있을까?
-	@Transient
-	private Optional<SurveyCreatedEvent> createdEvent = Optional.empty();
-	@Transient
-	private Optional<SurveyDeletedEvent> deletedEvent = Optional.empty();
-	@Transient
-	private Optional<SurveyUpdatedEvent> updatedEvent = Optional.empty();
-
 	public static Survey create(
 		Long projectId,
 		Long creatorId,
@@ -96,7 +89,7 @@ public class Survey extends BaseEntity {
 			survey.duration = duration;
 			survey.option = option;
 
-			survey.createdEvent = Optional.of(new SurveyCreatedEvent(questions));
+			survey.registerEvent(new SurveyCreatedEvent(questions));
 		} catch (NullPointerException ex) {
 			log.error(ex.getMessage(), ex);
 			throw new CustomException(CustomErrorCode.SERVER_ERROR);
@@ -114,13 +107,6 @@ public class Survey extends BaseEntity {
 		}
 	}
 
-	private <T> T validEvent(Optional<T> event) {
-		return event.orElseThrow(() -> {
-			log.error("이벤트가 존재하지 않습니다.");
-			return new CustomException(CustomErrorCode.SERVER_ERROR);
-		});
-	}
-
 	public void updateFields(Map<String, Object> fields) {
 		fields.forEach((key, value) -> {
 			switch (key) {
@@ -131,57 +117,10 @@ public class Survey extends BaseEntity {
 				case "option" -> this.option = (SurveyOption)value;
 				case "questions" -> {
 					List<QuestionInfo> questions = (List<QuestionInfo>)value;
-					registerUpdatedEvent(questions);
+					registerEvent(new SurveyUpdatedEvent(this.surveyId, questions));
 				}
 			}
 		});
-	}
-
-	public SurveyCreatedEvent getCreatedEvent() {
-		SurveyCreatedEvent surveyCreatedEvent = validEvent(this.createdEvent);
-
-		if (surveyCreatedEvent.getSurveyId().isEmpty()) {
-			log.error("이벤트에 할당된 설문 ID가 없습니다.");
-			throw new CustomException(CustomErrorCode.SERVER_ERROR, "이벤트에 할당된 설문 ID가 없습니다.");
-		}
-
-		return surveyCreatedEvent;
-	}
-
-	public void registerCreatedEvent() {
-		this.createdEvent.ifPresent(surveyCreatedEvent ->
-			surveyCreatedEvent.setSurveyId(this.getSurveyId()));
-	}
-
-	public void clearCreatedEvent() {
-		this.createdEvent = Optional.empty();
-	}
-
-	public SurveyDeletedEvent getDeletedEvent() {
-		return validEvent(this.deletedEvent);
-	}
-
-	public void registerDeletedEvent() {
-		this.deletedEvent = Optional.of(new SurveyDeletedEvent(this.surveyId));
-	}
-
-	public void clearDeletedEvent() {
-		this.deletedEvent = Optional.empty();
-	}
-
-	public SurveyUpdatedEvent getUpdatedEvent() {
-		if (this.updatedEvent.isPresent()) {
-			return validEvent(this.updatedEvent);
-		}
-		return null;
-	}
-
-	public void registerUpdatedEvent(List<QuestionInfo> questions) {
-		this.updatedEvent = Optional.of(new SurveyUpdatedEvent(this.surveyId, questions));
-	}
-
-	public void clearUpdatedEvent() {
-		this.updatedEvent = Optional.empty();
 	}
 
 	public void open() {
@@ -195,5 +134,6 @@ public class Survey extends BaseEntity {
 	public void delete() {
 		this.status = SurveyStatus.DELETED;
 		this.isDeleted = true;
+		registerEvent(new SurveyDeletedEvent(this.surveyId));
 	}
 }
