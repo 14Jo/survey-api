@@ -124,16 +124,6 @@ class ProjectServiceIntegrationTest {
 		assertThat(deleted.getState()).isEqualTo(ProjectState.CLOSED);
 	}
 
-	private Long createSampleProject() {
-		CreateProjectRequest request = new CreateProjectRequest();
-		ReflectionTestUtils.setField(request, "name", "테스트 프로젝트");
-		ReflectionTestUtils.setField(request, "description", "설명");
-		ReflectionTestUtils.setField(request, "maxMembers", 50);
-		ReflectionTestUtils.setField(request, "periodStart", LocalDateTime.now());
-		ReflectionTestUtils.setField(request, "periodEnd", LocalDateTime.now().plusDays(5));
-		return projectService.createProject(request, 1L).getProjectId();
-	}
-
 	@Test
 	void 그룹_생성시_DB에_저장된다() {
 		// given
@@ -148,9 +138,21 @@ class ProjectServiceIntegrationTest {
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();
 		assertThat(project.getGroups()).hasSize(1);
+
 		Group group = project.getGroups().get(0);
 		assertThat(group.getAgeGroup()).isEqualTo(AgeGroup.OTHERS);
 		assertThat(response.getGroupId()).isEqualTo(group.getId());
 		assertThat(response.getGroupName()).isEqualTo(AgeGroup.OTHERS.getGroupName());
+	}
+
+	private Long createSampleProject() {
+		CreateProjectRequest request = new CreateProjectRequest();
+		ReflectionTestUtils.setField(request, "name", "테스트 프로젝트");
+		ReflectionTestUtils.setField(request, "description", "설명");
+		ReflectionTestUtils.setField(request, "maxMembers", 50);
+		ReflectionTestUtils.setField(request, "periodStart", LocalDateTime.now());
+		ReflectionTestUtils.setField(request, "periodEnd", LocalDateTime.now().plusDays(5));
+
+		return projectService.createProject(request, 1L).getProjectId();
 	}
 }
