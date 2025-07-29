@@ -91,7 +91,7 @@ public class ProjectService {
 		project.addManager(currentUserId, request.getUserId());
 		projectRepository.save(project);
 
-		return CreateManagerResponse.from(project.getManagers().get(project.getManagers().size() - 1).getId());
+		return CreateManagerResponse.from(project.getProjectManagers().get(project.getProjectManagers().size() - 1).getId());
 	}
 
 	@Transactional

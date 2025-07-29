@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
+import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
-public class ManagerTest {
+public class ProjectManagerTest {
 	@Test
 	void 매니저_추가_정상() {
 		// given
@@ -23,7 +23,7 @@ public class ManagerTest {
 		project.addManager(1L, 2L);
 
 		// then
-		assertEquals(2, project.getManagers().size());
+		assertEquals(2, project.getProjectManagers().size());
 	}
 
 	@Test
@@ -62,8 +62,8 @@ public class ManagerTest {
 		project.updateManagerRole(1L, 2L, ManagerRole.WRITE);
 
 		// then
-		Manager manager = project.findManagerByUserId(2L);
-		assertEquals(ManagerRole.WRITE, manager.getRole());
+		ProjectManager projectManager = project.findManagerByUserId(2L);
+		assertEquals(ManagerRole.WRITE, projectManager.getRole());
 	}
 
 	@Test
@@ -109,14 +109,14 @@ public class ManagerTest {
 		// given
 		Project project = createProject();
 		project.addManager(1L, 2L);
-		Manager targetManager = project.findManagerByUserId(2L);
-		ReflectionTestUtils.setField(targetManager, "id", 2L);
+		ProjectManager targetProjectManager = project.findManagerByUserId(2L);
+		ReflectionTestUtils.setField(targetProjectManager, "id", 2L);
 
 		// when
 		project.deleteManager(1L, 2L);
 
 		// then
-		assertTrue(targetManager.getIsDeleted());
+		assertTrue(targetProjectManager.getIsDeleted());
 	}
 
 	@Test
@@ -135,11 +135,11 @@ public class ManagerTest {
 	void 매니저_삭제_본인_소유자_삭제_시도_실패() {
 		// given
 		Project project = createProject();
-		Manager ownerManager = project.findManagerByUserId(1L);
+		ProjectManager ownerProjectManager = project.findManagerByUserId(1L);
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
-			project.deleteManager(1L, ownerManager.getId());
+			project.deleteManager(1L, ownerProjectManager.getId());
 		});
 		assertEquals(CustomErrorCode.CANNOT_DELETE_SELF_OWNER, exception.getErrorCode());
 	}
