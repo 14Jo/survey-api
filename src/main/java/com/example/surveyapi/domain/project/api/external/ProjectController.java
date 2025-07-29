@@ -16,12 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectService;
+import com.example.surveyapi.domain.project.application.dto.request.CreateGroupRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
+import com.example.surveyapi.domain.project.application.dto.response.CreateGroupResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
@@ -31,7 +33,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/projects")
+@RequestMapping("/api/v2/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -135,7 +137,20 @@ public class ProjectController {
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		projectService.deleteManager(projectId, managerId, currentUserId);
+
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("협력자 삭제 성공"));
+	}
+
+	@PostMapping("/{projectId}/groups")
+	public ResponseEntity<ApiResponse<CreateGroupResponse>> createGroup(
+		@PathVariable Long projectId,
+		@Valid @RequestBody CreateGroupRequest request,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		CreateGroupResponse response = projectService.createGroup(projectId, request, currentUserId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("그룹 생성 성공", response));
 	}
 }

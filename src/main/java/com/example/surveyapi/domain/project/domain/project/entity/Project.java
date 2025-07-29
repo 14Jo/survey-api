@@ -72,7 +72,7 @@ public class Project extends BaseEntity {
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
 
-	@OneToMany(mappedBy = "project", cascade = CascadeType.PERSIST, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Group> groups = new ArrayList<>();
 
 	@Transient
