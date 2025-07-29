@@ -35,7 +35,9 @@ public class ParticipationService {
 
 	@Transactional
 	public Long create(Long surveyId, Long memberId, CreateParticipationRequest request) {
-		// TODO: 설문의 중복 참여 검증
+		if (participationRepository.exists(surveyId, memberId)) {
+			throw new CustomException(CustomErrorCode.SURVEY_ALREADY_PARTICIPATED);
+		}
 		// TODO: 설문 유효성 검증 요청
 		// TODO: memberId가 설문의 대상이 맞는지 공유에 검증 요청
 		List<ResponseData> responseDataList = request.getResponseDataList();
