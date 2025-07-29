@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 
-import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
+import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
@@ -31,9 +31,9 @@ class ProjectTest {
 		assertEquals("설명", project.getDescription());
 		assertEquals(1L, project.getOwnerId());
 		assertEquals(ProjectState.PENDING, project.getState());
-		assertEquals(1, project.getManagers().size());
-		assertEquals(ManagerRole.OWNER, project.getManagers().get(0).getRole());
-		assertEquals(1L, project.getManagers().get(0).getUserId());
+		assertEquals(1, project.getProjectManagers().size());
+		assertEquals(ManagerRole.OWNER, project.getProjectManagers().get(0).getRole());
+		assertEquals(1L, project.getProjectManagers().get(0).getUserId());
 	}
 
 	@Test
@@ -146,8 +146,8 @@ class ProjectTest {
 		project.updateOwner(1L, 2L);
 
 		// then
-		Manager newOwner = project.findManagerByUserId(2L);
-		Manager previousOwner = project.findManagerByUserId(1L);
+		ProjectManager newOwner = project.findManagerByUserId(2L);
+		ProjectManager previousOwner = project.findManagerByUserId(1L);
 
 		assertEquals(ManagerRole.OWNER, newOwner.getRole());
 		assertEquals(ManagerRole.READ, previousOwner.getRole());
@@ -165,7 +165,7 @@ class ProjectTest {
 		// then
 		assertEquals(ProjectState.CLOSED, project.getState());
 		assertTrue(project.getIsDeleted());
-		assertTrue(project.getManagers().stream().allMatch(Manager::getIsDeleted));
+		assertTrue(project.getProjectManagers().stream().allMatch(ProjectManager::getIsDeleted));
 	}
 
 	private Project createProject() {
