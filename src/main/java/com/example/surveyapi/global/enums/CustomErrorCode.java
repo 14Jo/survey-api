@@ -11,7 +11,14 @@ public enum CustomErrorCode {
     GRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "등급을 조회 할 수 없습니다"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일을 찾을 수 없습니다."),
     ROLE_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "유효하지 않은 UserRole"),
+    NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND,"토큰이 유효하지 않습니다."),
     NOT_FOUND_SURVEY(HttpStatus.NOT_FOUND, "설문이 존재하지 않습니다"),
+    BLACKLISTED_TOKEN(HttpStatus.NOT_FOUND,"블랙리스트 토큰입니다."),
+    INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST,"토큰 타입이 잘못되었습니다."),
+    MISSING_TOKEN_TYPE(HttpStatus.BAD_REQUEST,"토큰 타입이 누락되었습니다.."),
+    ACCESS_TOKEN_NOT_EXPIRED(HttpStatus.BAD_REQUEST,"아직 액세스 토큰이 만료되지 않았습니다."),
+    NOT_FOUND_REFRESH_TOKEN(HttpStatus.NOT_FOUND,"리프레쉬 토큰이 없습니다."),
+    MISMATCH_REFRESH_TOKEN(HttpStatus.BAD_REQUEST,"리프레쉬 토큰 맞지 않습니다."),
 
     // 프로젝트 에러
     START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
