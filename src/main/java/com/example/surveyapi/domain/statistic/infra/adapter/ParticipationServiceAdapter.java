@@ -1,10 +1,11 @@
-package com.example.surveyapi.domain.statistic.infra.external.participation;
+package com.example.surveyapi.domain.statistic.infra.adapter;
 
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.statistic.application.client.ParticipationInfosDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationRequestDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
+import com.example.surveyapi.global.config.client.participation.ParticipationApiClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
