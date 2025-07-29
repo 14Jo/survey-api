@@ -37,12 +37,13 @@ public class ProjectService {
 			request.getName(),
 			request.getDescription(),
 			currentUserId,
+			request.getMaxMembers(),
 			request.getPeriodStart(),
 			request.getPeriodEnd()
 		);
 		projectRepository.save(project);
 
-		return CreateProjectResponse.from(project.getId());
+		return CreateProjectResponse.of(project.getId(), project.getMaxMembers());
 	}
 
 	@Transactional(readOnly = true)
