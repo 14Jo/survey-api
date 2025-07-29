@@ -61,14 +61,20 @@ public class Project extends BaseEntity {
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
 
+	@Column(nullable = false)
+	private int maxMembers;
+
+	@Column(nullable = false, columnDefinition = "int default 1")
+	private int currentMemberCount;
+
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
 
 	@Transient
 	private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
-		LocalDateTime periodEnd) {
+	public static Project create(String name, String description, Long ownerId, int maxMembers,
+		LocalDateTime periodStart, LocalDateTime periodEnd) {
 		ProjectPeriod period = ProjectPeriod.of(periodStart, periodEnd);
 
 		Project project = new Project();
@@ -76,6 +82,7 @@ public class Project extends BaseEntity {
 		project.description = description;
 		project.ownerId = ownerId;
 		project.period = period;
+		project.maxMembers = maxMembers;
 		// 프로젝트 생성자는 소유자로 등록
 		project.managers.add(Manager.createOwner(project, ownerId));
 
