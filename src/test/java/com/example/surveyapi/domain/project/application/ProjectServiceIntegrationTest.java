@@ -133,7 +133,7 @@ class ProjectServiceIntegrationTest {
 		ReflectionTestUtils.setField(request, "ageGroup", AgeGroup.OTHERS);
 
 		// when
-		CreateGroupResponse response = projectService.createGroup(projectId, request, 1L);
+		CreateGroupResponse response = projectService.createGroup(projectId, request);
 
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();

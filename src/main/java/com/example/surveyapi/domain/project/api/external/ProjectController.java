@@ -145,10 +145,9 @@ public class ProjectController {
 	@PostMapping("/{projectId}/groups")
 	public ResponseEntity<ApiResponse<CreateGroupResponse>> createGroup(
 		@PathVariable Long projectId,
-		@Valid @RequestBody CreateGroupRequest request,
-		@AuthenticationPrincipal Long currentUserId
+		@Valid @RequestBody CreateGroupRequest request
 	) {
-		CreateGroupResponse response = projectService.createGroup(projectId, request, currentUserId);
+		CreateGroupResponse response = projectService.createGroup(projectId, request);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("그룹 생성 성공", response));

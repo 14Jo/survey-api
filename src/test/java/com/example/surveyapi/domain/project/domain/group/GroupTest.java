@@ -17,7 +17,7 @@ public class GroupTest {
 		Project project = createProject();
 
 		// when
-		project.addGroup(1L, AgeGroup.TWENTIES);
+		project.addGroup(AgeGroup.TWENTIES);
 
 		// then
 		assertEquals(1, project.getGroups().size());
@@ -27,22 +27,11 @@ public class GroupTest {
 	void 그룹_중복_생성_시_예외() {
 		// given
 		Project project = createProject();
-		project.addGroup(1L, AgeGroup.TWENTIES);
+		project.addGroup(AgeGroup.TWENTIES);
 
 		// when & then
 		assertThrows(CustomException.class,
-			() -> project.addGroup(1L, AgeGroup.TWENTIES));
-	}
-
-	@Test
-	void READ_권한_사용자가_그룹_생성_시_예외() {
-		// given
-		Project project = createProject();
-		project.addManager(1L, 2L);
-
-		// when & then
-		assertThrows(CustomException.class,
-			() -> project.addGroup(2L, AgeGroup.OTHERS));
+			() -> project.addGroup(AgeGroup.TWENTIES));
 	}
 
 	private Project createProject() {

@@ -114,9 +114,9 @@ public class ProjectService {
 	}
 
 	@Transactional
-	public CreateGroupResponse createGroup(Long projectId, CreateGroupRequest request, Long currentUserId) {
+	public CreateGroupResponse createGroup(Long projectId, CreateGroupRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
-		project.addGroup(currentUserId, request.getAgeGroup());
+		project.addGroup(request.getAgeGroup());
 
 		projectRepository.save(project);
 		Group group = project.getGroups().get(project.getGroups().size() - 1);

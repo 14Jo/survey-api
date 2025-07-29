@@ -214,10 +214,7 @@ public class Project extends BaseEntity {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
-	public void addGroup(Long currentUserId, AgeGroup ageGroup) {
-		// 권한 체크 OWNER, WRITE, STAT만 가능
-		checkNotReader(currentUserId);
-
+	public void addGroup(AgeGroup ageGroup) {
 		// 중복 연령대 그룹 체크
 		boolean exists = this.groups.stream()
 			.anyMatch(group -> group.getAgeGroup() == ageGroup && !group.getIsDeleted());
