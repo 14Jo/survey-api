@@ -1,15 +1,16 @@
-package com.example.surveyapi.domain.project.domain.project;
+package com.example.surveyapi.domain.project.domain.project.entity;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.util.StringUtils;
-
-import com.example.surveyapi.domain.project.domain.manager.Manager;
+import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.event.DomainEvent;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedEvent;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedEvent;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -26,6 +27,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -62,6 +64,9 @@ public class Project extends BaseEntity {
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
 
+	@Transient
+	private final List<DomainEvent> domainEvents = new ArrayList<>();
+
 	public static Project create(String name, String description, Long ownerId, LocalDateTime periodStart,
 		LocalDateTime periodEnd) {
 		ProjectPeriod period = ProjectPeriod.of(periodStart, periodEnd);
@@ -84,10 +89,10 @@ public class Project extends BaseEntity {
 			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
 			this.period = ProjectPeriod.of(start, end);
 		}
-		if (StringUtils.hasText(newName)) {
+		if (newName != null && !newName.trim().isEmpty()) {
 			this.name = newName;
 		}
-		if (StringUtils.hasText(newDescription)) {
+		if (newDescription != null && !newDescription.trim().isEmpty()) {
 			this.description = newDescription;
 		}
 	}
@@ -114,6 +119,7 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
+		registerEvent(new ProjectStateChangedEvent(this.id, newState));
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
@@ -137,6 +143,7 @@ public class Project extends BaseEntity {
 		}
 
 		this.delete();
+		registerEvent(new ProjectDeletedEvent(this.id, this.name));
 	}
 
 	public void addManager(Long currentUserId, Long userId) {
@@ -183,12 +190,14 @@ public class Project extends BaseEntity {
 		manager.delete();
 	}
 
+	// 소유자 권한 확인
 	private void checkOwner(Long currentUserId) {
 		if (!this.ownerId.equals(currentUserId)) {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
 		}
 	}
 
+	// List<Manager> 조회 메소드
 	public Manager findManagerByUserId(Long userId) {
 		return this.managers.stream()
 			.filter(manager -> manager.getUserId().equals(userId))
@@ -201,5 +210,16 @@ public class Project extends BaseEntity {
 			.filter(manager -> Objects.equals(manager.getId(), managerId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
+	}
+
+	// 이벤트 등록/ 관리
+	private void registerEvent(DomainEvent event) {
+		this.domainEvents.add(event);
+	}
+
+	public List<DomainEvent> pullDomainEvents() {
+		List<DomainEvent> events = new ArrayList<>(domainEvents);
+		domainEvents.clear();
+		return events;
 	}
 }
