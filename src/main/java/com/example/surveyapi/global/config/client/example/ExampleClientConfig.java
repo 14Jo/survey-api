@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.config.client;
+package com.example.surveyapi.global.config.client.example;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
