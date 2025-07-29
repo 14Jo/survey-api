@@ -124,6 +124,7 @@ class ProjectServiceIntegrationTest {
 		CreateProjectRequest request = new CreateProjectRequest();
 		ReflectionTestUtils.setField(request, "name", "테스트 프로젝트");
 		ReflectionTestUtils.setField(request, "description", "설명");
+		ReflectionTestUtils.setField(request, "maxMembers", 50);
 		ReflectionTestUtils.setField(request, "periodStart", LocalDateTime.now());
 		ReflectionTestUtils.setField(request, "periodEnd", LocalDateTime.now().plusDays(5));
 		return projectService.createProject(request, 1L).getProjectId();
