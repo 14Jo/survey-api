@@ -3,7 +3,6 @@ package com.example.surveyapi.domain.survey.domain.survey;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -18,8 +17,8 @@ import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.event.SurveyActivateEvent;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +27,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -125,10 +123,12 @@ public class Survey extends AbstractRoot {
 
 	public void open() {
 		this.status = SurveyStatus.IN_PROGRESS;
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.status));
 	}
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.status));
 	}
 
 	public void delete() {
