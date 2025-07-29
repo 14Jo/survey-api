@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.statistic.infra.external.participation;
+package com.example.surveyapi.global.config.client.participation;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;

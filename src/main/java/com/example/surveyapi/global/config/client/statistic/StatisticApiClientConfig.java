@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.config.client.example;
+package com.example.surveyapi.global.config.client.statistic;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,14 +7,13 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
-public class ExampleClientConfig {
+public class StatisticApiClientConfig {
 
 	@Bean
-	public ExampleApiClient exampleApiClient(RestClient restClient) {
-		HttpServiceProxyFactory factory = HttpServiceProxyFactory
+	public StatisticApiClient statisticApiClient(RestClient restClient) {
+		return HttpServiceProxyFactory
 			.builderFor(RestClientAdapter.create(restClient))
-			.build();
-
-		return factory.createClient(ExampleApiClient.class);
+			.build()
+			.createClient(StatisticApiClient.class);
 	}
 }

@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.config.client.participation;
+package com.example.surveyapi.global.config.client.survey;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,13 +7,13 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
-public class ParticipationApiClientConfig {
+public class SurveyApiClientConfig {
 
 	@Bean
-	public ParticipationApiClient participationApiClient(RestClient restClient) {
+	public SurveyApiClient surveyApiClient(RestClient restClient) {
 		return HttpServiceProxyFactory
 			.builderFor(RestClientAdapter.create(restClient))
 			.build()
-			.createClient(ParticipationApiClient.class);
+			.createClient(SurveyApiClient.class);
 	}
 }
