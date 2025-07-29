@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.config.client;
+package com.example.surveyapi.global.config.client.example;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,11 +10,7 @@ import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 public class ExampleClientConfig {
 
 	@Bean
-	public ExampleApiClient exampleApiClient() {
-		RestClient restClient = RestClient.builder()
-			.baseUrl("https://localhost:8080/")
-			.build();
-
+	public ExampleApiClient exampleApiClient(RestClient restClient) {
 		HttpServiceProxyFactory factory = HttpServiceProxyFactory
 			.builderFor(RestClientAdapter.create(restClient))
 			.build();
