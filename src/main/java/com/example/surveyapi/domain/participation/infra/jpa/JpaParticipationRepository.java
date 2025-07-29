@@ -20,4 +20,6 @@ public interface JpaParticipationRepository extends JpaRepository<Participation,
 
 	@Query("SELECT p FROM Participation p JOIN FETCH p.responses WHERE p.id = :id AND p.isDeleted = FALSE")
 	Optional<Participation> findWithResponseByIdAndIsDeletedFalse(@Param("id") Long id);
+
+	boolean existsBySurveyIdAndMemberIdAndIsDeletedFalse(Long surveyId, Long memberId, Boolean isDeleted);
 }
