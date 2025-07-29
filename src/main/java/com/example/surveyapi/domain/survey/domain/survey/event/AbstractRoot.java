@@ -5,29 +5,30 @@ import java.util.Collections;
 import java.util.List;
 
 import com.example.surveyapi.global.model.BaseEntity;
+import com.example.surveyapi.global.model.SurveyEvent;
 
 import jakarta.persistence.Transient;
 
 public abstract class AbstractRoot extends BaseEntity {
 
 	@Transient
-	private final List<DomainEvent> domainEvents = new ArrayList<>();
+	private final List<SurveyEvent> surveyEvents = new ArrayList<>();
 
-	protected void registerEvent(DomainEvent event) {
-		this.domainEvents.add(event);
+	protected void registerEvent(SurveyEvent event) {
+		this.surveyEvents.add(event);
 	}
 
-	public List<DomainEvent> pollAllEvents() {
-		if (domainEvents.isEmpty()) {
+	public List<SurveyEvent> pollAllEvents() {
+		if (surveyEvents.isEmpty()) {
 			return Collections.emptyList();
 		}
-		List<DomainEvent> events = new ArrayList<>(this.domainEvents);
-		this.domainEvents.clear();
+		List<SurveyEvent> events = new ArrayList<>(this.surveyEvents);
+		this.surveyEvents.clear();
 		return events;
 	}
 
 	public void setCreateEventId(Long surveyId) {
-		for (DomainEvent event : this.domainEvents) {
+		for (SurveyEvent event : this.surveyEvents) {
 			if (event instanceof SurveyCreatedEvent createdEvent) {
 				createdEvent.setSurveyId(surveyId);
 				break;

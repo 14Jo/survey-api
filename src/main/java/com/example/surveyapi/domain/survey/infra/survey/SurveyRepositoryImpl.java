@@ -36,6 +36,7 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	}
 
 	@Override
+	@SurveyEvent
 	public void stateUpdate(Survey survey) {
 		jpaRepository.save(survey);
 	}
