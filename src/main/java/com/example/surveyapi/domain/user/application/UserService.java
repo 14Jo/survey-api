@@ -16,6 +16,7 @@ import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResp
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
+import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
@@ -127,6 +128,8 @@ public class UserService {
         return UpdateUserResponse.from(user);
     }
 
+    // Todo 회원 탈퇴 시 통계, 공유(알림)에 이벤트..? (확인이 어려움..)
+    @UserWithdraw
     @Transactional
     public void withdraw(Long userId, UserWithdrawRequest request) {
 
