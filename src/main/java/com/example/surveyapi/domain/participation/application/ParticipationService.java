@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.participation.application;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -95,7 +96,8 @@ public class ParticipationService {
 		List<ParticipationGroupResponse> result = new ArrayList<>();
 
 		for (Long surveyId : surveyIds) {
-			List<Participation> participationGroup = participationGroupBySurveyId.get(surveyId);
+			List<Participation> participationGroup = participationGroupBySurveyId.getOrDefault(surveyId,
+				Collections.emptyList());
 
 			List<ParticipationDetailResponse> participationDtos = new ArrayList<>();
 
