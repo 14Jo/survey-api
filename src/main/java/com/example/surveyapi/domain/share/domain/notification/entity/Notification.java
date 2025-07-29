@@ -54,4 +54,8 @@ public class Notification extends BaseEntity {
 		this.sentAt = sentAt;
 		this.failedReason = failedReason;
 	}
+
+	public static Notification createForShare(Share share, Long recipientId) {
+		return new Notification(share, recipientId, Status.READY_TO_SEND, null, null);
+	}
 }
