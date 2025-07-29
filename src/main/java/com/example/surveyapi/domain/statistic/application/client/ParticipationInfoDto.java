@@ -3,14 +3,13 @@ package com.example.surveyapi.domain.statistic.application.client;
 import java.util.List;
 import java.util.Map;
 
-public record ParticipationInfosDto(
-	boolean success,
-	String message,
-	List<ParticipationDetailDto> data,
-	String timestamp
+public record ParticipationInfoDto(
+	Long surveyId,
+	List<ParticipationDetailDto> participations
 ) {
+	//public record ParticipationInfoDto()
 	public record ParticipationDetailDto(
-		Long surveyId,
+		Long participationId,
 		List<SurveyResponseDto> responses
 	) {}
 
