@@ -1,6 +1,8 @@
 package com.example.surveyapi.domain.statistic.application.client;
 
+import java.util.List;
+
 public interface ParticipationServicePort {
 
-	ParticipationInfosDto getParticipationInfos(String authHeader, ParticipationRequestDto dto);
+	List<ParticipationInfoDto> getParticipationInfos(String authHeader, ParticipationRequestDto dto);
 }
