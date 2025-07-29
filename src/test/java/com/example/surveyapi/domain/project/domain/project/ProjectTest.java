@@ -9,8 +9,9 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.example.surveyapi.domain.project.domain.manager.Manager;
+import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -24,7 +25,7 @@ class ProjectTest {
 		LocalDateTime end = start.plusDays(10);
 
 		// when
-		Project project = Project.create("테스트", "설명", 1L, start, end);
+		Project project = Project.create("테스트", "설명", 1L, 50, start, end);
 
 		// then
 		assertEquals("테스트", project.getName());
@@ -39,7 +40,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_정보_수정_정상() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 
 		// when
 		project.updateProject("수정된이름", "수정된설명", LocalDateTime.now().plusDays(2), LocalDateTime.now().plusDays(7));
@@ -56,7 +57,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_정보_수정_빈_문자열_무시() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		String originalName = project.getName();
 		String originalDescription = project.getDescription();
 
@@ -71,7 +72,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_상태_IN_PROGRESS_로_변경() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 
 		// when
 		project.updateState(ProjectState.IN_PROGRESS);
@@ -85,7 +86,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_상태_CLOSED_로_변경() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.updateState(ProjectState.IN_PROGRESS);
 
 		// when
@@ -100,7 +101,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_상태_변경_CLOSED에서_다른_상태로_변경_불가() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.updateState(ProjectState.IN_PROGRESS);
 		project.updateState(ProjectState.CLOSED);
 
@@ -114,7 +115,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_상태_변경_PENDING_에서_CLOSED_로_직접_변경_불가() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
@@ -126,7 +127,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_상태_변경_IN_PROGRESS_에서_PENDING_으로_변경_불가() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.updateState(ProjectState.IN_PROGRESS);
 
 		// when & then
@@ -139,8 +140,8 @@ class ProjectTest {
 	@Test
 	void 프로젝트_소유자_위임_정상() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
-		project.addManager(1L, 2L); // 새 매니저 추가
+		Project project = createProject();
+		project.addManager(1L, 2L);
 
 		// when
 		project.updateOwner(1L, 2L);
@@ -156,7 +157,7 @@ class ProjectTest {
 	@Test
 	void 프로젝트_소프트_삭제_정상() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.addManager(1L, 2L);
 
 		// when
@@ -171,7 +172,7 @@ class ProjectTest {
 	@Test
 	void 매니저_추가_정상() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 
 		// when
 		project.addManager(1L, 2L);
@@ -183,7 +184,7 @@ class ProjectTest {
 	@Test
 	void 매니저_추가_READ_권한으로_시도_실패() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.addManager(1L, 2L);
 
 		// when & then
@@ -196,7 +197,7 @@ class ProjectTest {
 	@Test
 	void 매니저_중복_추가_실패() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.addManager(1L, 2L);
 
 		// when & then
@@ -209,7 +210,7 @@ class ProjectTest {
 	@Test
 	void 매니저_권한_변경_정상() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.addManager(1L, 2L);
 
 		// when
@@ -223,7 +224,7 @@ class ProjectTest {
 	@Test
 	void 매니저_권한_변경_소유자가_아닌_사용자_시도_실패() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.addManager(1L, 2L);
 
 		// when & then
@@ -236,7 +237,7 @@ class ProjectTest {
 	@Test
 	void 매니저_권한_변경_본인_OWNER_권한_변경_시도_실패() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
@@ -248,7 +249,7 @@ class ProjectTest {
 	@Test
 	void 매니저_권한_변경_OWNER로_변경_시도_실패() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.addManager(1L, 2L);
 
 		// when & then
@@ -261,7 +262,7 @@ class ProjectTest {
 	@Test
 	void 매니저_삭제_정상() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		project.addManager(1L, 2L);
 		Manager targetManager = project.findManagerByUserId(2L);
 		ReflectionTestUtils.setField(targetManager, "id", 2L);
@@ -276,7 +277,7 @@ class ProjectTest {
 	@Test
 	void 존재하지_않는_매니저_ID로_삭제_실패() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
@@ -288,7 +289,7 @@ class ProjectTest {
 	@Test
 	void 매니저_삭제_본인_소유자_삭제_시도_실패() {
 		// given
-		Project project = Project.create("테스트", "설명", 1L, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
+		Project project = createProject();
 		Manager ownerManager = project.findManagerByUserId(1L);
 
 		// when & then
@@ -296,5 +297,9 @@ class ProjectTest {
 			project.deleteManager(1L, ownerManager.getId());
 		});
 		assertEquals(CustomErrorCode.CANNOT_DELETE_SELF_OWNER, exception.getErrorCode());
+	}
+
+	private Project createProject() {
+		return Project.create("테스트", "설명", 1L, 50, LocalDateTime.now(), LocalDateTime.now().plusDays(5));
 	}
 }
