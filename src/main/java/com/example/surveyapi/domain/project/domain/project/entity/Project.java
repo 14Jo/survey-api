@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.example.surveyapi.domain.project.domain.group.entity.Group;
+import com.example.surveyapi.domain.project.domain.group.enums.AgeGroup;
 import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
@@ -69,6 +71,9 @@ public class Project extends BaseEntity {
 
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<Manager> managers = new ArrayList<>();
+
+	@OneToMany(mappedBy = "project", cascade = CascadeType.PERSIST, orphanRemoval = true)
+	private List<Group> groups = new ArrayList<>();
 
 	@Transient
 	private final List<DomainEvent> domainEvents = new ArrayList<>();
@@ -155,10 +160,7 @@ public class Project extends BaseEntity {
 
 	public void addManager(Long currentUserId, Long userId) {
 		// 권한 체크 OWNER, WRITE, STAT만 가능
-		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
-		if (myRole == ManagerRole.READ) {
-			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
-		}
+		checkNotReader(currentUserId);
 
 		// 이미 담당자로 등록되어있다면 중복 등록 불가
 		boolean exists = this.managers.stream()
@@ -197,13 +199,6 @@ public class Project extends BaseEntity {
 		manager.delete();
 	}
 
-	// 소유자 권한 확인
-	private void checkOwner(Long currentUserId) {
-		if (!this.ownerId.equals(currentUserId)) {
-			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
-		}
-	}
-
 	// List<Manager> 조회 메소드
 	public Manager findManagerByUserId(Long userId) {
 		return this.managers.stream()
@@ -219,6 +214,22 @@ public class Project extends BaseEntity {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
+	public void addGroup(Long currentUserId, AgeGroup ageGroup) {
+		// 권한 체크 OWNER, WRITE, STAT만 가능
+		checkNotReader(currentUserId);
+
+		// 중복 연령대 그룹 체크
+		boolean exists = this.groups.stream()
+			.anyMatch(group -> group.getAgeGroup() == ageGroup && !group.getIsDeleted());
+		if (exists) {
+			throw new CustomException(CustomErrorCode.DUPLICATE_GROUP);
+		}
+
+		// 그룹 생성 후 추가
+		Group newGroup = Group.create(this, ageGroup);
+		this.groups.add(newGroup);
+	}
+
 	// 이벤트 등록/ 관리
 	private void registerEvent(DomainEvent event) {
 		this.domainEvents.add(event);
@@ -228,5 +239,20 @@ public class Project extends BaseEntity {
 		List<DomainEvent> events = new ArrayList<>(domainEvents);
 		domainEvents.clear();
 		return events;
+	}
+
+	// 소유자 권한 확인
+	private void checkOwner(Long currentUserId) {
+		if (!this.ownerId.equals(currentUserId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
+		}
+	}
+
+	// READ 권한 접근 불가
+	private void checkNotReader(Long currentUserId) {
+		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
+		if (myRole == ManagerRole.READ) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
+		}
 	}
 }
