@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
 		return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
-			.body(ApiResponse.error("알 수 없는 오류"));
+			.body(ApiResponse.error(e.getMessage()));
 	}
 
 	// @PathVariable, @RequestParam
