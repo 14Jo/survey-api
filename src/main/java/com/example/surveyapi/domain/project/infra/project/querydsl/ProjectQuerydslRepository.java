@@ -1,6 +1,6 @@
 package com.example.surveyapi.domain.project.infra.project.querydsl;
 
-import static com.example.surveyapi.domain.project.domain.manager.entity.QManager.*;
+import static com.example.surveyapi.domain.project.domain.manager.entity.QProjectManager.*;
 import static com.example.surveyapi.domain.project.domain.project.entity.QProject.*;
 
 import java.util.List;
@@ -26,20 +26,20 @@ public class ProjectQuerydslRepository {
 				project.name,
 				project.description,
 				project.ownerId,
-				manager.role.stringValue(),
+				projectManager.role.stringValue(),
 				project.period.periodStart,
 				project.period.periodEnd,
 				project.state.stringValue(),
 				JPAExpressions
-					.select(manager.count().intValue())
-					.from(manager)
-					.where(manager.project.eq(project).and(manager.isDeleted.eq(false))),
+					.select(projectManager.count().intValue())
+					.from(projectManager)
+					.where(projectManager.project.eq(project).and(projectManager.isDeleted.eq(false))),
 				project.createdAt,
 				project.updatedAt
 			))
-			.from(manager)
-			.join(manager.project, project)
-			.where(manager.userId.eq(currentUserId).and(manager.isDeleted.eq(false)).and(project.isDeleted.eq(false)))
+			.from(projectManager)
+			.join(projectManager.project, project)
+			.where(projectManager.userId.eq(currentUserId).and(projectManager.isDeleted.eq(false)).and(project.isDeleted.eq(false)))
 			.orderBy(project.createdAt.desc())
 			.fetch();
 	}

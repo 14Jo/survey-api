@@ -31,13 +31,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/projects")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class ProjectController {
 
 	private final ProjectService projectService;
 
-	@PostMapping
+	@PostMapping("/v2/projects")
 	public ResponseEntity<ApiResponse<CreateProjectResponse>> createProject(
 		@Valid @RequestBody CreateProjectRequest request,
 		@AuthenticationPrincipal Long currentUserId
@@ -48,7 +48,7 @@ public class ProjectController {
 			.body(ApiResponse.success("프로젝트 생성 성공", projectId));
 	}
 
-	@GetMapping("/me")
+	@GetMapping("/v1/projects/me")
 	public ResponseEntity<ApiResponse<List<ProjectInfoResponse>>> getMyProjects(
 		@AuthenticationPrincipal Long currentUserId
 	) {
@@ -58,7 +58,7 @@ public class ProjectController {
 			.body(ApiResponse.success("나의 프로젝트 목록 조회 성공", result));
 	}
 
-	@PutMapping("/{projectId}")
+	@PutMapping("/v1/projects/{projectId}")
 	public ResponseEntity<ApiResponse<Void>> updateProject(
 		@PathVariable Long projectId,
 		@Valid @RequestBody UpdateProjectRequest request
@@ -69,7 +69,7 @@ public class ProjectController {
 			.body(ApiResponse.success("프로젝트 정보 수정 성공"));
 	}
 
-	@PatchMapping("/{projectId}/state")
+	@PatchMapping("/v1/projects/{projectId}/state")
 	public ResponseEntity<ApiResponse<Void>> updateState(
 		@PathVariable Long projectId,
 		@Valid @RequestBody UpdateProjectStateRequest request
@@ -80,7 +80,7 @@ public class ProjectController {
 			.body(ApiResponse.success("프로젝트 상태 변경 성공"));
 	}
 
-	@PatchMapping("/{projectId}/owner")
+	@PatchMapping("/v1/projects/{projectId}/owner")
 	public ResponseEntity<ApiResponse<Void>> updateOwner(
 		@PathVariable Long projectId,
 		@Valid @RequestBody UpdateProjectOwnerRequest request,
@@ -92,7 +92,7 @@ public class ProjectController {
 			.body(ApiResponse.success("프로젝트 소유자 위임 성공"));
 	}
 
-	@DeleteMapping("/{projectId}")
+	@DeleteMapping("/v1/projects/{projectId}")
 	public ResponseEntity<ApiResponse<Void>> deleteProject(
 		@PathVariable Long projectId,
 		@AuthenticationPrincipal Long currentUserId
@@ -103,7 +103,7 @@ public class ProjectController {
 			.body(ApiResponse.success("프로젝트 삭제 성공"));
 	}
 
-	@PostMapping("/{projectId}/managers")
+	@PostMapping("/v1/projects/{projectId}/managers")
 	public ResponseEntity<ApiResponse<CreateManagerResponse>> addManager(
 		@PathVariable Long projectId,
 		@Valid @RequestBody CreateManagerRequest request,
@@ -115,7 +115,7 @@ public class ProjectController {
 			.body(ApiResponse.success("협력자 추가 성공", response));
 	}
 
-	@PatchMapping("/{projectId}/managers/{managerId}/role")
+	@PatchMapping("/v1/projects/{projectId}/managers/{managerId}/role")
 	public ResponseEntity<ApiResponse<Void>> updateManagerRole(
 		@PathVariable Long projectId,
 		@PathVariable Long managerId,
@@ -128,7 +128,7 @@ public class ProjectController {
 			.body(ApiResponse.success("협력자 권한 수정 성공"));
 	}
 
-	@DeleteMapping("/{projectId}/managers/{managerId}")
+	@DeleteMapping("/v1/projects/{projectId}/managers/{managerId}")
 	public ResponseEntity<ApiResponse<Void>> deleteManager(
 		@PathVariable Long projectId,
 		@PathVariable Long managerId,
@@ -137,5 +137,15 @@ public class ProjectController {
 		projectService.deleteManager(projectId, managerId, currentUserId);
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("협력자 삭제 성공"));
+	}
+
+	@PostMapping("/v2/projects/{projectId}/members")
+	public ResponseEntity<ApiResponse<Void>> joinProject(
+		@PathVariable Long projectId,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		projectService.joinProject(projectId, currentUserId);
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 참여 성공"));
 	}
 }
