@@ -39,13 +39,16 @@ public class Share extends BaseEntity {
 	@Column(name = "link", nullable = false, unique = true)
 	private String link;
 
-
+	@OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Notification> notifications = new ArrayList<>();
 
 	public Share(Long surveyId, Long creatorId, ShareMethod shareMethod, String linkUrl) {
 		this.surveyId = surveyId;
 		this.creatorId = creatorId;
 		this.shareMethod = shareMethod;
 		this.link = linkUrl;
+
+		createNotifications();
 	}
 
 	public boolean isAlreadyExist(String link) {
@@ -58,5 +61,10 @@ public class Share extends BaseEntity {
 			return true;
 		}
 		return false;
+	}
+
+	private void createNotifications() {
+		Notification notification = Notification.createForShare(this, this.creatorId);
+		this.notifications.add(notification);
 	}
 }
