@@ -107,12 +107,19 @@ public class ProjectService {
 		project.deleteManager(currentUserId, managerId);
 	}
 
+	@Transactional
+	public void joinProject(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.addMember(currentUserId);
+	}
+
 	private void validateDuplicateName(String name) {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
 		}
 	}
 
+	// TODO: LIST별 fetchJoin 생각
 	private Project findByIdOrElseThrow(Long projectId) {
 
 		return projectRepository.findByIdAndIsDeletedFalse(projectId)
