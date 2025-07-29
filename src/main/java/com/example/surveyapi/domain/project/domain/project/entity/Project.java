@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.event.DomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedEvent;
@@ -69,6 +70,9 @@ public class Project extends BaseEntity {
 
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<ProjectManager> projectManagers = new ArrayList<>();
+
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+	private List<ProjectMember> projectMembers = new ArrayList<>();
 
 	@Transient
 	private final List<DomainEvent> domainEvents = new ArrayList<>();
@@ -197,17 +201,10 @@ public class Project extends BaseEntity {
 		projectManager.delete();
 	}
 
-	// 소유자 권한 확인
-	private void checkOwner(Long currentUserId) {
-		if (!this.ownerId.equals(currentUserId)) {
-			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
-		}
-	}
-
 	// List<ProjectManager> 조회 메소드
 	public ProjectManager findManagerByUserId(Long userId) {
 		return this.projectManagers.stream()
-			.filter(manager -> manager.getUserId().equals(userId))
+			.filter(manager -> manager.getUserId().equals(userId) && !manager.getIsDeleted())
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
@@ -219,14 +216,40 @@ public class Project extends BaseEntity {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
-	// 이벤트 등록/ 관리
-	private void registerEvent(DomainEvent event) {
-		this.domainEvents.add(event);
+	// TODO: 동시성 문제 해결, stream N+1 생각해보기
+	public void addMember(Long userId) {
+		// TODO : 프로젝트 CLOSED상태 일때
+		// 중복 가입 체크
+		boolean exists = this.projectMembers.stream()
+			.anyMatch(member -> member.getUserId().equals(userId) && !member.getIsDeleted());
+		if (exists) {
+			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MEMBER);
+		}
+
+		// 최대 인원수 체크
+		if (this.currentMemberCount >= this.maxMembers) {
+			throw new CustomException(CustomErrorCode.PROJECT_MEMBER_LIMIT_EXCEEDED);
+		}
+
+		this.projectMembers.add(ProjectMember.create(this, userId));
+		this.currentMemberCount++;
 	}
 
+	// 이벤트 등록/ 관리
 	public List<DomainEvent> pullDomainEvents() {
 		List<DomainEvent> events = new ArrayList<>(domainEvents);
 		domainEvents.clear();
 		return events;
+	}
+
+	private void registerEvent(DomainEvent event) {
+		this.domainEvents.add(event);
+	}
+
+	// 소유자 권한 확인
+	private void checkOwner(Long currentUserId) {
+		if (!this.ownerId.equals(currentUserId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
+		}
 	}
 }
