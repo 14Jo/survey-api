@@ -1,5 +1,7 @@
 package com.example.surveyapi.global.config.client.participation;
 
+import java.util.List;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,13 +15,19 @@ import com.example.surveyapi.global.config.client.ExternalApiResponse;
 @HttpExchange
 public interface ParticipationApiClient {
 
-    @PostExchange("/api/v1/surveys/participations")
-    ExternalApiResponse getParticipationInfos(
-        @RequestHeader("Authorization") String authHeader,
-        @RequestBody ParticipationRequestDto dto
-    );
+	@PostExchange("/api/v1/surveys/participations")
+	ExternalApiResponse getParticipationInfos(
+		@RequestHeader("Authorization") String authHeader,
+		@RequestBody ParticipationRequestDto dto
+	);
 
-    @GetExchange("/api/v1/members/me/participations")
+	@GetExchange("/api/v2/surveys/participations/count")
+	ExternalApiResponse getParticipationCounts(
+		@RequestHeader("Authorization") String authHeader,
+		@RequestParam List<Long> surveyIds
+	);
+
+    @GetExchange("/api/v2/members/me/participations")
     ExternalApiResponse getSurveyStatus(
         @RequestHeader("Authorization") String authHeader,
         @RequestParam Long userId,

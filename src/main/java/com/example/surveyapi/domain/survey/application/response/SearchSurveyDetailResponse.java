@@ -16,17 +16,18 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class SearchSurveyDtailResponse {
+public class SearchSurveyDetailResponse {
 	private String title;
 	private String description;
 	private Duration duration;
 	private Option option;
+	private Integer participationCount;
 	private List<QuestionResponse> questions;
 
 
 
-	public static SearchSurveyDtailResponse from(SurveyDetail surveyDetail) {
-		SearchSurveyDtailResponse response = new SearchSurveyDtailResponse();
+	public static SearchSurveyDetailResponse from(SurveyDetail surveyDetail, Integer count) {
+		SearchSurveyDetailResponse response = new SearchSurveyDetailResponse();
 		response.title = surveyDetail.getTitle();
 		response.description = surveyDetail.getDescription();
 		response.duration = Duration.from(surveyDetail.getDuration());
@@ -34,6 +35,7 @@ public class SearchSurveyDtailResponse {
 		response.questions = surveyDetail.getQuestions().stream()
 			.map(QuestionResponse::from)
 			.toList();
+		response.participationCount = count;
 		return response;
 	}
 
