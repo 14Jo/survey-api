@@ -56,7 +56,7 @@ public class ProjectController {
 	}
 
 	@GetMapping("/v2/projects/me/managers")
-	public ResponseEntity<ApiResponse<List<ProjectManagerInfoResponse>>> getMyManagerProjects(
+	public ResponseEntity<ApiResponse<List<ProjectManagerInfoResponse>>> getMyProjectsAsManager(
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		List<ProjectManagerInfoResponse> result = projectService.getMyProjectsAsManager(currentUserId);
@@ -66,7 +66,7 @@ public class ProjectController {
 	}
 
 	@GetMapping("/v2/projects/me/members")
-	public ResponseEntity<ApiResponse<List<ProjectMemberInfoResponse>>> getMyMemberProjects(
+	public ResponseEntity<ApiResponse<List<ProjectMemberInfoResponse>>> getMyProjectsAsMember(
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		List<ProjectMemberInfoResponse> result = projectService.getMyProjectsAsMember(currentUserId);
