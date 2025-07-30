@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.survey.application;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -9,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDtailResponse;
+import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.domain.survey.domain.query.QueryRepository;
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
@@ -28,14 +27,14 @@ public class SurveyQueryService {
 
 	//TODO 질문(선택지) 표시 순서 정렬 쿼리 작성
 	@Transactional(readOnly = true)
-	public SearchSurveyDtailResponse findSurveyDetailById(String authHeader, Long surveyId) {
+	public SearchSurveyDetailResponse findSurveyDetailById(String authHeader, Long surveyId) {
 		SurveyDetail surveyDetail = surveyQueryRepository.getSurveyDetail(surveyId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
 		Integer participationCount = port.getParticipationCounts(authHeader, List.of(surveyId))
 			.getSurveyPartCounts().get(surveyId.toString());
 
-		return SearchSurveyDtailResponse.from(surveyDetail, participationCount);
+		return SearchSurveyDetailResponse.from(surveyDetail, participationCount);
 	}
 
 	//TODO 참여수 연산 기능 구현 필요 있음
