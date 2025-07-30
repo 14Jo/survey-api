@@ -24,8 +24,9 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -49,14 +50,24 @@ public class ProjectController {
 			.body(ApiResponse.success("프로젝트 생성 성공", projectId));
 	}
 
-	@GetMapping("/v1/projects/me")
-	public ResponseEntity<ApiResponse<List<ProjectInfoResponse>>> getMyProjects(
+	@GetMapping("/v2/projects/me/managers")
+	public ResponseEntity<ApiResponse<List<ProjectManagerInfoResponse>>> getMyManagerProjects(
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		List<ProjectInfoResponse> result = projectService.getMyProjects(currentUserId);
+		List<ProjectManagerInfoResponse> result = projectService.getMyProjectsAsManager(currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("나의 프로젝트 목록 조회 성공", result));
+			.body(ApiResponse.success("담당자로 참여한 프로젝트 조회 성공", result));
+	}
+
+	@GetMapping("/v2/projects/me/members")
+	public ResponseEntity<ApiResponse<List<ProjectMemberInfoResponse>>> getMyMemberProjects(
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		List<ProjectMemberInfoResponse> result = projectService.getMyProjectsAsMember(currentUserId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("멤버로 참여한 프로젝트 조회 성공", result));
 	}
 
 	@PutMapping("/v1/projects/{projectId}")
