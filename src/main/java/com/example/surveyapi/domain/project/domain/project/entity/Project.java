@@ -181,12 +181,12 @@ public class Project extends BaseEntity {
 		this.projectManagers.add(newProjectManager);
 	}
 
-	public void updateManagerRole(Long currentUserId, Long userId, ManagerRole newRole) {
+	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
 		checkOwner(currentUserId);
-		ProjectManager projectManager = findManagerByUserId(userId);
+		ProjectManager projectManager = findManagerById(managerId);
 
 		// 본인 OWNER 권한 변경 불가
-		if (Objects.equals(currentUserId, userId)) {
+		if (Objects.equals(currentUserId, projectManager.getUserId())) {
 			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
 		}
 		if (newRole == ManagerRole.OWNER) {
