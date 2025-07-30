@@ -81,6 +81,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
           SPRING_DATASOURCE_USERNAME: ljy
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          SECRET_KEY: test-secret-key-for-testing-only
         
       # 6단계: 프로젝트 빌드 (테스트 통과 후 실행)
       - name: Build with Gradle
