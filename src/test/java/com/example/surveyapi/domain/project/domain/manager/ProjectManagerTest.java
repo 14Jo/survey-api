@@ -57,13 +57,30 @@ public class ProjectManagerTest {
 		// given
 		Project project = createProject();
 		project.addManager(1L, 2L);
+		ProjectManager manager = project.findManagerByUserId(2L);
+		ReflectionTestUtils.setField(manager, "id", 2L);
 
 		// when
-		project.updateManagerRole(1L, 2L, ManagerRole.WRITE);
+		project.updateManagerRole(1L, manager.getId(), ManagerRole.WRITE);
 
 		// then
-		ProjectManager projectManager = project.findManagerByUserId(2L);
+		ProjectManager projectManager = project.findManagerById(manager.getId());
 		assertEquals(ManagerRole.WRITE, projectManager.getRole());
+	}
+
+	@Test
+	void 매니저_권한_변경_OWNER_로_시도_시_예외() {
+		// given
+		Project project = createProject();
+		project.addManager(1L, 2L);
+		ProjectManager manager = project.findManagerByUserId(2L);
+		ReflectionTestUtils.setField(manager, "id", 2L);
+
+		// when & then
+		CustomException exception = assertThrows(CustomException.class, () -> {
+			project.updateManagerRole(1L, manager.getId(), ManagerRole.OWNER);
+		});
+		assertEquals(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE, exception.getErrorCode());
 	}
 
 	@Test
@@ -83,10 +100,11 @@ public class ProjectManagerTest {
 	void 매니저_권한_변경_본인_OWNER_권한_변경_시도_실패() {
 		// given
 		Project project = createProject();
+		Long ownerManagerId = project.findManagerByUserId(1L).getId();
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
-			project.updateManagerRole(1L, 1L, ManagerRole.WRITE);
+			project.updateManagerRole(1L, ownerManagerId, ManagerRole.WRITE);
 		});
 		assertEquals(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE, exception.getErrorCode());
 	}
@@ -96,10 +114,11 @@ public class ProjectManagerTest {
 		// given
 		Project project = createProject();
 		project.addManager(1L, 2L);
+		Long managerId = project.findManagerByUserId(2L).getId();
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
-			project.updateManagerRole(1L, 2L, ManagerRole.OWNER);
+			project.updateManagerRole(1L, managerId, ManagerRole.OWNER);
 		});
 		assertEquals(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE, exception.getErrorCode());
 	}

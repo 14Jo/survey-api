@@ -189,6 +189,7 @@ public class Project extends BaseEntity {
 		if (Objects.equals(currentUserId, projectManager.getUserId())) {
 			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
 		}
+
 		if (newRole == ManagerRole.OWNER) {
 			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
 		}
