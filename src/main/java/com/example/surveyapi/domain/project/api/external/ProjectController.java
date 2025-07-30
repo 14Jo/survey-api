@@ -27,6 +27,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
@@ -83,6 +84,16 @@ public class ProjectController {
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 검색 성공", response));
+	}
+
+	@GetMapping("/v2/projects/{projectId}")
+	public ResponseEntity<ApiResponse<ProjectInfoResponse>> getProject(
+		@PathVariable Long projectId
+	) {
+		ProjectInfoResponse response = projectService.getProject(projectId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 상세정보 조회", response));
 	}
 
 	@PutMapping("/v1/projects/{projectId}")
