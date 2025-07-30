@@ -3,6 +3,8 @@ package com.example.surveyapi.domain.participation.infra.dsl;
 import static com.example.surveyapi.domain.participation.domain.participation.QParticipation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -44,5 +46,25 @@ public class ParticipationQueryRepositoryImpl implements ParticipationQueryRepos
 			.fetchOne();
 
 		return new PageImpl<>(participations, pageable, total);
+	}
+
+	@Override
+	public Map<Long, Long> countsBySurveyIds(List<Long> surveyIds) {
+		Map<Long, Long> map = queryFactory
+			.select(participation.surveyId, participation.id.count())
+			.from(participation)
+			.where(participation.surveyId.in(surveyIds))
+			.groupBy(participation.surveyId)
+			.fetch()
+			.stream()
+			.collect(Collectors.toMap(
+				t -> t.get(participation.surveyId),
+				t -> t.get(participation.id.count())));
+
+		for (Long surveyId : surveyIds) {
+			map.putIfAbsent(surveyId, 0L);
+		}
+
+		return map;
 	}
 }

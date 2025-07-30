@@ -136,4 +136,9 @@ public class ParticipationService {
 
 		participation.update(responses);
 	}
+
+	@Transactional(readOnly = true)
+	public Map<Long, Long> getCountsBySurveyIds(List<Long> surveyIds) {
+		return participationRepository.countsBySurveyIds(surveyIds);
+	}
 }
