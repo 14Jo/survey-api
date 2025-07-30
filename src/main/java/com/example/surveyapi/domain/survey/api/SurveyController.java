@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.survey.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,9 +31,9 @@ public class SurveyController {
 	@PostMapping("/{projectId}/create")
 	public ResponseEntity<ApiResponse<Long>> create(
 		@PathVariable Long projectId,
-		@Valid @RequestBody CreateSurveyRequest request
+		@Valid @RequestBody CreateSurveyRequest request,
+		@AuthenticationPrincipal Long creatorId
 	) {
-		Long creatorId = 1L;
 		Long surveyId = surveyService.create(projectId, creatorId, request);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,20 +43,20 @@ public class SurveyController {
 	//TODO 수정자 ID 구현 필요
 	@PatchMapping("/{surveyId}/open")
 	public ResponseEntity<ApiResponse<String>> open(
-		@PathVariable Long surveyId
+		@PathVariable Long surveyId,
+		@AuthenticationPrincipal Long creatorId
 	) {
-		Long userId = 1L;
-		String result = surveyService.open(surveyId, userId);
+		String result = surveyService.open(surveyId, creatorId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", result));
 	}
 
 	@PatchMapping("/{surveyId}/close")
 	public ResponseEntity<ApiResponse<String>> close(
-		@PathVariable Long surveyId
+		@PathVariable Long surveyId,
+		@AuthenticationPrincipal Long creatorId
 	) {
-		Long userId = 1L;
-		String result = surveyService.close(surveyId, userId);
+		String result = surveyService.close(surveyId, creatorId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 종료 성공", result));
 	}
@@ -63,20 +64,20 @@ public class SurveyController {
 	@PutMapping("/{surveyId}/update")
 	public ResponseEntity<ApiResponse<String>> update(
 		@PathVariable Long surveyId,
-		@Valid @RequestBody UpdateSurveyRequest request
+		@Valid @RequestBody UpdateSurveyRequest request,
+		@AuthenticationPrincipal Long creatorId
 	) {
-		Long userId = 1L;
-		String result = surveyService.update(surveyId, userId, request);
+		String result = surveyService.update(surveyId, creatorId, request);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 수정 성공", result));
 	}
 
 	@DeleteMapping("/{surveyId}/delete")
 	public ResponseEntity<ApiResponse<String>> delete(
-		@PathVariable Long surveyId
+		@PathVariable Long surveyId,
+		@AuthenticationPrincipal Long creatorId
 	) {
-		Long userId = 1L;
-		String result = surveyService.delete(surveyId, userId);
+		String result = surveyService.delete(surveyId, creatorId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", result));
 	}
