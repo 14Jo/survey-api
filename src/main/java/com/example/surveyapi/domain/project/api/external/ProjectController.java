@@ -25,6 +25,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -147,5 +148,14 @@ public class ProjectController {
 		projectService.joinProject(projectId, currentUserId);
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 참여 성공"));
+	}
+
+	@GetMapping("/v2/projects/{projectId}/members")
+	public ResponseEntity<ApiResponse<ProjectMemberIdsResponse>> getProjectMemberIds(
+		@PathVariable Long projectId
+	) {
+		ProjectMemberIdsResponse response = projectService.getProjectMemberIds(projectId);
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 참여 인원 조회 성공", response));
 	}
 }

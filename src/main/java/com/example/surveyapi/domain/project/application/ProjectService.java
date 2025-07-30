@@ -14,6 +14,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
@@ -111,6 +112,12 @@ public class ProjectService {
 	public void joinProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addMember(currentUserId);
+	}
+
+	@Transactional(readOnly = true)
+	public ProjectMemberIdsResponse getProjectMemberIds(Long projectId) {
+		Project project = findByIdOrElseThrow(projectId);
+		return ProjectMemberIdsResponse.from(project);
 	}
 
 	private void validateDuplicateName(String name) {
