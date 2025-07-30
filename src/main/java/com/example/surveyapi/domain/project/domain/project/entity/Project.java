@@ -153,6 +153,11 @@ public class Project extends BaseEntity {
 			this.projectManagers.forEach(ProjectManager::delete);
 		}
 
+		// 기존 프로젝트 참여자 같이 삭제
+		if (this.projectMembers != null) {
+			this.projectMembers.forEach(ProjectMember::delete);
+		}
+
 		this.delete();
 		registerEvent(new ProjectDeletedEvent(this.id, this.name));
 	}
