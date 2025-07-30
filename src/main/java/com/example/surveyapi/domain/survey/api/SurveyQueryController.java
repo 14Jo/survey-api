@@ -34,14 +34,14 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}
 
-	// @GetMapping("/{projectId}/survey-list")
-	// public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
-	// 	@PathVariable Long projectId,
-	// 	@RequestParam(required = false) Long lastSurveyId,
-	// 	@RequestHeader("Authorization") String authHeader
-	// ) {
-	// 	List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(authHeader, projectId, lastSurveyId);
-	//
-	// 	return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
-	// }
+	@GetMapping("/{projectId}/survey-list")
+	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
+		@PathVariable Long projectId,
+		@RequestParam(required = false) Long lastSurveyId,
+		@RequestHeader("Authorization") String authHeader
+	) {
+		List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(authHeader, projectId, lastSurveyId);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
+	}
 }

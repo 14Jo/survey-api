@@ -10,11 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ParticipationCountDto {
 
-	private Map<Long, Long> surveyCounts;
+	private Map<String, Integer> surveyPartCounts;
 	
-	public static ParticipationCountDto of(Map<Long, Long> surveyCounts) {
+	public static ParticipationCountDto of(Map<String, Integer> surveyCounts) {
 		ParticipationCountDto dto = new ParticipationCountDto();
-		dto.surveyCounts = surveyCounts;
+		dto.surveyPartCounts = surveyCounts;
 		return dto;
 	}
 }
