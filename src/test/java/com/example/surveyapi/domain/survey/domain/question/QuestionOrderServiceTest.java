@@ -13,7 +13,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@TestPropertySource(properties = "SECRET_KEY=12345678901234567890123456789012")
 class QuestionOrderServiceTest {
 
     @Autowired

@@ -20,7 +20,6 @@ import com.example.surveyapi.global.exception.CustomException;
 
 @Transactional
 @SpringBootTest
-@TestPropertySource(properties = "SECRET_KEY=12345678901234567890123456789012")
 class ShareServiceTest {
 	@Autowired
 	private ShareRepository shareRepository;
