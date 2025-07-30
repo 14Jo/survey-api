@@ -19,7 +19,6 @@ import com.example.surveyapi.domain.survey.application.SurveyService;
 
 @WebMvcTest(SurveyController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource(properties = "SECRET_KEY=12345678901234567890123456789012")
 class SurveyControllerTest {
 
 	@Autowired

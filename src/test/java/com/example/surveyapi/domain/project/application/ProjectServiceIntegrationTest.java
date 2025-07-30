@@ -21,7 +21,6 @@ import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
 
 @SpringBootTest
-@TestPropertySource(properties = "SECRET_KEY=12345678901234567890123456789012")
 @Transactional
 class ProjectServiceIntegrationTest {
 

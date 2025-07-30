@@ -37,7 +37,6 @@ import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.util.PageInfo;
 
 @AutoConfigureMockMvc(addFilters = false)
-@TestPropertySource(properties = "SECRET_KEY=123456789012345678901234567890")
 @WebMvcTest(ShareController.class)
 class ShareControllerTest {
 	@Autowired
