@@ -26,7 +26,9 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-
+logging:
+  level:
+    org.springframework.security: DEBUG
 ---
 # 운영(prod) 프로필 - PostgreSQL (EC2 등 외부 서버) 설정
 spring:

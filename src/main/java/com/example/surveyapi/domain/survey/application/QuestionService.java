@@ -37,7 +37,7 @@ public class QuestionService {
 				question.getDisplayOrder(), question.isRequired(),
 				question.getChoices()
 					.stream()
-					.map(choiceInfo -> new Choice(choiceInfo.getContent(), choiceInfo.getDisplayOrder()))
+					.map(choiceInfo -> Choice.of(choiceInfo.getContent(), choiceInfo.getDisplayOrder()))
 					.toList()
 			)
 		).toList();

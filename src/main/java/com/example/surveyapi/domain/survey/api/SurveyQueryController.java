@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -33,13 +34,14 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}
 
-	@GetMapping("/{projectId}/survey-list")
-	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
-		@PathVariable Long projectId,
-		@RequestParam(required = false) Long lastSurveyId
-	) {
-		List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(projectId, lastSurveyId);
-
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
-	}
+	// @GetMapping("/{projectId}/survey-list")
+	// public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
+	// 	@PathVariable Long projectId,
+	// 	@RequestParam(required = false) Long lastSurveyId,
+	// 	@RequestHeader("Authorization") String authHeader
+	// ) {
+	// 	List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(authHeader, projectId, lastSurveyId);
+	//
+	// 	return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
+	// }
 }
