@@ -30,7 +30,7 @@ jobs:
           - 5432:5432
         # DB가 준비될 때까지 기다리기 위한 상태 확인 옵션
         options: >-
-          --health-cmd="pg_isready --host=localhost --user=postgres --dbname=testdb"
+          --health-cmd="pg_isready --host=localhost --user=ljy --dbname=testdb"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
