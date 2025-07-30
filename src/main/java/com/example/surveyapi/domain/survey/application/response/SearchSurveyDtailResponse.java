@@ -21,11 +21,12 @@ public class SearchSurveyDtailResponse {
 	private String description;
 	private Duration duration;
 	private Option option;
+	private Integer participationCount;
 	private List<QuestionResponse> questions;
 
 
 
-	public static SearchSurveyDtailResponse from(SurveyDetail surveyDetail) {
+	public static SearchSurveyDtailResponse from(SurveyDetail surveyDetail, Integer count) {
 		SearchSurveyDtailResponse response = new SearchSurveyDtailResponse();
 		response.title = surveyDetail.getTitle();
 		response.description = surveyDetail.getDescription();
@@ -34,6 +35,7 @@ public class SearchSurveyDtailResponse {
 		response.questions = surveyDetail.getQuestions().stream()
 			.map(QuestionResponse::from)
 			.toList();
+		response.participationCount = count;
 		return response;
 	}
 

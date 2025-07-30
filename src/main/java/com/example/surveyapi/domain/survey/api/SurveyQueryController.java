@@ -27,9 +27,10 @@ public class SurveyQueryController {
 
 	@GetMapping("/{surveyId}/detail")
 	public ResponseEntity<ApiResponse<SearchSurveyDtailResponse>> getSurveyDetail(
-		@PathVariable Long surveyId
+		@PathVariable Long surveyId,
+		@RequestHeader("Authorization") String authHeader
 	) {
-		SearchSurveyDtailResponse surveyDetailById = surveyQueryService.findSurveyDetailById(surveyId);
+		SearchSurveyDtailResponse surveyDetailById = surveyQueryService.findSurveyDetailById(authHeader, surveyId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}

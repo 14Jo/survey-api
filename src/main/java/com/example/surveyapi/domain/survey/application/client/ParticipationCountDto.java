@@ -12,9 +12,9 @@ public class ParticipationCountDto {
 
 	private Map<String, Integer> surveyPartCounts;
 	
-	public static ParticipationCountDto of(Map<String, Integer> surveyCounts) {
+	public static ParticipationCountDto of(Map<String, Integer> surveyPartCounts) {
 		ParticipationCountDto dto = new ParticipationCountDto();
-		dto.surveyPartCounts = surveyCounts;
+		dto.surveyPartCounts = surveyPartCounts;
 		return dto;
 	}
 }
