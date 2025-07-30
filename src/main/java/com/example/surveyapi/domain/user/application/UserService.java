@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.user.application;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -9,6 +10,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.user.application.client.UserSurveyStatusResponse;
+import com.example.surveyapi.domain.user.application.client.ParticipationPort;
+import com.example.surveyapi.domain.user.application.client.MyProjectRoleResponse;
+import com.example.surveyapi.domain.user.application.client.ProjectPort;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
@@ -16,7 +21,6 @@ import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResp
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
-import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
@@ -40,6 +44,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final RedisTemplate<String, String> redisTemplate;
+    private final ProjectPort projectPort;
+    private final ParticipationPort participationPort;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -128,16 +134,35 @@ public class UserService {
         return UpdateUserResponse.from(user);
     }
 
-    // Todo 회원 탈퇴 시 통계, 공유(알림)에 이벤트..? (확인이 어려움..)
-    @UserWithdraw
+    // Todo 회원 탈퇴 시 통계, 공유(알림)에 이벤트..? (@UserWithdraw)
     @Transactional
-    public void withdraw(Long userId, UserWithdrawRequest request) {
+    public void withdraw(Long userId, UserWithdrawRequest request, String authHeader) {
 
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getAuth().getPassword())) {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
+        }
+
+        List<MyProjectRoleResponse> myRoleList = projectPort.getProjectMyRole(authHeader, userId);
+
+        for (MyProjectRoleResponse myRole : myRoleList) {
+            if ("OWNER".equals(myRole.getMyRole())) {
+                throw new CustomException(CustomErrorCode.PROJECT_ROLE_OWNER);
+            }
+        }
+
+        int page = 0;
+        int size = 20;
+
+        List<UserSurveyStatusResponse> surveyStatus =
+            participationPort.getParticipationSurveyStatus(authHeader, userId, page, size);
+
+        for (UserSurveyStatusResponse survey : surveyStatus) {
+            if ("IN_PROGRESS".equals(survey.getSurveyStatus())) {
+                throw new CustomException(CustomErrorCode.SURVEY_IN_PROGRESS);
+            }
         }
 
         user.delete();
