@@ -2,6 +2,8 @@ package com.example.surveyapi.domain.project.api.external;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectService;
@@ -25,7 +28,10 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectSearchInfoResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -49,14 +55,45 @@ public class ProjectController {
 			.body(ApiResponse.success("프로젝트 생성 성공", projectId));
 	}
 
-	@GetMapping("/v1/projects/me")
-	public ResponseEntity<ApiResponse<List<ProjectInfoResponse>>> getMyProjects(
+	@GetMapping("/v2/projects/me/managers")
+	public ResponseEntity<ApiResponse<List<ProjectManagerInfoResponse>>> getMyProjectsAsManager(
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		List<ProjectInfoResponse> result = projectService.getMyProjects(currentUserId);
+		List<ProjectManagerInfoResponse> result = projectService.getMyProjectsAsManager(currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("나의 프로젝트 목록 조회 성공", result));
+			.body(ApiResponse.success("담당자로 참여한 프로젝트 조회 성공", result));
+	}
+
+	@GetMapping("/v2/projects/me/members")
+	public ResponseEntity<ApiResponse<List<ProjectMemberInfoResponse>>> getMyProjectsAsMember(
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		List<ProjectMemberInfoResponse> result = projectService.getMyProjectsAsMember(currentUserId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("멤버로 참여한 프로젝트 조회 성공", result));
+	}
+
+	@GetMapping("/v2/projects/search")
+	public ResponseEntity<ApiResponse<Page<ProjectSearchInfoResponse>>> searchProjects(
+		@RequestParam(required = false) String keyword,
+		Pageable pageable
+	) {
+		Page<ProjectSearchInfoResponse> response = projectService.searchProjects(keyword, pageable);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 검색 성공", response));
+	}
+
+	@GetMapping("/v2/projects/{projectId}")
+	public ResponseEntity<ApiResponse<ProjectInfoResponse>> getProject(
+		@PathVariable Long projectId
+	) {
+		ProjectInfoResponse response = projectService.getProject(projectId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 상세정보 조회", response));
 	}
 
 	@PutMapping("/v1/projects/{projectId}")
