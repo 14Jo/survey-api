@@ -2,6 +2,8 @@ package com.example.surveyapi.domain.project.api.external;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectService;
@@ -27,6 +30,7 @@ import com.example.surveyapi.domain.project.application.dto.response.CreateProje
 import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectSearchInfoResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -68,6 +72,17 @@ public class ProjectController {
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("멤버로 참여한 프로젝트 조회 성공", result));
+	}
+
+	@GetMapping("/v2/projects/search")
+	public ResponseEntity<ApiResponse<Page<ProjectSearchInfoResponse>>> searchProjects(
+		@RequestParam(required = false) String keyword,
+		Pageable pageable
+	) {
+		Page<ProjectSearchInfoResponse> response = projectService.searchProjects(keyword, pageable);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 검색 성공", response));
 	}
 
 	@PutMapping("/v1/projects/{projectId}")
