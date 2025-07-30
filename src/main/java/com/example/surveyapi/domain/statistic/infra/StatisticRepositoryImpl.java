@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.statistic.infra;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
@@ -22,5 +24,10 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 	@Override
 	public boolean existsById(Long id) {
 		return jpaStatisticRepository.existsById(id);
+	}
+
+	@Override
+	public Optional<Statistic> findById(Long id) {
+		return  jpaStatisticRepository.findById(id);
 	}
 }

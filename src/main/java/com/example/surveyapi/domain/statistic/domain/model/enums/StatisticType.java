@@ -1,5 +1,5 @@
 package com.example.surveyapi.domain.statistic.domain.model.enums;
 
 public enum StatisticType {
-	BASIC, CROSS
+	BASE, LIVE
 }

@@ -31,5 +31,8 @@ public class BaseStats {
 		return baseStats;
 	}
 
+	public void addTotalResponses (int count) {
+		totalResponses += count;
+	}
 
 }
