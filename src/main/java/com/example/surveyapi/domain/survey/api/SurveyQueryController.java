@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.survey.application.SurveyQueryService;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDtailResponse;
+import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
@@ -26,11 +26,11 @@ public class SurveyQueryController {
 	private final SurveyQueryService surveyQueryService;
 
 	@GetMapping("/{surveyId}/detail")
-	public ResponseEntity<ApiResponse<SearchSurveyDtailResponse>> getSurveyDetail(
+	public ResponseEntity<ApiResponse<SearchSurveyDetailResponse>> getSurveyDetail(
 		@PathVariable Long surveyId,
 		@RequestHeader("Authorization") String authHeader
 	) {
-		SearchSurveyDtailResponse surveyDetailById = surveyQueryService.findSurveyDetailById(authHeader, surveyId);
+		SearchSurveyDetailResponse surveyDetailById = surveyQueryService.findSurveyDetailById(authHeader, surveyId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}
