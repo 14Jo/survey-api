@@ -2,6 +2,8 @@ package com.example.surveyapi.domain.project.application;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +18,7 @@ import com.example.surveyapi.domain.project.application.dto.response.CreateProje
 import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectSearchInfoResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
@@ -64,6 +67,13 @@ public class ProjectService {
 			.stream()
 			.map(ProjectMemberInfoResponse::from)
 			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public Page<ProjectSearchInfoResponse> searchProjects(String keyword, Pageable pageable) {
+
+		return projectRepository.searchProjects(keyword, pageable)
+			.map(ProjectSearchInfoResponse::from);
 	}
 
 	@Transactional
