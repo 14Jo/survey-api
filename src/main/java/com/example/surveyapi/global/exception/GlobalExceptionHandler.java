@@ -63,11 +63,11 @@ public class GlobalExceptionHandler {
 			.body(ApiResponse.error("요청 데이터의 타입이 올바르지 않습니다."));
 	}
 
-	@ExceptionHandler(Exception.class)
-	protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
-		return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
-			.body(ApiResponse.error(e.getMessage()));
-	}
+	// @ExceptionHandler(Exception.class)
+	// protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+	// 	return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
+	// 		.body(ApiResponse.error(e.getMessage()));
+	// }
 
 	// @PathVariable, @RequestParam
 	@ExceptionHandler(HandlerMethodValidationException.class)

@@ -1,7 +1,7 @@
 package com.example.surveyapi.domain.statistic.domain.model.entity;
 
 import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
-import com.example.surveyapi.domain.statistic.domain.model.enums.SourceType;
+import com.example.surveyapi.domain.statistic.domain.model.enums.AnswerType;
 import com.example.surveyapi.domain.statistic.domain.model.enums.StatisticType;
 import com.example.surveyapi.global.model.BaseEntity;
 
@@ -38,9 +38,29 @@ public class StatisticsItem extends BaseEntity {
 	private Long choiceId;
 	private int count;
 
-	@Enumerated(EnumType.STRING)
-	private SourceType source;
+	// @Enumerated(EnumType.STRING)
+	// private SourceType source;
 
 	@Enumerated(EnumType.STRING)
 	private StatisticType type;
+
+	@Enumerated(EnumType.STRING)
+	private AnswerType answerType;
+
+	public static StatisticsItem create(
+		Long questionId, Long choiceId, int count,
+		StatisticType type, AnswerType answerType
+	) {
+		StatisticsItem item = new StatisticsItem();
+		item.questionId = questionId;
+		item.choiceId = choiceId;
+		item.count = count;
+		item.type = type;
+		item.answerType = answerType;
+		return item;
+	}
+
+	public void setStatistic(Statistic statistic) {
+		this.statistic = statistic;
+	}
 }
