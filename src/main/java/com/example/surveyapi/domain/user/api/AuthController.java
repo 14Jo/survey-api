@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.api.internal;
+package com.example.surveyapi.domain.user.api;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,9 +50,10 @@ public class AuthController {
     @PostMapping("/auth/withdraw")
     public ResponseEntity<ApiResponse<Void>> withdraw(
         @Valid @RequestBody UserWithdrawRequest request,
-        @AuthenticationPrincipal Long userId
+        @AuthenticationPrincipal Long userId,
+        @RequestHeader("Authorization") String authHeader
     ) {
-        userService.withdraw(userId, request);
+        userService.withdraw(userId, request, authHeader);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));

@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.api.internal;
+package com.example.surveyapi.domain.user.api;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
