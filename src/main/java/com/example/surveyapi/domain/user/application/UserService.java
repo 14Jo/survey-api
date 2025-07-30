@@ -20,6 +20,7 @@ import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawReq
 import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserSnapShotResponse;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
@@ -191,6 +192,7 @@ public class UserService {
         redisTemplate.delete(redisKey);
     }
 
+    @Transactional
     public LoginResponse reissue(String bearerAccessToken, String bearerRefreshToken) {
         String accessToken = jwtUtil.subStringToken(bearerAccessToken);
         String refreshToken = jwtUtil.subStringToken(bearerRefreshToken);
@@ -228,6 +230,14 @@ public class UserService {
         redisTemplate.delete(redisKey);
 
         return createAccessAndSaveRefresh(user);
+    }
+
+    @Transactional(readOnly = true)
+    public UserSnapShotResponse snapshot(Long userId){
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        return UserSnapShotResponse.from(user);
     }
 
     private LoginResponse createAccessAndSaveRefresh(User user) {
