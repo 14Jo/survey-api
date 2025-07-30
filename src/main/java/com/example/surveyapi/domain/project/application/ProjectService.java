@@ -15,6 +15,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
@@ -74,6 +75,13 @@ public class ProjectService {
 
 		return projectRepository.searchProjects(keyword, pageable)
 			.map(ProjectSearchInfoResponse::from);
+	}
+
+	@Transactional(readOnly = true)
+	public ProjectInfoResponse getProject(Long projectId) {
+		Project project = findByIdOrElseThrow(projectId);
+
+		return ProjectInfoResponse.from(project);
 	}
 
 	@Transactional
