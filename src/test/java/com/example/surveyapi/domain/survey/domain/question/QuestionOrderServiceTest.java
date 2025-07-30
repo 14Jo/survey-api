@@ -24,9 +24,9 @@ class QuestionOrderServiceTest {
     void adjustDisplayOrder_firstInsert() {
         // given
         List<QuestionInfo> input = List.of(
-                new QuestionInfo("Q1", QuestionType.LONG_ANSWER, true, 2, List.of()),
-                new QuestionInfo("Q2", QuestionType.SHORT_ANSWER, true, 3, List.of()),
-                new QuestionInfo("Q3", QuestionType.SHORT_ANSWER, true, 3, List.of())
+                QuestionInfo.of("Q1", QuestionType.LONG_ANSWER, true, 2, List.of()),
+                QuestionInfo.of("Q2", QuestionType.SHORT_ANSWER, true, 3, List.of()),
+                QuestionInfo.of("Q3", QuestionType.SHORT_ANSWER, true, 3, List.of())
         );
         
         // when

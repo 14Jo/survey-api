@@ -36,7 +36,7 @@ public class QuestionOrderService {
 			for (int i = 0; i < newQuestionsInfo.size(); i++) {
 				QuestionInfo questionInfo = newQuestionsInfo.get(i);
 				adjustQuestions.add(
-					new QuestionInfo(
+					QuestionInfo.of(
 						questionInfo.getContent(), questionInfo.getQuestionType(), questionInfo.isRequired(),
 						i + 1, questionInfo.getChoices() == null ? List.of() : questionInfo.getChoices()
 					)
@@ -54,7 +54,7 @@ public class QuestionOrderService {
 				}
 			}
 
-			adjustQuestions.add(new QuestionInfo(
+			adjustQuestions.add(QuestionInfo.of(
 				newQ.getContent(), newQ.getQuestionType(), newQ.isRequired(), insertOrder,
 				newQ.getChoices() == null ? List.of() : newQ.getChoices()
 			));
