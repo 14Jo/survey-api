@@ -1,12 +1,22 @@
+# 테스트 환경 전용 설정
 spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/testdb
-    driver-class-name: org.postgresql.Driver
-    username: ljy
-    password: '12345678'
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
   jpa:
     hibernate:
       ddl-auto: create-drop
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  h2:
+    console:
+      enabled: true
+
+logging:
+  level:
+    org.springframework.context.annotation: DEBUG
+    org.springframework.beans.factory: DEBUG
