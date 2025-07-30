@@ -1,0 +1,27 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+    show-sql: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/testdb
+    username: ljy
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+# JWT Secret Key for test environment
+jwt:
+  secret:
+    key: ${SECRET_KEY:test-secret-key-for-testing-only}
+
+logging:
+  level:
+    org.springframework.context.annotation: WARN
+    org.springframework.beans.factory: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+    com.example.surveyapi: DEBUG
