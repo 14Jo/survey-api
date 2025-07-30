@@ -95,6 +95,8 @@ public class Project extends BaseEntity {
 
 	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,
 		LocalDateTime newPeriodEnd) {
+		checkNotClosedState();
+
 		if (newPeriodStart != null || newPeriodEnd != null) {
 			LocalDateTime start = Objects.requireNonNullElse(newPeriodStart, this.period.getPeriodStart());
 			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
@@ -109,10 +111,7 @@ public class Project extends BaseEntity {
 	}
 
 	public void updateState(ProjectState newState) {
-		// 이미 CLOSED 프로젝트는 상태 변경 불가
-		if (this.state == ProjectState.CLOSED) {
-			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
-		}
+		checkNotClosedState();
 
 		// PENDING -> IN_PROGRESS만 허용 periodStart를 now로 세팅
 		if (this.state == ProjectState.PENDING) {
@@ -134,6 +133,7 @@ public class Project extends BaseEntity {
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
+		checkNotClosedState();
 		checkOwner(currentUserId);
 		// 소유자 위임
 		ProjectManager newOwner = findManagerByUserId(newOwnerId);
@@ -158,6 +158,7 @@ public class Project extends BaseEntity {
 	}
 
 	public void addManager(Long currentUserId, Long userId) {
+		checkNotClosedState();
 		// 권한 체크 OWNER, WRITE, STAT만 가능
 		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
 		if (myRole == ManagerRole.READ) {
@@ -218,7 +219,7 @@ public class Project extends BaseEntity {
 
 	// TODO: 동시성 문제 해결, stream N+1 생각해보기
 	public void addMember(Long currentUserId) {
-		// TODO : 프로젝트 CLOSED상태 일때
+		checkNotClosedState();
 		// 중복 가입 체크
 		boolean exists = this.projectMembers.stream()
 			.anyMatch(projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted());
@@ -236,8 +237,7 @@ public class Project extends BaseEntity {
 	}
 
 	public void removeMember(Long currentUserId) {
-		// TODO : 프로젝트 CLOSED상태 일때 INVALID_PROJECT_STATE
-
+		checkNotClosedState();
 		ProjectMember member = this.projectMembers.stream()
 			.filter(projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted())
 			.findFirst()
@@ -264,5 +264,11 @@ public class Project extends BaseEntity {
 
 	private void registerEvent(DomainEvent event) {
 		this.domainEvents.add(event);
+	}
+
+	private void checkNotClosedState() {
+		if (this.state == ProjectState.CLOSED) {
+			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
+		}
 	}
 }
