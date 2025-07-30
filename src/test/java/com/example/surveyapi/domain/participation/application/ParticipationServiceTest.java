@@ -29,7 +29,6 @@ import com.example.surveyapi.domain.participation.domain.participation.vo.Partic
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
-@TestPropertySource(properties = "SECRET_KEY=SecretKeyExample42534D@DAF!1243zvjnjw@")
 @SpringBootTest
 @Transactional
 class ParticipationServiceTest {
