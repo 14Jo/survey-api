@@ -21,6 +21,7 @@ import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResp
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
+import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
@@ -51,7 +52,7 @@ public class UserService {
     public SignupResponse signup(SignupRequest request) {
 
         if (userRepository.existsByEmail(request.getAuth().getEmail())) {
-            throw new CustomException(CustomErrorCode.EMAIL_NOT_FOUND);
+            throw new CustomException(CustomErrorCode.EMAIL_DUPLICATED);
         }
 
         String encryptedPassword = passwordEncoder.encode(request.getAuth().getPassword());
@@ -78,7 +79,7 @@ public class UserService {
     @Transactional
     public LoginResponse login(LoginRequest request) {
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(request.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getAuth().getPassword())) {
@@ -145,10 +146,14 @@ public class UserService {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
         }
 
+        log.info("프로젝트 조회 시도");
         List<MyProjectRoleResponse> myRoleList = projectPort.getProjectMyRole(authHeader, userId);
+        log.info("프로젝트 조회 성공 : {}", myRoleList.size() );
 
         for (MyProjectRoleResponse myRole : myRoleList) {
+            log.info("권한 : {}", myRole.getMyRole());
             if ("OWNER".equals(myRole.getMyRole())) {
+                log.warn("OWNER 권한 존재");
                 throw new CustomException(CustomErrorCode.PROJECT_ROLE_OWNER);
             }
         }
@@ -156,16 +161,21 @@ public class UserService {
         int page = 0;
         int size = 20;
 
+        log.info("설문 참여 상태 조회 시도");
         List<UserSurveyStatusResponse> surveyStatus =
             participationPort.getParticipationSurveyStatus(authHeader, userId, page, size);
+        log.info("설문 참여 상태 수: {}", surveyStatus.size());
 
         for (UserSurveyStatusResponse survey : surveyStatus) {
+            log.info("설문 상태: {}", survey.getSurveyStatus());
             if ("IN_PROGRESS".equals(survey.getSurveyStatus())) {
+                log.warn("진행 중인 설문 있음");
                 throw new CustomException(CustomErrorCode.SURVEY_IN_PROGRESS);
             }
         }
 
         user.delete();
+        log.info("회원 탈퇴 처리 완료");
     }
 
     @Transactional
