@@ -23,7 +23,9 @@ public class ParticipationInternalController {
 	private final ParticipationService participationService;
 
 	@GetMapping("/surveys/participations/count")
-	public ResponseEntity<ApiResponse<Map<Long, Long>>> getParticipationCounts(@RequestParam List<Long> surveyIds) {
+	public ResponseEntity<ApiResponse<Map<Long, Long>>> getParticipationCounts(
+		@RequestParam List<Long> surveyIds
+	) {
 		Map<Long, Long> counts = participationService.getCountsBySurveyIds(surveyIds);
 
 		return ResponseEntity.status(HttpStatus.OK)
