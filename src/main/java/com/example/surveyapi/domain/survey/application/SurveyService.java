@@ -31,7 +31,8 @@ public class SurveyService {
 		Survey survey = Survey.create(
 			projectId, creatorId,
 			request.getTitle(), request.getDescription(), request.getSurveyType(),
-			request.getSurveyDuration(), request.getSurveyOption(), request.getQuestions()
+			request.getSurveyDuration().toSurveyDuration(), request.getSurveyOption().toSurveyOption(),
+			request.getQuestions().stream().map(CreateSurveyRequest.QuestionRequest::toQuestionInfo).toList()
 		);
 		Survey save = surveyRepository.save(survey);
 
@@ -60,15 +61,15 @@ public class SurveyService {
 			modifiedCount++;
 		}
 		if (request.getSurveyDuration() != null) {
-			updateFields.put("duration", request.getSurveyDuration());
+			updateFields.put("duration", request.getSurveyDuration().toSurveyDuration());
 			modifiedCount++;
 		}
 		if (request.getSurveyOption() != null) {
-			updateFields.put("option", request.getSurveyOption());
+			updateFields.put("option", request.getSurveyOption().toSurveyOption());
 			modifiedCount++;
 		}
 		if (request.getQuestions() != null) {
-			updateFields.put("questions", request.getQuestions());
+			updateFields.put("questions", request.getQuestions().stream().map(UpdateSurveyRequest.QuestionRequest::toQuestionInfo).toList());
 		}
 
 		survey.updateFields(updateFields);

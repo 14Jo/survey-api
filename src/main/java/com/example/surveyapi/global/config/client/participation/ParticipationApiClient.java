@@ -8,18 +8,18 @@ import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
 
-import com.example.surveyapi.domain.statistic.application.client.ParticipationInfosDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationRequestDto;
+import com.example.surveyapi.global.config.client.ExternalApiResponse;
 import com.example.surveyapi.domain.user.application.client.UserSurveyStatusResponse;
 
 @HttpExchange
 public interface ParticipationApiClient {
 
-    @PostExchange("/api/v1/surveys/participations")
-    ParticipationInfosDto getParticipationInfos(
-        @RequestHeader("Authorization") String authHeader,
-        @RequestBody ParticipationRequestDto dto
-    );
+	@PostExchange("/api/v1/surveys/participations")
+	ExternalApiResponse getParticipationInfos (
+		@RequestHeader("Authorization") String authHeader,
+		@RequestBody ParticipationRequestDto dto
+	);
 
     @GetExchange("/api/v1/members/me/participations")
     Page<UserSurveyStatusResponse> getSurveyStatus(

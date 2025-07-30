@@ -34,6 +34,9 @@ public enum CustomErrorCode {
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다"),
     CANNOT_CHANGE_OWNER_ROLE(HttpStatus.BAD_REQUEST, "OWNER는(로) 변경할 수 없습니다"),
     CANNOT_DELETE_SELF_OWNER(HttpStatus.BAD_REQUEST, "OWNER 본인은 삭제할 수 없습니다."),
+    ALREADY_REGISTERED_MEMBER(HttpStatus.CONFLICT, "이미 등록된 인원입니다."),
+    PROJECT_MEMBER_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "프로젝트 최대 인원수를 초과하였습니다."),
+    NOT_FOUND_MEMBER(HttpStatus.NOT_FOUND, "프로젝트에 참여한 이용자가 아닙니다."),
 
     // 통계 에러
     STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),

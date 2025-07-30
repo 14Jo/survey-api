@@ -93,7 +93,7 @@ public class Question extends BaseEntity {
 			while (usedOrders.contains(candidate)) {
 				candidate++;
 			}
-			mutableChoices.add(new Choice(choice.getContent(), candidate));
+			mutableChoices.add(Choice.of(choice.getContent(), candidate));
 			usedOrders.add(candidate);
 		}
 
