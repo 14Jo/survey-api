@@ -19,9 +19,9 @@ spring:
       on-profile: dev
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/testDB
-    username: root
-    password: '@@a1'
+    url: jdbc:postgresql://localhost:5432/${DB_SCHEME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     properties:
       hibernate:
@@ -44,3 +44,8 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# JWT Secret Key
+jwt:
+  secret:
+    key : ${SECRET_KEY}

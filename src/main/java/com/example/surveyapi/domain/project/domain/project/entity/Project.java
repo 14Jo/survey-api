@@ -1,0 +1,232 @@
+package com.example.surveyapi.domain.project.domain.project.entity;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import com.example.surveyapi.domain.project.domain.manager.entity.Manager;
+import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.event.DomainEvent;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedEvent;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedEvent;
+import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
+import com.example.surveyapi.global.model.BaseEntity;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+/**
+ * 애그리거트 루트
+ */
+@Entity
+@Table(name = "projects")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+public class Project extends BaseEntity {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
+
+	@Column(nullable = false, unique = true)
+	private String name;
+
+	@Column(columnDefinition = "TEXT", nullable = false)
+	private String description;
+
+	@Column(nullable = false)
+	private Long ownerId;
+
+	@Embedded
+	private ProjectPeriod period;
+
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ProjectState state = ProjectState.PENDING;
+
+	@Column(nullable = false)
+	private int maxMembers;
+
+	@Column(nullable = false, columnDefinition = "int default 1")
+	private int currentMemberCount;
+
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+	private List<Manager> managers = new ArrayList<>();
+
+	@Transient
+	private final List<DomainEvent> domainEvents = new ArrayList<>();
+
+	public static Project create(String name, String description, Long ownerId, int maxMembers,
+		LocalDateTime periodStart, LocalDateTime periodEnd) {
+		ProjectPeriod period = ProjectPeriod.of(periodStart, periodEnd);
+
+		Project project = new Project();
+		project.name = name;
+		project.description = description;
+		project.ownerId = ownerId;
+		project.period = period;
+		project.maxMembers = maxMembers;
+		// 프로젝트 생성자는 소유자로 등록
+		project.managers.add(Manager.createOwner(project, ownerId));
+
+		return project;
+	}
+
+	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,
+		LocalDateTime newPeriodEnd) {
+		if (newPeriodStart != null || newPeriodEnd != null) {
+			LocalDateTime start = Objects.requireNonNullElse(newPeriodStart, this.period.getPeriodStart());
+			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
+			this.period = ProjectPeriod.of(start, end);
+		}
+		if (newName != null && !newName.trim().isEmpty()) {
+			this.name = newName;
+		}
+		if (newDescription != null && !newDescription.trim().isEmpty()) {
+			this.description = newDescription;
+		}
+	}
+
+	public void updateState(ProjectState newState) {
+		// 이미 CLOSED 프로젝트는 상태 변경 불가
+		if (this.state == ProjectState.CLOSED) {
+			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
+		}
+
+		// PENDING -> IN_PROGRESS만 허용 periodStart를 now로 세팅
+		if (this.state == ProjectState.PENDING) {
+			if (newState != ProjectState.IN_PROGRESS) {
+				throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
+			}
+			this.period = ProjectPeriod.of(LocalDateTime.now(), this.period.getPeriodEnd());
+		}
+		// IN_PROGRESS -> CLOSED만 허용 periodEnd를 now로 세팅
+		if (this.state == ProjectState.IN_PROGRESS) {
+			if (newState != ProjectState.CLOSED) {
+				throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
+			}
+			this.period = ProjectPeriod.of(this.period.getPeriodStart(), LocalDateTime.now());
+		}
+
+		this.state = newState;
+		registerEvent(new ProjectStateChangedEvent(this.id, newState));
+	}
+
+	public void updateOwner(Long currentUserId, Long newOwnerId) {
+		checkOwner(currentUserId);
+		// 소유자 위임
+		Manager newOwner = findManagerByUserId(newOwnerId);
+		newOwner.updateRole(ManagerRole.OWNER);
+
+		// 기존 소유자는 READ 권한으로 변경
+		Manager previousOwner = findManagerByUserId(this.ownerId);
+		previousOwner.updateRole(ManagerRole.READ);
+	}
+
+	public void softDelete(Long currentUserId) {
+		checkOwner(currentUserId);
+		this.state = ProjectState.CLOSED;
+
+		// 기존 프로젝트 담당자 같이 삭제
+		if (this.managers != null) {
+			this.managers.forEach(Manager::delete);
+		}
+
+		this.delete();
+		registerEvent(new ProjectDeletedEvent(this.id, this.name));
+	}
+
+	public void addManager(Long currentUserId, Long userId) {
+		// 권한 체크 OWNER, WRITE, STAT만 가능
+		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
+		if (myRole == ManagerRole.READ) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
+		}
+
+		// 이미 담당자로 등록되어있다면 중복 등록 불가
+		boolean exists = this.managers.stream()
+			.anyMatch(manager -> manager.getUserId().equals(userId) && !manager.getIsDeleted());
+		if (exists) {
+			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MANAGER);
+		}
+
+		Manager newManager = Manager.create(this, userId);
+		this.managers.add(newManager);
+	}
+
+	public void updateManagerRole(Long currentUserId, Long userId, ManagerRole newRole) {
+		checkOwner(currentUserId);
+		Manager manager = findManagerByUserId(userId);
+
+		// 본인 OWNER 권한 변경 불가
+		if (Objects.equals(currentUserId, userId)) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+		if (newRole == ManagerRole.OWNER) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+
+		manager.updateRole(newRole);
+	}
+
+	public void deleteManager(Long currentUserId, Long managerId) {
+		checkOwner(currentUserId);
+		Manager manager = findManagerById(managerId);
+
+		if (Objects.equals(manager.getUserId(), currentUserId)) {
+			throw new CustomException(CustomErrorCode.CANNOT_DELETE_SELF_OWNER);
+		}
+
+		manager.delete();
+	}
+
+	// 소유자 권한 확인
+	private void checkOwner(Long currentUserId) {
+		if (!this.ownerId.equals(currentUserId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
+		}
+	}
+
+	// List<Manager> 조회 메소드
+	public Manager findManagerByUserId(Long userId) {
+		return this.managers.stream()
+			.filter(manager -> manager.getUserId().equals(userId))
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
+	}
+
+	public Manager findManagerById(Long managerId) {
+		return this.managers.stream()
+			.filter(manager -> Objects.equals(manager.getId(), managerId))
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
+	}
+
+	// 이벤트 등록/ 관리
+	private void registerEvent(DomainEvent event) {
+		this.domainEvents.add(event);
+	}
+
+	public List<DomainEvent> pullDomainEvents() {
+		List<DomainEvent> events = new ArrayList<>(domainEvents);
+		domainEvents.clear();
+		return events;
+	}
+}

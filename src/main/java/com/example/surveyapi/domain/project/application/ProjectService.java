@@ -1,0 +1,121 @@
+package com.example.surveyapi.domain.project.application;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
+import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
+import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
+import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
+import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ProjectService {
+
+	private final ProjectRepository projectRepository;
+	private final ProjectEventPublisher projectEventPublisher;
+
+	@Transactional
+	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
+		validateDuplicateName(request.getName());
+
+		Project project = Project.create(
+			request.getName(),
+			request.getDescription(),
+			currentUserId,
+			request.getMaxMembers(),
+			request.getPeriodStart(),
+			request.getPeriodEnd()
+		);
+		projectRepository.save(project);
+
+		return CreateProjectResponse.of(project.getId(), project.getMaxMembers());
+	}
+
+	@Transactional(readOnly = true)
+	public List<ProjectInfoResponse> getMyProjects(Long currentUserId) {
+		return projectRepository.findMyProjects(currentUserId)
+			.stream()
+			.map(ProjectInfoResponse::from)
+			.toList();
+	}
+
+	@Transactional
+	public void updateProject(Long projectId, UpdateProjectRequest request) {
+		validateDuplicateName(request.getName());
+		Project project = findByIdOrElseThrow(projectId);
+		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
+			request.getPeriodEnd());
+	}
+
+	@Transactional
+	public void updateState(Long projectId, UpdateProjectStateRequest request) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.updateState(request.getState());
+		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+	}
+
+	@Transactional
+	public void updateOwner(Long projectId, UpdateProjectOwnerRequest request, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.updateOwner(currentUserId, request.getNewOwnerId());
+	}
+
+	@Transactional
+	public void deleteProject(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.softDelete(currentUserId);
+		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+	}
+
+	@Transactional
+	public CreateManagerResponse addManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+
+		// TODO: 회원 존재 여부
+
+		project.addManager(currentUserId, request.getUserId());
+		projectRepository.save(project);
+
+		return CreateManagerResponse.from(project.getManagers().get(project.getManagers().size() - 1).getId());
+	}
+
+	@Transactional
+	public void updateManagerRole(Long projectId, Long managerId, UpdateManagerRoleRequest request,
+		Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
+	}
+
+	@Transactional
+	public void deleteManager(Long projectId, Long managerId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.deleteManager(currentUserId, managerId);
+	}
+
+	private void validateDuplicateName(String name) {
+		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
+			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
+		}
+	}
+
+	private Project findByIdOrElseThrow(Long projectId) {
+
+		return projectRepository.findByIdAndIsDeletedFalse(projectId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
+	}
+}

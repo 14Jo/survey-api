@@ -13,6 +13,28 @@ jobs:
   build-and-deploy:
     # 이 작업은 GitHub이 제공하는 최신 우분투 가상머신에서 돌아감.
     runs-on: ubuntu-latest
+
+    # 테스트를 위한 서비스 컨테이너(PostgreSQL) 설정
+    services:
+      # 서비스의 ID를 'postgres-test'로 지정
+      postgres-test:
+        # postgres 16 버전 이미지를 사용
+        image: postgres:16
+        # 컨테이너에 필요한 환경변수 설정
+        env:
+          POSTGRES_USER: ljy
+          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+          POSTGRES_DB: testdb
+        # 호스트의 5432 포트와 컨테이너의 5432 포트를 연결
+        ports:
+          - 5432:5432
+        # DB가 준비될 때까지 기다리기 위한 상태 확인 옵션
+        options: >-
+          --health-cmd="pg_isready --host=localhost --user=postgres --dbname=testdb"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     # 이 작업이 수행할 단계(step)들을 순서대로 나열함.
     steps:
       # 1단계: 코드 내려받기
@@ -34,18 +56,28 @@ jobs:
       - name: Grant execute permission for gradlew
         # gradlew 파일이 실행될 수 있도록 권한을 변경함. 리눅스 환경이라 필수임.
         run: chmod +x gradlew
-        
-      # 4단계: 프로젝트 빌드
+
+      # 4단계: Gradle로 테스트 실행 (서비스 컨테이너 DB 사용)
+      - name: Test with Gradle
+        # gradlew 명령어로 프로젝트의 테스트를 실행함. 테스트 실패 시 여기서 중단됨.
+        run: ./gradlew test
+        env:
+          SPRING_PROFILES_ACTIVE: test
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
+          SPRING_DATASOURCE_USERNAME: ljy
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
+
+      # 5단계: 프로젝트 빌드 (테스트 통과 후 실행)
       - name: Build with Gradle
         # gradlew 명령어로 스프링 부트 프로젝트를 빌드함. 이걸 해야 .jar 파일이 생김.
         run: ./gradlew build
 
-      # 5단계: 도커 빌드 환경 설정
+      # 6단계: 도커 빌드 환경 설정
       - name: Set up Docker Buildx
         # 도커 이미지를 효율적으로 빌드하기 위한 Buildx라는 툴을 설정함.
         uses: docker/setup-buildx-action@v2
 
-      # 6단계: 도커 허브 로그인
+      # 7단계: 도커 허브 로그인
       - name: Login to Docker Hub
         # 도커 이미지를 올릴 Docker Hub에 로그인하는 액션을 사용함.
         uses: docker/login-action@v2
@@ -55,7 +87,7 @@ jobs:
           # 비밀번호는 GitHub Secrets에 저장된 DOCKERHUB_TOKEN 값을 사용함.
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 7단계: 도커 이미지 빌드 및 푸시
+      # 8단계: 도커 이미지 빌드 및 푸시
       - name: Build and push
         # Dockerfile을 이용해 이미지를 만들고 Docker Hub에 올리는 액션을 사용함.
         uses: docker/build-push-action@v4
@@ -67,7 +99,7 @@ jobs:
           # 이미지 이름은 "아이디/my-spring-app:latest" 형식으로 지정함.
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-spring-app:latest
 
-      # 8단계: EC2 서버에 배포
+      # 9단계: EC2 서버에 배포
       - name: Deploy to EC2
         # SSH를 통해 EC2에 접속해서 명령어를 실행하는 액션을 사용함.
         uses: appleboy/ssh-action@master
