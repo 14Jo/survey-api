@@ -7,13 +7,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 
-import com.example.surveyapi.domain.user.application.client.MyProjectRoleResponse;
+
+import com.example.surveyapi.global.config.client.ExternalApiResponse;
 
 @HttpExchange
 public interface ProjectApiClient {
 
     @GetExchange("/api/v1/projects/me")
-    List<MyProjectRoleResponse> getProjectMyRole(
+    ExternalApiResponse getProjectMyRole(
         @RequestHeader("Authorization") String authHeader,
         @RequestParam Long userId);
 }
