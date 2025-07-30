@@ -1,9 +1,11 @@
 package com.example.surveyapi.domain.survey.domain.survey.event;
 
+import com.example.surveyapi.global.model.SurveyEvent;
+
 import lombok.Getter;
 
 @Getter
-public class SurveyDeletedEvent {
+public class SurveyDeletedEvent implements SurveyEvent {
 
 	private Long surveyId;
 
