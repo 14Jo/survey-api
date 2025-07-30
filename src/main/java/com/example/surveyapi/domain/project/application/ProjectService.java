@@ -2,6 +2,8 @@ package com.example.surveyapi.domain.project.application;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +16,10 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
+import com.example.surveyapi.domain.project.application.dto.response.ProjectSearchInfoResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
@@ -48,11 +53,35 @@ public class ProjectService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ProjectInfoResponse> getMyProjects(Long currentUserId) {
-		return projectRepository.findMyProjects(currentUserId)
+	public List<ProjectManagerInfoResponse> getMyProjectsAsManager(Long currentUserId) {
+
+		return projectRepository.findMyProjectsAsManager(currentUserId)
 			.stream()
-			.map(ProjectInfoResponse::from)
+			.map(ProjectManagerInfoResponse::from)
 			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<ProjectMemberInfoResponse> getMyProjectsAsMember(Long currentUserId) {
+
+		return projectRepository.findMyProjectsAsMember(currentUserId)
+			.stream()
+			.map(ProjectMemberInfoResponse::from)
+			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public Page<ProjectSearchInfoResponse> searchProjects(String keyword, Pageable pageable) {
+
+		return projectRepository.searchProjects(keyword, pageable)
+			.map(ProjectSearchInfoResponse::from);
+	}
+
+	@Transactional(readOnly = true)
+	public ProjectInfoResponse getProject(Long projectId) {
+		Project project = findByIdOrElseThrow(projectId);
+
+		return ProjectInfoResponse.from(project);
 	}
 
 	@Transactional
