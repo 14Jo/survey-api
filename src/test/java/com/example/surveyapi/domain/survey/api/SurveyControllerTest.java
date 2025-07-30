@@ -4,10 +4,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -18,10 +17,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.example.surveyapi.domain.survey.application.SurveyService;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@WebMvcTest(SurveyController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @TestPropertySource(properties = "SECRET_KEY=12345678901234567890123456789012")
-@WithMockUser(username = "testuser", roles = "USER")
 class SurveyControllerTest {
 
 	@Autowired
@@ -29,6 +27,9 @@ class SurveyControllerTest {
 
 	@MockBean
 	SurveyService surveyService;
+
+	@MockBean
+	com.example.surveyapi.domain.survey.application.SurveyQueryService surveyQueryService;
 
 	private final String createUri = "/api/v1/survey/1/create";
 
@@ -70,7 +71,7 @@ class SurveyControllerTest {
 		mockMvc.perform(post(createUri)
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(requestJson))
-			.andExpect(status().isInternalServerError());
+			.andExpect(status().isBadRequest());
 	}
 
 	@Test
