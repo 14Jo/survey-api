@@ -43,18 +43,18 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 			.fetch();
 
 		List<QuestionInfo> questions = questionEntities.stream()
-			.map(q -> new QuestionInfo(
+			.map(q -> QuestionInfo.of(
 				q.getContent(),
 				q.getType(),
 				q.isRequired(),
 				q.getDisplayOrder(),
 				q.getChoices().stream()
-					.map(c -> new ChoiceInfo(c.getContent(), c.getDisplayOrder()))
+					.map(c -> ChoiceInfo.of(c.getContent(), c.getDisplayOrder()))
 					.collect(Collectors.toList())
 			))
 			.toList();
 
-		SurveyDetail detail = new SurveyDetail(
+		SurveyDetail detail = SurveyDetail.of(
 			surveyResult.getTitle(),
 			surveyResult.getDescription(),
 			surveyResult.getDuration(),
@@ -86,7 +86,7 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 			.limit(pageSize)
 			.fetch()
 			.stream()
-			.map(tuple -> new SurveyTitle(
+			.map(tuple -> SurveyTitle.of(
 				tuple.get(survey.surveyId),
 				tuple.get(survey.title),
 				tuple.get(survey.status),

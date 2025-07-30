@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.participation.infra;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -45,5 +46,10 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 	@Override
 	public Page<ParticipationInfo> findParticipationsInfo(Long memberId, Pageable pageable) {
 		return participationQueryRepository.findParticipationsInfo(memberId, pageable);
+	}
+
+	@Override
+	public Map<Long, Long> countsBySurveyIds(List<Long> surveyIds) {
+		return participationQueryRepository.countsBySurveyIds(surveyIds);
 	}
 }

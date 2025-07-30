@@ -1,29 +1,46 @@
 package com.example.surveyapi.domain.survey.application.response;
 
-import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
-import com.example.surveyapi.domain.survey.domain.survey.Survey;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
+import java.time.LocalDateTime;
 
-import lombok.AllArgsConstructor;
+import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchSurveyTitleResponse {
 	private Long surveyId;
 	private String title;
 	private SurveyStatus status;
-	private SurveyDuration duration;
+	private Duration duration;
+	private Integer participationCount;
 
-	public static SearchSurveyTitleResponse from(SurveyTitle surveyTitle) {
-		return new SearchSurveyTitleResponse(
-			surveyTitle.getSurveyId(),
-			surveyTitle.getTitle(),
-			surveyTitle.getStatus(),
-			surveyTitle.getDuration()
-		);
+
+
+	public static SearchSurveyTitleResponse from(SurveyTitle surveyTitle, Integer count) {
+		SearchSurveyTitleResponse response = new SearchSurveyTitleResponse();
+		response.surveyId = surveyTitle.getSurveyId();
+		response.title = surveyTitle.getTitle();
+		response.status = surveyTitle.getStatus();
+		response.duration = Duration.from(surveyTitle.getDuration());
+		response.participationCount = count;
+		return response;
+	}
+
+	@Getter
+	@NoArgsConstructor(access = AccessLevel.PRIVATE)
+	public static class Duration {
+		private LocalDateTime startDate;
+		private LocalDateTime endDate;
+
+		public static Duration from(com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration duration) {
+			Duration result = new Duration();
+			result.startDate = duration.getStartDate();
+			result.endDate = duration.getEndDate();
+			return result;
+		}
 	}
 }
