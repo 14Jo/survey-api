@@ -27,8 +27,8 @@ class SurveyTest {
         // when
         Survey survey = Survey.create(
                 1L, 1L, "title", "desc", SurveyType.VOTE,
-                new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
-                new SurveyOption(true, true),
+                SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
+                SurveyOption.of(true, true),
                 List.of()
         );
         
@@ -55,8 +55,8 @@ class SurveyTest {
         // given
         Survey survey = Survey.create(
                 1L, 1L, "title", "desc", SurveyType.VOTE,
-                new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
-                new SurveyOption(true, true),
+                SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
+                SurveyOption.of(true, true),
                 List.of()
         );
 
@@ -83,16 +83,16 @@ class SurveyTest {
         // given
         Survey survey = Survey.create(
                 1L, 1L, "title", "desc", SurveyType.VOTE,
-                new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
-                new SurveyOption(true, true),
+                SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
+                SurveyOption.of(true, true),
                 List.of()
         );
         Map<String, Object> fields = new HashMap<>();
         fields.put("title", "newTitle");
         fields.put("description", "newDesc");
         fields.put("type", SurveyType.SURVEY);
-        fields.put("duration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(2)));
-        fields.put("option", new SurveyOption(false, false));
+        fields.put("duration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(2)));
+        fields.put("option", SurveyOption.of(false, false));
         fields.put("questions", List.of());
 
         // when
@@ -113,8 +113,8 @@ class SurveyTest {
         // given
         Survey survey = Survey.create(
                 1L, 1L, "title", "desc", SurveyType.VOTE,
-                new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
-                new SurveyOption(true, true),
+                SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
+                SurveyOption.of(true, true),
                 List.of()
         );
         Map<String, Object> fields = new HashMap<>();
@@ -133,8 +133,8 @@ class SurveyTest {
         // given
         Survey survey = Survey.create(
                 1L, 1L, "title", "desc", SurveyType.VOTE,
-                new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
-                new SurveyOption(true, true),
+                SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
+                SurveyOption.of(true, true),
                 List.of()
         );
         ReflectionTestUtils.setField(survey, "surveyId", 1L);

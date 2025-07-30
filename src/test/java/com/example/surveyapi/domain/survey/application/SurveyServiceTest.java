@@ -39,10 +39,10 @@ class SurveyServiceTest {
         CreateSurveyRequest request = new CreateSurveyRequest();
         ReflectionTestUtils.setField(request, "title", "설문 제목");
         ReflectionTestUtils.setField(request, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(request, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(request, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(request, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(request, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(request, "questions", List.of(
-                new QuestionInfo("Q1", QuestionType.SHORT_ANSWER, true, 1, List.of())
+                QuestionInfo.of("Q1", QuestionType.SHORT_ANSWER, true, 1, List.of())
         ));
 
         // when
@@ -61,8 +61,8 @@ class SurveyServiceTest {
         CreateSurveyRequest createRequest = new CreateSurveyRequest();
         ReflectionTestUtils.setField(createRequest, "title", "oldTitle");
         ReflectionTestUtils.setField(createRequest, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(createRequest, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(createRequest, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(createRequest, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(createRequest, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(createRequest, "questions", List.of());
         Long surveyId = surveyService.create(1L, 1L, createRequest);
 
@@ -87,8 +87,8 @@ class SurveyServiceTest {
         CreateSurveyRequest createRequest = new CreateSurveyRequest();
         ReflectionTestUtils.setField(createRequest, "title", "title");
         ReflectionTestUtils.setField(createRequest, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(createRequest, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(createRequest, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(createRequest, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(createRequest, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(createRequest, "questions", List.of());
         Long surveyId = surveyService.create(1L, 1L, createRequest);
 
@@ -109,8 +109,8 @@ class SurveyServiceTest {
         CreateSurveyRequest createRequest = new CreateSurveyRequest();
         ReflectionTestUtils.setField(createRequest, "title", "title");
         ReflectionTestUtils.setField(createRequest, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(createRequest, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(createRequest, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(createRequest, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(createRequest, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(createRequest, "questions", List.of());
         Long surveyId = surveyService.create(1L, 1L, createRequest);
 
