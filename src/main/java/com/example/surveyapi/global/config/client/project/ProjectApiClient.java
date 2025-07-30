@@ -13,7 +13,7 @@ import com.example.surveyapi.global.config.client.ExternalApiResponse;
 @HttpExchange
 public interface ProjectApiClient {
 
-    @GetExchange("/api/v1/projects/me")
+    @GetExchange("/api/v2/projects/me/managers")
     ExternalApiResponse getProjectMyRole(
         @RequestHeader("Authorization") String authHeader,
         @RequestParam Long userId);
