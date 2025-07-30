@@ -7,6 +7,7 @@ import lombok.Getter;
 @Getter
 public enum CustomErrorCode {
 
+    EMAIL_DUPLICATED(HttpStatus.CONFLICT,"사용중인 이메일입니다."),
     WRONG_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 틀렸습니다"),
     GRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "등급을 조회 할 수 없습니다"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일을 찾을 수 없습니다."),
