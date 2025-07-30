@@ -138,6 +138,7 @@ public class Project extends BaseEntity {
 		// 소유자 위임
 		ProjectManager newOwner = findManagerByUserId(newOwnerId);
 		newOwner.updateRole(ManagerRole.OWNER);
+		this.ownerId = newOwnerId;
 
 		// 기존 소유자는 READ 권한으로 변경
 		ProjectManager previousOwner = findManagerByUserId(this.ownerId);
