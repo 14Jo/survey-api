@@ -75,7 +75,7 @@ public class UserServiceTest {
         SignupResponse signup = userService.signup(request);
 
         // then
-        var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
+        var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(savedUser.getProfile().getName()).isEqualTo("홍길동");
         assertThat(savedUser.getProfile().getAddress().getProvince()).isEqualTo("서울특별시");
     }
@@ -122,7 +122,7 @@ public class UserServiceTest {
         SignupResponse signup = userService.signup(request);
 
         // then
-        var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
+        var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(passwordEncoder.matches("Password123", savedUser.getAuth().getPassword())).isTrue();
     }
 
@@ -139,7 +139,7 @@ public class UserServiceTest {
         SignupResponse signup = userService.signup(request);
 
         // then
-        var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
+        var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(savedUser.getAuth().getEmail()).isEqualTo(signup.getEmail());
     }
 
@@ -174,9 +174,11 @@ public class UserServiceTest {
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
+        String authHeader = "Bearer dummyAccessToken";
+
         // when
         SignupResponse signup = userService.signup(rq1);
-        userService.withdraw(signup.getMemberId(), userWithdrawRequest);
+        userService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader);
 
         // then
         assertThatThrownBy(() -> userService.signup(rq2))
@@ -211,7 +213,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UserInfoResponse member = UserInfoResponse.from(user);
@@ -247,7 +249,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UserInfoResponse member = UserInfoResponse.from(user);
@@ -283,7 +285,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UpdateUserRequest request = updateRequest("홍길동2");
@@ -329,17 +331,19 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
+        String authHeader = "Bearer dummyAccessToken";
+
         // when
-        userService.withdraw(user.getId(), userWithdrawRequest);
+        userService.withdraw(user.getId(), userWithdrawRequest, authHeader);
 
         // then
-        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), userWithdrawRequest))
+        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
 
@@ -353,7 +357,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         user.delete();
@@ -362,8 +366,11 @@ public class UserServiceTest {
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
+        String authHeader = "Bearer dummyAccessToken";
+
+
         // when & then
-        assertThatThrownBy(() -> userService.withdraw(user.getId(), userWithdrawRequest))
+        assertThatThrownBy(() -> userService.withdraw(user.getId(), userWithdrawRequest, authHeader))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
     }
