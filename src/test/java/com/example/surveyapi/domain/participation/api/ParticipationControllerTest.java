@@ -45,7 +45,6 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@TestPropertySource(properties = "SECRET_KEY=SecretKeyExample42534D@DAF!1243zvjnjw@")
 @WebMvcTest(ParticipationController.class)
 @AutoConfigureMockMvc(addFilters = false)
 class ParticipationControllerTest {
