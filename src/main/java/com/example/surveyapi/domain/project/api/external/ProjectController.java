@@ -136,6 +136,7 @@ public class ProjectController {
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		projectService.deleteManager(projectId, managerId, currentUserId);
+
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("협력자 삭제 성공"));
 	}
@@ -146,6 +147,7 @@ public class ProjectController {
 		@AuthenticationPrincipal Long currentUserId
 	) {
 		projectService.joinProject(projectId, currentUserId);
+
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 참여 성공"));
 	}
@@ -155,7 +157,19 @@ public class ProjectController {
 		@PathVariable Long projectId
 	) {
 		ProjectMemberIdsResponse response = projectService.getProjectMemberIds(projectId);
+
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 참여 인원 조회 성공", response));
+	}
+
+	@DeleteMapping("/v2/projects/{projectId}/members")
+	public ResponseEntity<ApiResponse<Void>> leaveProject(
+		@PathVariable Long projectId,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		projectService.leaveProject(projectId, currentUserId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 탈퇴 성공"));
 	}
 }

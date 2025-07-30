@@ -65,7 +65,7 @@ public class Project extends BaseEntity {
 	@Column(nullable = false)
 	private int maxMembers;
 
-	@Column(nullable = false, columnDefinition = "int default 1")
+	@Column(nullable = false)
 	private int currentMemberCount;
 
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
@@ -204,24 +204,24 @@ public class Project extends BaseEntity {
 	// List<ProjectManager> 조회 메소드
 	public ProjectManager findManagerByUserId(Long userId) {
 		return this.projectManagers.stream()
-			.filter(manager -> manager.getUserId().equals(userId) && !manager.getIsDeleted())
+			.filter(projectManager -> projectManager.getUserId().equals(userId) && !projectManager.getIsDeleted())
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
 	public ProjectManager findManagerById(Long managerId) {
 		return this.projectManagers.stream()
-			.filter(manager -> Objects.equals(manager.getId(), managerId))
+			.filter(projectManager -> Objects.equals(projectManager.getId(), managerId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
 	// TODO: 동시성 문제 해결, stream N+1 생각해보기
-	public void addMember(Long userId) {
+	public void addMember(Long currentUserId) {
 		// TODO : 프로젝트 CLOSED상태 일때
 		// 중복 가입 체크
 		boolean exists = this.projectMembers.stream()
-			.anyMatch(member -> member.getUserId().equals(userId) && !member.getIsDeleted());
+			.anyMatch(projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted());
 		if (exists) {
 			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MEMBER);
 		}
@@ -231,8 +231,28 @@ public class Project extends BaseEntity {
 			throw new CustomException(CustomErrorCode.PROJECT_MEMBER_LIMIT_EXCEEDED);
 		}
 
-		this.projectMembers.add(ProjectMember.create(this, userId));
+		this.projectMembers.add(ProjectMember.create(this, currentUserId));
 		this.currentMemberCount++;
+	}
+
+	public void removeMember(Long currentUserId) {
+		// TODO : 프로젝트 CLOSED상태 일때 INVALID_PROJECT_STATE
+
+		ProjectMember member = this.projectMembers.stream()
+			.filter(projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted())
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
+
+		member.delete();
+
+		this.currentMemberCount--;
+	}
+
+	// 소유자 권한 확인
+	private void checkOwner(Long currentUserId) {
+		if (!this.ownerId.equals(currentUserId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
+		}
 	}
 
 	// 이벤트 등록/ 관리
@@ -244,12 +264,5 @@ public class Project extends BaseEntity {
 
 	private void registerEvent(DomainEvent event) {
 		this.domainEvents.add(event);
-	}
-
-	// 소유자 권한 확인
-	private void checkOwner(Long currentUserId) {
-		if (!this.ownerId.equals(currentUserId)) {
-			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
-		}
 	}
 }

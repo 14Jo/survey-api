@@ -16,8 +16,8 @@ import com.example.surveyapi.domain.project.application.dto.response.CreateProje
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
-import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
+import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -92,7 +92,8 @@ public class ProjectService {
 		project.addManager(currentUserId, request.getUserId());
 		projectRepository.save(project);
 
-		return CreateManagerResponse.from(project.getProjectManagers().get(project.getProjectManagers().size() - 1).getId());
+		return CreateManagerResponse.from(
+			project.getProjectManagers().get(project.getProjectManagers().size() - 1).getId());
 	}
 
 	@Transactional
@@ -118,6 +119,12 @@ public class ProjectService {
 	public ProjectMemberIdsResponse getProjectMemberIds(Long projectId) {
 		Project project = findByIdOrElseThrow(projectId);
 		return ProjectMemberIdsResponse.from(project);
+	}
+
+	@Transactional
+	public void leaveProject(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.removeMember(currentUserId);
 	}
 
 	private void validateDuplicateName(String name) {
