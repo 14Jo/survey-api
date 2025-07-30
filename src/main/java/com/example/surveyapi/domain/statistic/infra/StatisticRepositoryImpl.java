@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.statistic.infra;
 
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistics;
+import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
 import com.example.surveyapi.domain.statistic.domain.repository.StatisticRepository;
 import com.example.surveyapi.domain.statistic.infra.jpa.JpaStatisticRepository;
 
@@ -15,8 +15,8 @@ public class StatisticRepositoryImpl implements StatisticRepository {
 	private final JpaStatisticRepository jpaStatisticRepository;
 
 	@Override
-	public Statistics save(Statistics statistics) {
-		return jpaStatisticRepository.save(statistics);
+	public Statistic save(Statistic statistic) {
+		return jpaStatisticRepository.save(statistic);
 	}
 
 	@Override

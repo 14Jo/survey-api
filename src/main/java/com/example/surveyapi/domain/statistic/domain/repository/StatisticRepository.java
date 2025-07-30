@@ -1,11 +1,11 @@
 package com.example.surveyapi.domain.statistic.domain.repository;
 
-import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistics;
+import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
 
 public interface StatisticRepository {
 
 	//CRUD
-	Statistics save(Statistics statistics);
+	Statistic save(Statistic statistic);
 
 	//exist
 	boolean existsById(Long id);
