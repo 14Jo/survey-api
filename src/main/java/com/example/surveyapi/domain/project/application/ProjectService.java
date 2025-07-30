@@ -14,10 +14,9 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -92,8 +91,7 @@ public class ProjectService {
 		project.addManager(currentUserId, request.getUserId());
 		projectRepository.save(project);
 
-		return CreateManagerResponse.from(
-			project.getProjectManagers().get(project.getProjectManagers().size() - 1).getId());
+		return CreateManagerResponse.from(project.getManagers().get(project.getManagers().size() - 1).getId());
 	}
 
 	@Transactional
@@ -109,31 +107,12 @@ public class ProjectService {
 		project.deleteManager(currentUserId, managerId);
 	}
 
-	@Transactional
-	public void joinProject(Long projectId, Long currentUserId) {
-		Project project = findByIdOrElseThrow(projectId);
-		project.addMember(currentUserId);
-	}
-
-	@Transactional(readOnly = true)
-	public ProjectMemberIdsResponse getProjectMemberIds(Long projectId) {
-		Project project = findByIdOrElseThrow(projectId);
-		return ProjectMemberIdsResponse.from(project);
-	}
-
-	@Transactional
-	public void leaveProject(Long projectId, Long currentUserId) {
-		Project project = findByIdOrElseThrow(projectId);
-		project.removeMember(currentUserId);
-	}
-
 	private void validateDuplicateName(String name) {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
 		}
 	}
 
-	// TODO: LIST별 fetchJoin 생각
 	private Project findByIdOrElseThrow(Long projectId) {
 
 		return projectRepository.findByIdAndIsDeletedFalse(projectId)

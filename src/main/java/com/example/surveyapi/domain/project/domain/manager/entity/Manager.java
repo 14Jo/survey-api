@@ -20,10 +20,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "project_managers")
+@Table(name = "managers")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class ProjectManager extends BaseEntity {
+public class Manager extends BaseEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,22 +40,22 @@ public class ProjectManager extends BaseEntity {
 	@Column(nullable = false)
 	private ManagerRole role;
 
-	public static ProjectManager create(Project project, Long userId) {
-		ProjectManager projectManager = new ProjectManager();
-		projectManager.project = project;
-		projectManager.userId = userId;
-		projectManager.role = ManagerRole.READ;
+	public static Manager create(Project project, Long userId) {
+		Manager manager = new Manager();
+		manager.project = project;
+		manager.userId = userId;
+		manager.role = ManagerRole.READ;
 
-		return projectManager;
+		return manager;
 	}
 
-	public static ProjectManager createOwner(Project project, Long userId) {
-		ProjectManager projectManager = new ProjectManager();
-		projectManager.project = project;
-		projectManager.userId = userId;
-		projectManager.role = ManagerRole.OWNER;
+	public static Manager createOwner(Project project, Long userId) {
+		Manager manager = new Manager();
+		manager.project = project;
+		manager.userId = userId;
+		manager.role = ManagerRole.OWNER;
 
-		return projectManager;
+		return manager;
 	}
 
 	public void updateRole(ManagerRole role) {
