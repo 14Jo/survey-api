@@ -3,7 +3,12 @@ package com.example.surveyapi.domain.project.domain.project.repository;
 import java.util.List;
 import java.util.Optional;
 
-import com.example.surveyapi.domain.project.domain.dto.ProjectResult;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
+import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
+import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 
 public interface ProjectRepository {
@@ -12,7 +17,11 @@ public interface ProjectRepository {
 
 	boolean existsByNameAndIsDeletedFalse(String name);
 
-	List<ProjectResult> findMyProjects(Long currentUserId);
+	List<ProjectManagerResult> findMyProjectsAsManager(Long currentUserId);
+
+	List<ProjectMemberResult> findMyProjectsAsMember(Long currentUserId);
+
+	Page<ProjectSearchResult> searchProjects(String keyword, Pageable pageable);
 
 	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
 }
