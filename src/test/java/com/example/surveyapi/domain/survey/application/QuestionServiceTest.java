@@ -37,15 +37,15 @@ class QuestionServiceTest {
     void createSurvey_questionOrderAdjust() throws Exception {
         // given
         List<QuestionInfo> inputQuestions = List.of(
-                new QuestionInfo("Q1", QuestionType.SHORT_ANSWER, true, 2, List.of()),
-                new QuestionInfo("Q2", QuestionType.SHORT_ANSWER, true, 2, List.of()),
-                new QuestionInfo("Q3", QuestionType.SHORT_ANSWER, true, 5, List.of())
+                QuestionInfo.of("Q1", QuestionType.SHORT_ANSWER, true, 2, List.of()),
+                QuestionInfo.of("Q2", QuestionType.SHORT_ANSWER, true, 2, List.of()),
+                QuestionInfo.of("Q3", QuestionType.SHORT_ANSWER, true, 5, List.of())
         );
         CreateSurveyRequest request = new CreateSurveyRequest();
         ReflectionTestUtils.setField(request, "title", "설문 제목");
         ReflectionTestUtils.setField(request, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(request, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(request, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(request, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(request, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(request, "questions", inputQuestions);
 
         // when
@@ -65,18 +65,18 @@ class QuestionServiceTest {
     void createSurvey_choiceOrderAdjust() throws Exception {
         // given
         List<ChoiceInfo> choices = List.of(
-                new ChoiceInfo("A", 3),
-                new ChoiceInfo("B", 3),
-                new ChoiceInfo("C", 3)
+                ChoiceInfo.of("A", 3),
+                ChoiceInfo.of("B", 3),
+                ChoiceInfo.of("C", 3)
         );
         List<QuestionInfo> inputQuestions = List.of(
-                new QuestionInfo("Q1", QuestionType.MULTIPLE_CHOICE, true, 1, choices)
+                QuestionInfo.of("Q1", QuestionType.MULTIPLE_CHOICE, true, 1, choices)
         );
         CreateSurveyRequest request = new CreateSurveyRequest();
         ReflectionTestUtils.setField(request, "title", "설문 제목");
         ReflectionTestUtils.setField(request, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(request, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(request, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(request, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(request, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(request, "questions", inputQuestions);
 
         // when
