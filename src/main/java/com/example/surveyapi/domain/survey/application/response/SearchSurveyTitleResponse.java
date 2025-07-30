@@ -16,11 +16,11 @@ public class SearchSurveyTitleResponse {
 	private String title;
 	private SurveyStatus status;
 	private Duration duration;
-	private int participationCount;
+	private Integer participationCount;
 
 
 
-	public static SearchSurveyTitleResponse from(SurveyTitle surveyTitle, int count) {
+	public static SearchSurveyTitleResponse from(SurveyTitle surveyTitle, Integer count) {
 		SearchSurveyTitleResponse response = new SearchSurveyTitleResponse();
 		response.surveyId = surveyTitle.getSurveyId();
 		response.title = surveyTitle.getTitle();
