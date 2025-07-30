@@ -31,6 +31,9 @@ spring:
       host : ${REDIS_HOST}
       port : ${REDIS_PORT}
 
+logging:
+  level:
+    org.springframework.security: DEBUG
 ---
 # 운영(prod) 프로필 - PostgreSQL (EC2 등 외부 서버) 설정
 spring:

@@ -24,7 +24,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.*;
 
 @SpringBootTest
-@TestPropertySource(properties = "SECRET_KEY=12345678901234567890123456789012")
 @Transactional
 class SurveyQueryServiceTest {
 
@@ -40,10 +39,10 @@ class SurveyQueryServiceTest {
         CreateSurveyRequest request = new CreateSurveyRequest();
         ReflectionTestUtils.setField(request, "title", "설문 제목");
         ReflectionTestUtils.setField(request, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(request, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(request, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(request, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(request, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(request, "questions", List.of(
-                new QuestionInfo("Q1", QuestionType.SHORT_ANSWER, true, 1, List.of())
+                QuestionInfo.of("Q1", QuestionType.SHORT_ANSWER, true, 1, List.of())
         ));
         Long surveyId = surveyService.create(1L, 1L, request);
 
@@ -70,8 +69,8 @@ class SurveyQueryServiceTest {
         CreateSurveyRequest request = new CreateSurveyRequest();
         ReflectionTestUtils.setField(request, "title", "설문 제목");
         ReflectionTestUtils.setField(request, "surveyType", SurveyType.VOTE);
-        ReflectionTestUtils.setField(request, "surveyDuration", new SurveyDuration(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        ReflectionTestUtils.setField(request, "surveyOption", new SurveyOption(true, true));
+        ReflectionTestUtils.setField(request, "surveyDuration", SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
+        ReflectionTestUtils.setField(request, "surveyOption", SurveyOption.of(true, true));
         ReflectionTestUtils.setField(request, "questions", List.of());
         surveyService.create(1L, 1L, request);
 
