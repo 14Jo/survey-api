@@ -1,8 +1,7 @@
 package com.example.surveyapi.domain.survey.application;
 
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDtailResponse;
+import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
-import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
@@ -14,7 +13,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +45,7 @@ class SurveyQueryServiceTest {
         Long surveyId = surveyService.create(1L, 1L, request);
 
         // when
-        SearchSurveyDtailResponse detail = surveyQueryService.findSurveyDetailById(surveyId);
+        SearchSurveyDetailResponse detail = surveyQueryService.findSurveyDetailById(surveyId);
 
         // then
         assertThat(detail).isNotNull();

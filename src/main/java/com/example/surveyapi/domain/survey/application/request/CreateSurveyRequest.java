@@ -12,14 +12,26 @@ import lombok.NoArgsConstructor;
 public class CreateSurveyRequest extends SurveyRequest {
 
 	@NotBlank(message = "설문 제목은 필수입니다.")
-	private String title;
+	@Override
+	public String getTitle() {
+		return super.getTitle();
+	}
 
 	@NotNull(message = "설문 타입은 필수입니다.")
-	private SurveyType surveyType;
+	@Override
+	public SurveyType getSurveyType() {
+		return super.getSurveyType();
+	}
 
 	@NotNull(message = "설문 기간은 필수입니다.")
-	private Duration surveyDuration;
+	@Override
+	public Duration getSurveyDuration() {
+		return super.getSurveyDuration();
+	}
 
 	@NotNull(message = "설문 옵션은 필수입니다.")
-	private Option surveyOption;
+	@Override
+	public Option getSurveyOption() {
+		return super.getSurveyOption();
+	}
 }
