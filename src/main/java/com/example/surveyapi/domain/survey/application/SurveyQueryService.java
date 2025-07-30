@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.survey.application;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -27,11 +28,14 @@ public class SurveyQueryService {
 
 	//TODO 질문(선택지) 표시 순서 정렬 쿼리 작성
 	@Transactional(readOnly = true)
-	public SearchSurveyDtailResponse findSurveyDetailById(Long surveyId) {
+	public SearchSurveyDtailResponse findSurveyDetailById(String authHeader, Long surveyId) {
 		SurveyDetail surveyDetail = surveyQueryRepository.getSurveyDetail(surveyId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
-		return SearchSurveyDtailResponse.from(surveyDetail);
+		Integer participationCount = port.getParticipationCounts(authHeader, List.of(surveyId))
+			.getSurveyPartCounts().get(surveyId.toString());
+
+		return SearchSurveyDtailResponse.from(surveyDetail, participationCount);
 	}
 
 	//TODO 참여수 연산 기능 구현 필요 있음
