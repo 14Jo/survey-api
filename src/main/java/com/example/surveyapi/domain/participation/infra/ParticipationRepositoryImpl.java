@@ -45,8 +45,8 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 	}
 
 	@Override
-	public Page<ParticipationInfo> findParticipationsInfo(Long memberId, Pageable pageable) {
-		return participationQueryRepository.findParticipationsInfo(memberId, pageable);
+	public Page<ParticipationInfo> findparticipationInfos(Long memberId, Pageable pageable) {
+		return participationQueryRepository.findparticipationInfos(memberId, pageable);
 	}
 
 	@Override
