@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.share.api;
 
+import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -27,7 +29,11 @@ public class ShareController {
 		@Valid @RequestBody CreateShareRequest request,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		ShareResponse response = shareService.createShare(request.getSurveyId(), creatorId, request.getShareMethod());
+		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		// TODO : 이벤트 처리 적용(위 리스트는 더미)
+		ShareResponse response = shareService.createShare(
+			request.getSurveyId(), creatorId,
+			request.getShareMethod(), recipientIds);
 
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
