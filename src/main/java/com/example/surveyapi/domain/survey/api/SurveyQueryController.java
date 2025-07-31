@@ -20,13 +20,13 @@ import com.example.surveyapi.global.util.ApiResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/survey")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SurveyQueryController {
 
 	private final SurveyQueryService surveyQueryService;
 
-	@GetMapping("/{surveyId}/detail")
+	@GetMapping("/v1/survey/{surveyId}/detail")
 	public ResponseEntity<ApiResponse<SearchSurveyDetailResponse>> getSurveyDetail(
 		@PathVariable Long surveyId,
 		@RequestHeader("Authorization") String authHeader
@@ -36,7 +36,7 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}
 
-	@GetMapping("/{projectId}/survey-list")
+	@GetMapping("/v1/survey/{projectId}/survey-list")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@PathVariable Long projectId,
 		@RequestParam(required = false) Long lastSurveyId,
@@ -48,7 +48,7 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
 	}
 
-	@GetMapping("/find-surveys")
+	@GetMapping("/v2/survey/find-surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@RequestParam List<Long> surveyIds
 	) {
@@ -57,7 +57,7 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveys));
 	}
 
-	@GetMapping("/find-status")
+	@GetMapping("/v2/survey/find-status")
 	public ResponseEntity<ApiResponse<SearchSurveyStatusResponse>> getSurveyStatus(
 		@RequestParam String surveyStatus
 	) {
