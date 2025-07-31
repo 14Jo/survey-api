@@ -14,6 +14,7 @@ public enum CustomErrorCode {
     ROLE_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "유효하지 않은 UserRole"),
     NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND,"토큰이 유효하지 않습니다."),
     NOT_FOUND_SURVEY(HttpStatus.NOT_FOUND, "설문이 존재하지 않습니다"),
+    STATUS_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 상태코드입니다."),
     BLACKLISTED_TOKEN(HttpStatus.NOT_FOUND,"블랙리스트 토큰입니다."),
     INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST,"토큰 타입이 잘못되었습니다."),
     ACCESS_TOKEN_NOT_EXPIRED(HttpStatus.BAD_REQUEST,"아직 액세스 토큰이 만료되지 않았습니다."),

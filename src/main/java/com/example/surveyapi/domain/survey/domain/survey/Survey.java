@@ -123,12 +123,12 @@ public class Survey extends AbstractRoot {
 
 	public void open() {
 		this.status = SurveyStatus.IN_PROGRESS;
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.status));
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.status, this.duration.getEndDate()));
 	}
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.status));
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.status, this.duration.getEndDate()));
 	}
 
 	public void delete() {
