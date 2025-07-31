@@ -7,7 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.survey.domain.query.QueryRepository;
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
+import com.example.surveyapi.domain.survey.domain.query.dto.SurveyStatusList;
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.infra.query.dsl.QueryDslRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -26,5 +28,15 @@ public class QueryRepositoryImpl implements QueryRepository {
 	@Override
 	public List<SurveyTitle> getSurveyTitles(Long projectId, Long lastSurveyId) {
 		return dslRepository.findSurveyTitlesInCursor(projectId, lastSurveyId);
+	}
+
+	@Override
+	public List<SurveyTitle> getSurveys(List<Long> surveyIds) {
+		return dslRepository.findSurveys(surveyIds);
+	}
+
+	@Override
+	public SurveyStatusList getSurveyStatusList(SurveyStatus surveyStatus) {
+		return dslRepository.findSurveyStatus(surveyStatus);
 	}
 }

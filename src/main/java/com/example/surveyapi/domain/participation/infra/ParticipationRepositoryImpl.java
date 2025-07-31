@@ -11,7 +11,8 @@ import org.springframework.stereotype.Repository;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.infra.dsl.ParticipationQueryRepositoryImpl;
+import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
+import com.example.surveyapi.domain.participation.infra.dsl.ParticipationQueryDslRepository;
 import com.example.surveyapi.domain.participation.infra.jpa.JpaParticipationRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class ParticipationRepositoryImpl implements ParticipationRepository {
 
 	private final JpaParticipationRepository jpaParticipationRepository;
-	private final ParticipationQueryRepositoryImpl participationQueryRepository;
+	private final ParticipationQueryDslRepository participationQueryRepository;
 
 	@Override
 	public Participation save(Participation participation) {
@@ -51,5 +52,10 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 	@Override
 	public Map<Long, Long> countsBySurveyIds(List<Long> surveyIds) {
 		return participationQueryRepository.countsBySurveyIds(surveyIds);
+	}
+
+	@Override
+	public List<QuestionAnswer> getAnswers(List<Long> questionIds) {
+		return participationQueryRepository.getAnswersByQuestionIds(questionIds);
 	}
 }

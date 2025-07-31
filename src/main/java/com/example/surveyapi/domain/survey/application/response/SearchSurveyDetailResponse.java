@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
@@ -17,8 +18,10 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SearchSurveyDetailResponse {
+	private Long surveyId;
 	private String title;
 	private String description;
+	private SurveyStatus status;
 	private Duration duration;
 	private Option option;
 	private Integer participationCount;
@@ -28,8 +31,10 @@ public class SearchSurveyDetailResponse {
 
 	public static SearchSurveyDetailResponse from(SurveyDetail surveyDetail, Integer count) {
 		SearchSurveyDetailResponse response = new SearchSurveyDetailResponse();
+		response.surveyId = surveyDetail.getSurveyId();
 		response.title = surveyDetail.getTitle();
 		response.description = surveyDetail.getDescription();
+		response.status = surveyDetail.getStatus();
 		response.duration = Duration.from(surveyDetail.getDuration());
 		response.option = Option.from(surveyDetail.getOption());
 		response.questions = surveyDetail.getQuestions().stream()
@@ -70,6 +75,7 @@ public class SearchSurveyDetailResponse {
 	@Getter
 	@NoArgsConstructor(access = AccessLevel.PRIVATE)
 	public static class QuestionResponse {
+		private Long questionId;
 		private String content;
 		private QuestionType questionType;
 		private boolean isRequired;
@@ -78,6 +84,7 @@ public class SearchSurveyDetailResponse {
 
 		public static QuestionResponse from(QuestionInfo questionInfo) {
 			QuestionResponse result = new QuestionResponse();
+			result.questionId = questionInfo.getQuestionId();
 			result.content = questionInfo.getContent();
 			result.questionType = questionInfo.getQuestionType();
 			result.isRequired = questionInfo.isRequired();
