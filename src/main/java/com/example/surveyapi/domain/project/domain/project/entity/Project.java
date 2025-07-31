@@ -132,17 +132,38 @@ public class Project extends BaseEntity {
 		registerEvent(new ProjectStateChangedEvent(this.id, newState));
 	}
 
+	public void autoUpdateState(ProjectState newState) {
+		checkNotClosedState();
+		this.state = newState;
+
+		registerEvent(new ProjectStateChangedEvent(this.id, newState));
+	}
+
+	public boolean shouldStart(LocalDateTime currentTime) {
+		return this.state == ProjectState.PENDING &&
+			this.period.getPeriodStart().isBefore(currentTime);
+	}
+
+	public boolean shouldEnd(LocalDateTime currentTime) {
+		return this.state == ProjectState.IN_PROGRESS &&
+			this.period.getPeriodEnd() != null &&
+			this.period.getPeriodEnd().isBefore(currentTime);
+	}
+
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
 		checkNotClosedState();
 		checkOwner(currentUserId);
-		// 소유자 위임
-		ProjectManager newOwner = findManagerByUserId(newOwnerId);
-		newOwner.updateRole(ManagerRole.OWNER);
-		this.ownerId = newOwnerId;
 
-		// 기존 소유자는 READ 권한으로 변경
 		ProjectManager previousOwner = findManagerByUserId(this.ownerId);
+		ProjectManager newOwner = findManagerByUserId(newOwnerId);
+
+		if (previousOwner.getUserId().equals(newOwnerId)) {
+			throw new CustomException(CustomErrorCode.CANNOT_TRANSFER_TO_SELF);
+		}
+
+		newOwner.updateRole(ManagerRole.OWNER);
 		previousOwner.updateRole(ManagerRole.READ);
+		this.ownerId = newOwnerId;
 	}
 
 	public void softDelete(Long currentUserId) {
@@ -229,7 +250,8 @@ public class Project extends BaseEntity {
 		checkNotClosedState();
 		// 중복 가입 체크
 		boolean exists = this.projectMembers.stream()
-			.anyMatch(projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted());
+			.anyMatch(
+				projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted());
 		if (exists) {
 			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MEMBER);
 		}
