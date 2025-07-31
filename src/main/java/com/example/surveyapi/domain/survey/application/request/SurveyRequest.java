@@ -45,6 +45,11 @@ public abstract class SurveyRequest {
 		return isValidDuration() && surveyDuration.getEndDate().isAfter(LocalDateTime.now());
 	}
 
+	@AssertTrue(message = "시작 일은 현재 보다 이후 여야 합니다.")
+	public boolean isStartAfterNow() {
+		return isValidDuration() && surveyDuration.getStartDate().isAfter(LocalDateTime.now());
+	}
+
 	@Getter
 	public static class Duration {
 		private LocalDateTime startDate;

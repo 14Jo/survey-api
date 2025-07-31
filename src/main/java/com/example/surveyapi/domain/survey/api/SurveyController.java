@@ -39,15 +39,15 @@ public class SurveyController {
 			.body(ApiResponse.success("설문 생성 성공", surveyId));
 	}
 
-	//TODO 수정자 ID 구현 필요
 	@PatchMapping("/{surveyId}/open")
 	public ResponseEntity<ApiResponse<String>> open(
 		@PathVariable Long surveyId,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		String result = surveyService.open(surveyId, creatorId);
+		surveyService.open(surveyId, creatorId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", result));
+		return ResponseEntity.status(HttpStatus.OK)
+		.body(ApiResponse.success("설문 시작 성공", "X"));
 	}
 
 	@PatchMapping("/{surveyId}/close")
@@ -55,29 +55,30 @@ public class SurveyController {
 		@PathVariable Long surveyId,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		String result = surveyService.close(surveyId, creatorId);
+		surveyService.close(surveyId, creatorId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 종료 성공", result));
+		return ResponseEntity.status(HttpStatus.OK)
+		.body(ApiResponse.success("설문 종료 성공", "X"));
 	}
 
 	@PutMapping("/{surveyId}/update")
-	public ResponseEntity<ApiResponse<String>> update(
+	public ResponseEntity<ApiResponse<Long>> update(
 		@PathVariable Long surveyId,
 		@Valid @RequestBody UpdateSurveyRequest request,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		String result = surveyService.update(surveyId, creatorId, request);
+		Long updatedSurveyId = surveyService.update(surveyId, creatorId, request);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 수정 성공", result));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 수정 성공", updatedSurveyId));
 	}
 
 	@DeleteMapping("/{surveyId}/delete")
-	public ResponseEntity<ApiResponse<String>> delete(
+	public ResponseEntity<ApiResponse<Long>> delete(
 		@PathVariable Long surveyId,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		String result = surveyService.delete(surveyId, creatorId);
+		Long deletedSurveyId = surveyService.delete(surveyId, creatorId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", result));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", deletedSurveyId));
 	}
 }

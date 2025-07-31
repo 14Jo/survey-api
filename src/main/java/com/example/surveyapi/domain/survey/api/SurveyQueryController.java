@@ -19,6 +19,7 @@ import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 
+//TODO 삭제된 설문을 조회하려고 하면 NOTFOUND 처리
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor

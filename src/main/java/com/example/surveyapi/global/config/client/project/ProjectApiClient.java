@@ -15,4 +15,9 @@ public interface ProjectApiClient {
 	ExternalApiResponse getProjectMembers(
 		@PathVariable Long projectId
 	);
+
+	@GetExchange("/api/v2/projects/{projectId}/state")
+	ExternalApiResponse getProjectState(
+		@PathVariable Long projectId
+	);
 }
