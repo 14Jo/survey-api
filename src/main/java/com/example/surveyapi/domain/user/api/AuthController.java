@@ -61,10 +61,10 @@ public class AuthController {
 
     @PostMapping("/auth/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-        @RequestHeader("Authorization") String token,
+        @RequestHeader("Authorization") String authHeader,
         @AuthenticationPrincipal Long userId
     ) {
-        userService.logout(token, userId);
+        userService.logout(authHeader, userId);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("로그아웃 되었습니다.", null));
