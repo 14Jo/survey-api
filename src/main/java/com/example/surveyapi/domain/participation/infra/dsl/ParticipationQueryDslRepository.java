@@ -25,7 +25,7 @@ public class ParticipationQueryDslRepository {
 
 	private final JPAQueryFactory queryFactory;
 
-	public Page<ParticipationInfo> findParticipationsInfo(Long memberId, Pageable pageable) {
+	public Page<ParticipationInfo> findparticipationInfos(Long memberId, Pageable pageable) {
 		List<ParticipationInfo> participations = queryFactory
 			.select(Projections.constructor(
 				ParticipationInfo.class,

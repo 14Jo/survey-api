@@ -57,7 +57,7 @@ public class ParticipationService {
 
 	@Transactional(readOnly = true)
 	public Page<ParticipationInfoResponse> gets(Long memberId, Pageable pageable) {
-		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationsInfo(memberId,
+		Page<ParticipationInfo> participationInfos = participationRepository.findparticipationInfos(memberId,
 			pageable);
 
 		List<Long> surveyIds = participationInfos.getContent().stream()
@@ -126,6 +126,8 @@ public class ParticipationService {
 
 		participation.validateOwner(loginMemberId);
 
+		// TODO: Response에 allowResponseUpdate 추가(그럼 SurveyStatus, endDate도?) -> 기존 설문 유효성 검증에 추가
+
 		return ParticipationDetailResponse.from(participation);
 	}
 
@@ -135,6 +137,8 @@ public class ParticipationService {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
 
 		participation.validateOwner(loginMemberId);
+
+		// TODO: 설문이 유효한 상태인지 설문 정보 필요(create와 동일한 유효성 검증) + 수정이 가능한지(allowResponseUpdate)
 
 		List<Response> responses = request.getResponseDataList().stream()
 			.map(responseData -> Response.create(responseData.getQuestionId(), responseData.getAnswer()))
