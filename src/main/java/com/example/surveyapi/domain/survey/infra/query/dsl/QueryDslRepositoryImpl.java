@@ -11,6 +11,7 @@ import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
 import com.example.surveyapi.domain.survey.domain.question.QQuestion;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.QSurvey;
+import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -28,7 +29,7 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 		QSurvey survey = QSurvey.survey;
 		QQuestion question = QQuestion.question;
 
-		var surveyResult = jpaQueryFactory
+		Survey surveyResult = jpaQueryFactory
 			.selectFrom(survey)
 			.where(survey.surveyId.eq(surveyId))
 			.fetchOne();
@@ -55,10 +56,7 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 			.toList();
 
 		SurveyDetail detail = SurveyDetail.of(
-			surveyResult.getTitle(),
-			surveyResult.getDescription(),
-			surveyResult.getDuration(),
-			surveyResult.getOption(),
+			surveyResult,
 			questions
 		);
 
