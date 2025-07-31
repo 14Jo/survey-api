@@ -29,6 +29,17 @@ spring:
 logging:
   level:
     org.springframework.security: DEBUG
+
+oauth:
+  kakao:
+    client-id: ${CLIENT_ID}
+    redirect-uri: ${REDIRECT_URL}
+    token-uri: https://kauth.kakao.com/oauth/token
+    user-info-uri: https://kapi.kakao.com/v2/user/me
+
+
+
+
 ---
 # 운영(prod) 프로필 - PostgreSQL (EC2 등 외부 서버) 설정
 spring:
