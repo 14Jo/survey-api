@@ -14,6 +14,8 @@ import com.example.surveyapi.global.exception.CustomException;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.util.List;
+
 @ExtendWith(MockitoExtension.class)
 class ShareDomainServiceTest {
 	private ShareDomainService shareDomainService;
@@ -30,9 +32,10 @@ class ShareDomainServiceTest {
 		Long surveyId = 1L;
 		Long creatorId = 1L;
 		ShareMethod shareMethod = ShareMethod.URL;
+		List<Long> recipientIds = List.of(2L, 3L, 4L);
 
 		//when
-		Share share = shareDomainService.createShare(surveyId, creatorId, shareMethod);
+		Share share = shareDomainService.createShare(surveyId, creatorId, shareMethod, recipientIds);
 
 		//then
 		assertThat(share).isNotNull();
@@ -64,9 +67,10 @@ class ShareDomainServiceTest {
 		Long surveyId = 1L;
 		Long creatorId = 1L;
 		ShareMethod shareMethod = ShareMethod.EMAIL;
+		List<Long> recipientIds = List.of(2L, 3L, 4L);
 
 		//when
-		Share share = shareDomainService.createShare(surveyId, creatorId, shareMethod);
+		Share share = shareDomainService.createShare(surveyId, creatorId, shareMethod, recipientIds);
 
 		//then
 		assertThat(share).isNotNull();
