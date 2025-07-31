@@ -11,8 +11,11 @@ import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
+import com.example.surveyapi.domain.user.domain.user.event.UserWithdrawEvent;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -25,6 +28,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -55,6 +59,10 @@ public class User extends BaseEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Demographics demographics;
+
+    @Transient
+    private UserWithdrawEvent userWithdrawEvent;
+
 
     private User(Profile profile) {
         this.profile = profile;
@@ -134,5 +142,20 @@ public class User extends BaseEntity {
         }
 
         this.setUpdatedAt(LocalDateTime.now());
+    }
+
+    public void registerUserWithdrawEvent() {
+        this.userWithdrawEvent = new UserWithdrawEvent(this.id);
+    }
+
+    public UserWithdrawEvent getUserWithdrawEvent() {
+        if(userWithdrawEvent == null){
+            throw new CustomException(CustomErrorCode.SERVER_ERROR);
+        }
+        return userWithdrawEvent;
+    }
+
+    public void clearUserWithdrawEvent() {
+        this.userWithdrawEvent = null;
     }
 }

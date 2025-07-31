@@ -18,6 +18,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.util.ApiResponse;
 
+import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -27,74 +28,80 @@ import lombok.extern.slf4j.Slf4j;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-	// @RequestBody
-	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(
-		MethodArgumentNotValidException e
-	) {
-		log.warn("Validation failed : {}", e.getMessage());
+    // @RequestBody
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodArgumentNotValidException(
+        MethodArgumentNotValidException e
+    ) {
+        log.warn("Validation failed : {}", e.getMessage());
 
-		Map<String, String> errors = new HashMap<>();
+        Map<String, String> errors = new HashMap<>();
 
-		e.getBindingResult().getFieldErrors()
-			.forEach((fieldError) -> {
-				errors.put(fieldError.getField(), fieldError.getDefaultMessage());
-			});
+        e.getBindingResult().getFieldErrors()
+            .forEach((fieldError) -> {
+                errors.put(fieldError.getField(), fieldError.getDefaultMessage());
+            });
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(ApiResponse.error("요청 데이터 검증에 실패하였습니다.", errors));
-	}
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("요청 데이터 검증에 실패하였습니다.", errors));
+    }
 
-	@ExceptionHandler(CustomException.class)
-	protected ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e) {
-		return ResponseEntity.status(e.getErrorCode().getHttpStatus())
-			.body(ApiResponse.error(e.getErrorCode().getMessage()));
-	}
+    @ExceptionHandler(CustomException.class)
+    protected ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException e) {
+        return ResponseEntity.status(e.getErrorCode().getHttpStatus())
+            .body(ApiResponse.error(e.getErrorCode().getMessage()));
+    }
 
-	@ExceptionHandler(AccessDeniedException.class)
-	public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e) {
-		return ResponseEntity.status(CustomErrorCode.ACCESS_DENIED.getHttpStatus())
-			.body(ApiResponse.error(CustomErrorCode.ACCESS_DENIED.getMessage()));
-	}
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e) {
+        return ResponseEntity.status(CustomErrorCode.ACCESS_DENIED.getHttpStatus())
+            .body(ApiResponse.error(CustomErrorCode.ACCESS_DENIED.getMessage()));
+    }
 
-	@ExceptionHandler(HttpMessageNotReadableException.class)
-	public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(ApiResponse.error("요청 데이터의 타입이 올바르지 않습니다."));
-	}
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("요청 데이터의 타입이 올바르지 않습니다."));
+    }
 
-	@ExceptionHandler(Exception.class)
-	protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
-		return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
-			.body(ApiResponse.error(e.getMessage()));
-	}
+    @ExceptionHandler(JwtException.class)
+    public ResponseEntity<ApiResponse<Void>> handleJwtException(JwtException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+            .body(ApiResponse.error("토큰이 유효하지 않습니다."));
+    }
 
-	// @PathVariable, @RequestParam
-	@ExceptionHandler(HandlerMethodValidationException.class)
-	public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodValidationException(
-		HandlerMethodValidationException e
-	) {
-		log.warn("Parameter validation failed: {}", e.getMessage());
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
+            .body(ApiResponse.error("알 수 없는 오류"));
+    }
 
-		Map<String, String> errors = new HashMap<>();
+    // @PathVariable, @RequestParam
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleMethodValidationException(
+        HandlerMethodValidationException e
+    ) {
+        log.warn("Parameter validation failed: {}", e.getMessage());
 
-		for (MessageSourceResolvable error : e.getAllErrors()) {
-			String fieldName = resolveFieldName(error);
-			String message = Objects.requireNonNullElse(error.getDefaultMessage(), "잘못된 요청입니다.");
+        Map<String, String> errors = new HashMap<>();
 
-			errors.merge(fieldName, message, (existing, newMsg) -> existing + ", " + newMsg);
-		}
+        for (MessageSourceResolvable error : e.getAllErrors()) {
+            String fieldName = resolveFieldName(error);
+            String message = Objects.requireNonNullElse(error.getDefaultMessage(), "잘못된 요청입니다.");
 
-		if (errors.isEmpty()) {
-			errors.put("parameter", "파라미터 검증에 실패했습니다");
-		}
+            errors.merge(fieldName, message, (existing, newMsg) -> existing + ", " + newMsg);
+        }
 
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-			.body(ApiResponse.error("요청 파라미터 검증에 실패하였습니다.", errors));
-	}
+        if (errors.isEmpty()) {
+            errors.put("parameter", "파라미터 검증에 실패했습니다");
+        }
 
-	// 필드 이름 추출 메서드
-	private String resolveFieldName(MessageSourceResolvable error) {
-		return (error instanceof FieldError fieldError) ? fieldError.getField() : "parameter";
-	}
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiResponse.error("요청 파라미터 검증에 실패하였습니다.", errors));
+    }
+
+    // 필드 이름 추출 메서드
+    private String resolveFieldName(MessageSourceResolvable error) {
+        return (error instanceof FieldError fieldError) ? fieldError.getField() : "parameter";
+    }
 }
