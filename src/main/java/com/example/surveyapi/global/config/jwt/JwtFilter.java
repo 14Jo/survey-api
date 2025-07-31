@@ -3,6 +3,8 @@ package com.example.surveyapi.global.config.jwt;
 import java.io.IOException;
 import java.util.List;
 
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,16 +27,23 @@ import lombok.extern.slf4j.Slf4j;
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
         FilterChain filterChain) throws ServletException, IOException {
 
-        try{
-            String token = resolveToken(request);
+        String token = resolveToken(request);
 
+        String blackListToken = "blackListToken" + token;
+        if(Boolean.TRUE.equals(redisTemplate.hasKey(blackListToken))){
+            request.setAttribute("exceptionMessage", "로그아웃한 유저입니다.");
+            throw new InsufficientAuthenticationException("로그아웃한 유저입니다.");
+        }
+
+        try{
             if (token != null && jwtUtil.validateToken(token)) {
-                Claims claims = jwtUtil.extractToken(token);
+                Claims claims = jwtUtil.extractClaims(token);
 
                 Long userId = Long.parseLong(claims.getSubject());
                 Role userRole = Role.valueOf(claims.get("userRole", String.class));
