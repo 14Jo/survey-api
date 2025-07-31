@@ -136,7 +136,7 @@ public class UserService {
         return UpdateUserResponse.from(user);
     }
 
-    // Todo 회원 탈퇴 시 통계, 공유(알림)에 이벤트..? (@UserWithdraw)
+    // Todo 회원 탈퇴 시 이벤트 -> @UserWithdraw 어노테이션을 붙이기만 하면 됩니다.
     @Transactional
     public void withdraw(Long userId, UserWithdrawRequest request, String authHeader) {
 
@@ -147,14 +147,12 @@ public class UserService {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
         }
 
-        log.info("프로젝트 조회 시도");
         List<MyProjectRoleResponse> myRoleList = projectPort.getProjectMyRole(authHeader, userId);
         log.info("프로젝트 조회 성공 : {}", myRoleList.size() );
 
         for (MyProjectRoleResponse myRole : myRoleList) {
             log.info("권한 : {}", myRole.getMyRole());
             if ("OWNER".equals(myRole.getMyRole())) {
-                log.warn("OWNER 권한 존재");
                 throw new CustomException(CustomErrorCode.PROJECT_ROLE_OWNER);
             }
         }
@@ -162,7 +160,6 @@ public class UserService {
         int page = 0;
         int size = 20;
 
-        log.info("설문 참여 상태 조회 시도");
         List<UserSurveyStatusResponse> surveyStatus =
             participationPort.getParticipationSurveyStatus(authHeader, userId, page, size);
         log.info("설문 참여 상태 수: {}", surveyStatus.size());
@@ -170,19 +167,20 @@ public class UserService {
         for (UserSurveyStatusResponse survey : surveyStatus) {
             log.info("설문 상태: {}", survey.getSurveyStatus());
             if ("IN_PROGRESS".equals(survey.getSurveyStatus())) {
-                log.warn("진행 중인 설문 있음");
                 throw new CustomException(CustomErrorCode.SURVEY_IN_PROGRESS);
             }
         }
 
         user.delete();
-        log.info("회원 탈퇴 처리 완료");
+
+        // 상위 트랜잭션이 유지됨
+        logout(authHeader,userId);
     }
 
     @Transactional
-    public void logout(String bearerAccessToken, Long userId) {
+    public void logout(String authHeader, Long userId) {
 
-        String accessToken = jwtUtil.subStringToken(bearerAccessToken);
+        String accessToken = jwtUtil.subStringToken(authHeader);
 
         validateTokenType(accessToken, "access");
 
@@ -193,8 +191,8 @@ public class UserService {
     }
 
     @Transactional
-    public LoginResponse reissue(String bearerAccessToken, String bearerRefreshToken) {
-        String accessToken = jwtUtil.subStringToken(bearerAccessToken);
+    public LoginResponse reissue(String authHeader, String bearerRefreshToken) {
+        String accessToken = jwtUtil.subStringToken(authHeader);
         String refreshToken = jwtUtil.subStringToken(bearerRefreshToken);
 
         Claims refreshClaims = jwtUtil.extractClaims(refreshToken);
