@@ -75,6 +75,7 @@ public class SearchSurveyDetailResponse {
 	@Getter
 	@NoArgsConstructor(access = AccessLevel.PRIVATE)
 	public static class QuestionResponse {
+		private Long questionId;
 		private String content;
 		private QuestionType questionType;
 		private boolean isRequired;
@@ -83,6 +84,7 @@ public class SearchSurveyDetailResponse {
 
 		public static QuestionResponse from(QuestionInfo questionInfo) {
 			QuestionResponse result = new QuestionResponse();
+			result.questionId = questionInfo.getQuestionId();
 			result.content = questionInfo.getContent();
 			result.questionType = questionInfo.getQuestionType();
 			result.isRequired = questionInfo.isRequired();

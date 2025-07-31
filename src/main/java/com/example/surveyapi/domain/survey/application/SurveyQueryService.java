@@ -31,7 +31,6 @@ public class SurveyQueryService {
 	private final QueryRepository surveyQueryRepository;
 	private final ParticipationPort port;
 
-	//TODO 질문(선택지) 표시 순서 정렬 쿼리 작성
 	@Transactional(readOnly = true)
 	public SearchSurveyDetailResponse findSurveyDetailById(String authHeader, Long surveyId) {
 		SurveyDetail surveyDetail = surveyQueryRepository.getSurveyDetail(surveyId)
