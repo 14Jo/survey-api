@@ -7,6 +7,8 @@ import java.util.function.Consumer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.client.ProjectPort;
+import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
@@ -21,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 public class SurveyService {
 
 	private final SurveyRepository surveyRepository;
+	private final ProjectPort projectPort;
 
 	@Transactional
 	public Long create(
@@ -28,6 +31,12 @@ public class SurveyService {
 		Long creatorId,
 		CreateSurveyRequest request
 	) {
+		//TODO 쓰기권한 체크 요청해야함
+		ProjectValidDto projectValid = projectPort.getProjectMembers(projectId, creatorId);
+		if (!projectValid.getValid()) {
+			throw new CustomException(CustomErrorCode.INVALID_PERMISSION);
+		}
+
 		Survey survey = Survey.create(
 			projectId, creatorId,
 			request.getTitle(), request.getDescription(), request.getSurveyType(),
@@ -69,7 +78,8 @@ public class SurveyService {
 			modifiedCount++;
 		}
 		if (request.getQuestions() != null) {
-			updateFields.put("questions", request.getQuestions().stream().map(UpdateSurveyRequest.QuestionRequest::toQuestionInfo).toList());
+			updateFields.put("questions",
+				request.getQuestions().stream().map(UpdateSurveyRequest.QuestionRequest::toQuestionInfo).toList());
 		}
 
 		survey.updateFields(updateFields);

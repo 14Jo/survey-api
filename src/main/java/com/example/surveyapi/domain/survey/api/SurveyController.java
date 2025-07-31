@@ -27,7 +27,6 @@ public class SurveyController {
 
 	private final SurveyService surveyService;
 
-	//TODO 생성자 ID 구현 필요
 	@PostMapping("/{projectId}/create")
 	public ResponseEntity<ApiResponse<Long>> create(
 		@PathVariable Long projectId,
