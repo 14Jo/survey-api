@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
+import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.AnswerGroupResponse;
@@ -32,7 +34,9 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ParticipationService {
@@ -49,9 +53,12 @@ public class ParticipationService {
 		validateSurveyActive(surveyDetail);
 
 		// TODO: memberId가 설문의 대상이 맞는지 공유에 검증 요청
-		// TODO: 문항과 답변 유효성 검사
+
 		List<ResponseData> responseDataList = request.getResponseDataList();
 		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
+
+		// 문항과 답변 유효성 검증
+		validateQuestionsAndAnswers(responseDataList, questions);
 
 		// TODO: 멤버의 participantInfo 스냅샷 설정을 위해 Member에 요청, REST 통신으로 받아온 json 데이터를 dto로 받을지 고려하고
 		// TODO: participantInfo를 도메인 create 에서 생성하도록 수정
@@ -136,7 +143,7 @@ public class ParticipationService {
 	public void update(String authHeader, Long loginMemberId, Long participationId,
 		CreateParticipationRequest request) {
 		Participation participation = getParticipationOrThrow(participationId);
-		// TODO: userId, surveyId만 가져오고 비교할지 고려
+		// TODO: userId, surveyId만 최소한으로 가져오고 검증할지 고려
 
 		participation.validateOwner(loginMemberId);
 
@@ -145,9 +152,13 @@ public class ParticipationService {
 		validateSurveyActive(surveyDetail);
 		validateAllowUpdate(surveyDetail);
 
-		// TODO: 문항과 답변 유효성 검사
+		List<ResponseData> responseDataList = request.getResponseDataList();
+		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
 
-		List<Response> responses = request.getResponseDataList().stream()
+		// 문항과 답변 유효성 검사
+		validateQuestionsAndAnswers(responseDataList, questions);
+
+		List<Response> responses = responseDataList.stream()
 			.map(responseData -> Response.create(responseData.getQuestionId(), responseData.getAnswer()))
 			.toList();
 
@@ -203,5 +214,89 @@ public class ParticipationService {
 		if (!surveyDetail.getOption().isAllowResponseUpdate()) {
 			throw new CustomException(CustomErrorCode.CANNOT_UPDATE_RESPONSE);
 		}
+	}
+
+	private void validateQuestionsAndAnswers(
+		List<ResponseData> responseDataList,
+		List<SurveyDetailDto.QuestionValidationInfo> questions
+	) {
+		// 응답한 questionIds와 설문의 questionIds가 일치하는지 검증, answer = null 이여도 questionId는 존재해야 한다.
+		validateQuestionIds(responseDataList, questions);
+
+		Map<Long, SurveyDetailDto.QuestionValidationInfo> questionMap = questions.stream()
+			.collect(Collectors.toMap(SurveyDetailDto.QuestionValidationInfo::getQuestionId, q -> q));
+
+		for (ResponseData response : responseDataList) {
+			Long questionId = response.getQuestionId();
+			SurveyDetailDto.QuestionValidationInfo question = questionMap.get(questionId);
+			Map<String, Object> answer = response.getAnswer();
+
+			boolean validatedAnswerValue = validateAnswerValue(answer, question.getQuestionType());
+			log.info("is_required: {}", question.isRequired());
+
+			if (!validatedAnswerValue && !isEmpty(answer)) {
+				log.info("INVALID_ANSWER_TYPE questionId : {}", questionId);
+				throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+			}
+
+			if (question.isRequired() && (isEmpty(answer))) {
+				log.info("REQUIRED_QUESTION_NOT_ANSWERED questionId : {}", questionId);
+				throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
+			}
+		}
+	}
+
+	private void validateQuestionIds(
+		List<ResponseData> responseDataList,
+		List<SurveyDetailDto.QuestionValidationInfo> questions
+	) {
+		Set<Long> surveyQuestionIds = questions.stream()
+			.map(SurveyDetailDto.QuestionValidationInfo::getQuestionId)
+			.collect(Collectors.toSet());
+
+		Set<Long> responseQuestionIds = responseDataList.stream()
+			.map(ResponseData::getQuestionId)
+			.collect(Collectors.toSet());
+
+		if (!surveyQuestionIds.equals(responseQuestionIds)) {
+			throw new CustomException(CustomErrorCode.INVALID_SURVEY_QUESTION);
+		}
+	}
+
+	private boolean validateAnswerValue(Map<String, Object> answer, SurveyApiQuestionType questionType) {
+		if (answer == null || answer.isEmpty()) {
+			return true;
+		}
+
+		Object value = answer.values().iterator().next();
+		if (value == null) {
+			return true;
+		}
+
+		return switch (questionType) {
+			case SINGLE_CHOICE -> answer.containsKey("choice") && value instanceof List;
+			case MULTIPLE_CHOICE -> answer.containsKey("choices") && value instanceof List;
+			case SHORT_ANSWER, LONG_ANSWER -> answer.containsKey("textAnswer") && value instanceof String;
+			default -> false;
+		};
+	}
+
+	private boolean isEmpty(Map<String, Object> answer) {
+		if (answer == null || answer.isEmpty()) {
+			return true;
+		}
+		Object value = answer.values().iterator().next();
+
+		if (value == null) {
+			return true;
+		}
+		if (value instanceof String) {
+			return ((String)value).isBlank();
+		}
+		if (value instanceof List) {
+			return ((List<?>)value).isEmpty();
+		}
+
+		return false;
 	}
 }
