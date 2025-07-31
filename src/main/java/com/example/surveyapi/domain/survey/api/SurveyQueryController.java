@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.survey.application.SurveyQueryService;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
+import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
@@ -41,17 +42,27 @@ public class SurveyQueryController {
 		@RequestParam(required = false) Long lastSurveyId,
 		@RequestHeader("Authorization") String authHeader
 	) {
-		List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(authHeader, projectId, lastSurveyId);
+		List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(authHeader,
+			projectId, lastSurveyId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
 	}
 
-	@GetMapping("surveys")
+	@GetMapping("/surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@RequestParam List<Long> surveyIds
 	) {
 		List<SearchSurveyTitleResponse> surveys = surveyQueryService.findSurveys(surveyIds);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveys));
+	}
+
+	@GetMapping("/survey/status")
+	public ResponseEntity<ApiResponse<SearchSurveyStatusResponse>> getSurveyStatus(
+		@RequestParam String surveyStatus
+	) {
+		SearchSurveyStatusResponse bySurveyStatus = surveyQueryService.findBySurveyStatus(surveyStatus);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", bySurveyStatus));
 	}
 }
