@@ -1,9 +1,11 @@
 package com.example.surveyapi.domain.project.application;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,13 +23,16 @@ import com.example.surveyapi.domain.project.application.dto.response.ProjectMemb
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectSearchInfoResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProjectService {
@@ -154,6 +159,47 @@ public class ProjectService {
 	public void leaveProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
+	}
+
+	@Scheduled(cron = "0 0 0 * * *") // 매일 00시 실행
+	@Transactional
+	public void updateProjectStates() {
+		updatePendingProjects(LocalDateTime.now());
+		updateInProgressProjects(LocalDateTime.now());
+	}
+
+	private void updatePendingProjects(LocalDateTime now) {
+		List<Project> pendingProjects = projectRepository.findByStateAndIsDeletedFalse(ProjectState.PENDING);
+
+		for (Project project : pendingProjects) {
+			try {
+				if (project.shouldStart(now)) {
+					project.autoUpdateState(ProjectState.IN_PROGRESS);
+					project.pullDomainEvents().forEach(projectEventPublisher::publish);
+
+					log.debug("프로젝트 상태 변경: {} - PENDING -> IN_PROGRESS", project.getId());
+				}
+			} catch (Exception e) {
+				log.error("프로젝트 상태 변경 실패 - Project ID: {}, Error: {}", project.getId(), e.getMessage());
+			}
+		}
+	}
+
+	private void updateInProgressProjects(LocalDateTime now) {
+		List<Project> inProgressProjects = projectRepository.findByStateAndIsDeletedFalse(ProjectState.IN_PROGRESS);
+
+		for (Project project : inProgressProjects) {
+			try {
+				if (project.shouldEnd(now)) {
+					project.autoUpdateState(ProjectState.CLOSED);
+					project.pullDomainEvents().forEach(projectEventPublisher::publish);
+
+					log.debug("프로젝트 상태 변경: {} - IN_PROGRESS -> CLOSED", project.getId());
+				}
+			} catch (Exception e) {
+				log.error("프로젝트 상태 변경 실패 - Project ID: {}, Error: {}", project.getId(), e.getMessage());
+			}
+		}
 	}
 
 	private void validateDuplicateName(String name) {
