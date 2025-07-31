@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.participation.infra.dsl;
 
 import static com.example.surveyapi.domain.participation.domain.participation.QParticipation.*;
+import static com.example.surveyapi.domain.participation.domain.response.QResponse.*;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationQueryRepository;
+import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -20,11 +21,10 @@ import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class ParticipationQueryRepositoryImpl implements ParticipationQueryRepository {
+public class ParticipationQueryDslRepository {
 
 	private final JPAQueryFactory queryFactory;
 
-	@Override
 	public Page<ParticipationInfo> findParticipationsInfo(Long memberId, Pageable pageable) {
 		List<ParticipationInfo> participations = queryFactory
 			.select(Projections.constructor(
@@ -48,7 +48,6 @@ public class ParticipationQueryRepositoryImpl implements ParticipationQueryRepos
 		return new PageImpl<>(participations, pageable, total);
 	}
 
-	@Override
 	public Map<Long, Long> countsBySurveyIds(List<Long> surveyIds) {
 		Map<Long, Long> map = queryFactory
 			.select(participation.surveyId, participation.id.count())
@@ -66,5 +65,28 @@ public class ParticipationQueryRepositoryImpl implements ParticipationQueryRepos
 		}
 
 		return map;
+	}
+
+	public List<QuestionAnswer> getAnswersByQuestionIds(List<Long> questionIds) {
+		List<QuestionAnswer> fetch = queryFactory
+			.select(Projections.constructor(
+				QuestionAnswer.class,
+				response.questionId,
+				response.answer
+			))
+			.from(response)
+			.where(response.questionId.in(questionIds))
+			.groupBy(response.questionId)
+			.fetch();
+
+		return queryFactory
+			.select(Projections.constructor(
+				QuestionAnswer.class,
+				response.questionId,
+				response.answer
+			))
+			.from(response)
+			.where(response.questionId.in(questionIds))
+			.fetch();
 	}
 }
