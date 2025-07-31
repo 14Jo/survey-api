@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface ParticipationQueryRepository {
 
-	Page<ParticipationInfo> findparticipationInfos(Long memberId, Pageable pageable);
+	Page<ParticipationInfo> findParticipationInfos(Long memberId, Pageable pageable);
 
 	Map<Long, Long> countsBySurveyIds(List<Long> surveyIds);
 
