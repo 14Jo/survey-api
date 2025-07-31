@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.participation.application.ParticipationService;
+import com.example.surveyapi.domain.participation.application.dto.response.AnswerGroupResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -30,5 +31,15 @@ public class ParticipationInternalController {
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("참여 count 성공", counts));
+	}
+
+	@GetMapping("/participations/answers")
+	public ResponseEntity<ApiResponse<List<AnswerGroupResponse>>> getAnswers(
+		@RequestParam List<Long> questionIds
+	) {
+		List<AnswerGroupResponse> result = participationService.getAnswers(questionIds);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("질문 목록 별 답변 조회 성공", result));
 	}
 }
