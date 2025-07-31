@@ -184,22 +184,17 @@ public class Project extends BaseEntity {
 		registerEvent(new ProjectDeletedEvent(this.id, this.name));
 	}
 
-	public void addManager(Long currentUserId, Long userId) {
+	public void addManager(Long currentUserId) {
 		checkNotClosedState();
-		// 권한 체크 OWNER, WRITE, STAT만 가능
-		ManagerRole myRole = findManagerByUserId(currentUserId).getRole();
-		if (myRole == ManagerRole.READ) {
-			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
-		}
 
-		// 이미 담당자로 등록되어있다면 중복 등록 불가
+		// 중복 가입 체크
 		boolean exists = this.projectManagers.stream()
-			.anyMatch(manager -> manager.getUserId().equals(userId) && !manager.getIsDeleted());
+			.anyMatch(manager -> manager.getUserId().equals(currentUserId) && !manager.getIsDeleted());
 		if (exists) {
 			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MANAGER);
 		}
 
-		ProjectManager newProjectManager = ProjectManager.create(this, userId);
+		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
 	}
 

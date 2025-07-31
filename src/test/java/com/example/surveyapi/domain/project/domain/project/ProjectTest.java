@@ -140,7 +140,7 @@ class ProjectTest {
 	void 프로젝트_소유자_위임_정상() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 
 		// when
 		project.updateOwner(1L, 2L);
@@ -157,7 +157,7 @@ class ProjectTest {
 	void 프로젝트_소프트_삭제_정상() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 
 		// when
 		project.softDelete(1L);
