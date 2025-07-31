@@ -12,13 +12,15 @@ import lombok.NoArgsConstructor;
 public class LoginResponse {
 
     private String accessToken;
+    private String refreshToken;
     private MemberResponse member;
 
     public static LoginResponse of(
-        String token, User user
+        String accessToken, String refreshToken, User user
     ) {
         LoginResponse dto = new LoginResponse();
-        dto.accessToken = token;
+        dto.accessToken = accessToken;
+        dto.refreshToken = refreshToken;
         dto.member = MemberResponse.from(user);
 
         return dto;

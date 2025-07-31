@@ -10,6 +10,7 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 
 public interface ProjectRepository {
 
@@ -24,4 +25,6 @@ public interface ProjectRepository {
 	Page<ProjectSearchResult> searchProjects(String keyword, Pageable pageable);
 
 	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
+
+	List<Project> findByStateAndIsDeletedFalse(ProjectState projectState);
 }

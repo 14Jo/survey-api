@@ -3,9 +3,13 @@ package com.example.surveyapi.domain.user.application;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.DisplayName;
@@ -16,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -36,6 +40,9 @@ import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
+import com.example.surveyapi.global.config.client.ExternalApiResponse;
+import com.example.surveyapi.global.config.client.participation.ParticipationApiClient;
+import com.example.surveyapi.global.config.client.project.ProjectApiClient;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -61,6 +68,12 @@ public class UserServiceTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @MockitoBean
+    private ProjectApiClient projectApiClient;
+
+    @MockitoBean
+    private ParticipationApiClient participationApiClient;
+
     @Test
     @DisplayName("회원 가입 - 성공 (DB 저장 검증)")
     void signup_success() {
@@ -74,7 +87,7 @@ public class UserServiceTest {
         SignupResponse signup = userService.signup(request);
 
         // then
-        var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
+        var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(savedUser.getProfile().getName()).isEqualTo("홍길동");
         assertThat(savedUser.getProfile().getAddress().getProvince()).isEqualTo("서울특별시");
     }
@@ -121,7 +134,7 @@ public class UserServiceTest {
         SignupResponse signup = userService.signup(request);
 
         // then
-        var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
+        var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(passwordEncoder.matches("Password123", savedUser.getAuth().getPassword())).isTrue();
     }
 
@@ -138,7 +151,7 @@ public class UserServiceTest {
         SignupResponse signup = userService.signup(request);
 
         // then
-        var savedUser = userRepository.findByEmail(signup.getEmail()).orElseThrow();
+        var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(savedUser.getAuth().getEmail()).isEqualTo(signup.getEmail());
     }
 
@@ -173,9 +186,21 @@ public class UserServiceTest {
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
+        String authHeader = "Bearer dummyAccessToken";
+
+        ExternalApiResponse fakeProjectResponse = fakeProjectResponse();
+
+        ExternalApiResponse fakeParticipationResponse = fakeParticipationResponse();
+
+        when(projectApiClient.getProjectMyRole(anyString(), anyLong()))
+            .thenReturn(fakeProjectResponse);
+
+        when(participationApiClient.getSurveyStatus(anyString(), anyLong(), anyInt(), anyInt()))
+            .thenReturn(fakeParticipationResponse);
+
         // when
         SignupResponse signup = userService.signup(rq1);
-        userService.withdraw(signup.getMemberId(), userWithdrawRequest);
+        userService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader);
 
         // then
         assertThatThrownBy(() -> userService.signup(rq2))
@@ -210,7 +235,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UserInfoResponse member = UserInfoResponse.from(user);
@@ -246,7 +271,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UserInfoResponse member = UserInfoResponse.from(user);
@@ -282,7 +307,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UpdateUserRequest request = updateRequest("홍길동2");
@@ -328,17 +353,29 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
+        String authHeader = "Bearer dummyAccessToken";
+
+        ExternalApiResponse fakeProjectResponse = fakeProjectResponse();
+
+        ExternalApiResponse fakeParticipationResponse = fakeParticipationResponse();
+
+        when(projectApiClient.getProjectMyRole(anyString(), anyLong()))
+            .thenReturn(fakeProjectResponse);
+
+        when(participationApiClient.getSurveyStatus(anyString(), anyLong(), anyInt(), anyInt()))
+            .thenReturn(fakeParticipationResponse);
+
         // when
-        userService.withdraw(user.getId(), userWithdrawRequest);
+        userService.withdraw(user.getId(), userWithdrawRequest, authHeader);
 
         // then
-        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), userWithdrawRequest))
+        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
 
@@ -352,7 +389,7 @@ public class UserServiceTest {
 
         SignupResponse signup = userService.signup(rq1);
 
-        User user = userRepository.findByEmail(signup.getEmail())
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
         user.delete();
@@ -361,8 +398,10 @@ public class UserServiceTest {
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
+        String authHeader = "Bearer dummyAccessToken";
+
         // when & then
-        assertThatThrownBy(() -> userService.withdraw(user.getId(), userWithdrawRequest))
+        assertThatThrownBy(() -> userService.withdraw(user.getId(), userWithdrawRequest, authHeader))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
     }
@@ -412,5 +451,26 @@ public class UserServiceTest {
         ReflectionTestUtils.setField(updateUserRequest, "profile", profile);
 
         return updateUserRequest;
+    }
+
+    private ExternalApiResponse fakeProjectResponse() {
+        ExternalApiResponse fakeProjectResponse = new ExternalApiResponse();
+        ReflectionTestUtils.setField(fakeProjectResponse, "success", true);
+        ReflectionTestUtils.setField(fakeProjectResponse, "data", List.of());
+
+        return fakeProjectResponse;
+    }
+
+    private ExternalApiResponse fakeParticipationResponse() {
+        Map<String, Object> fakeSurveyData = Map.of(
+            "content", List.of(),
+            "totalPages", 0
+        );
+
+        ExternalApiResponse fakeParticipationResponse = new ExternalApiResponse();
+        ReflectionTestUtils.setField(fakeParticipationResponse, "success", true);
+        ReflectionTestUtils.setField(fakeParticipationResponse, "data", fakeSurveyData);
+
+        return fakeParticipationResponse;
     }
 }

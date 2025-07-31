@@ -13,7 +13,7 @@ public interface UserRepository {
 
     User save(User user);
 
-    Optional<User> findByEmail(String email);
+    Optional<User> findByEmailAndIsDeletedFalse(String email);
 
     Page<User> gets(Pageable pageable);
 
