@@ -1,7 +1,5 @@
 package com.example.surveyapi.domain.participation.api;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,9 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.participation.application.ParticipationService;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
-import com.example.surveyapi.domain.participation.application.dto.request.ParticipationGroupRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
-import com.example.surveyapi.domain.participation.application.dto.response.ParticipationGroupResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
@@ -54,16 +50,6 @@ public class ParticipationController {
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("나의 참여 목록 조회에 성공하였습니다.", result));
-	}
-
-	@PostMapping("/surveys/participations")
-	public ResponseEntity<ApiResponse<List<ParticipationGroupResponse>>> getAllBySurveyIds(
-		@Valid @RequestBody ParticipationGroupRequest request
-	) {
-		List<ParticipationGroupResponse> result = participationService.getAllBySurveyIds(request.getSurveyIds());
-
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("여러 참여 기록 조회에 성공하였습니다.", result));
 	}
 
 	@GetMapping("/participations/{participationId}")
