@@ -68,17 +68,6 @@ public class ParticipationQueryDslRepository {
 	}
 
 	public List<QuestionAnswer> getAnswersByQuestionIds(List<Long> questionIds) {
-		List<QuestionAnswer> fetch = queryFactory
-			.select(Projections.constructor(
-				QuestionAnswer.class,
-				response.questionId,
-				response.answer
-			))
-			.from(response)
-			.where(response.questionId.in(questionIds))
-			.groupBy(response.questionId)
-			.fetch();
-
 		return queryFactory
 			.select(Projections.constructor(
 				QuestionAnswer.class,
