@@ -27,4 +27,9 @@ public class QueryRepositoryImpl implements QueryRepository {
 	public List<SurveyTitle> getSurveyTitles(Long projectId, Long lastSurveyId) {
 		return dslRepository.findSurveyTitlesInCursor(projectId, lastSurveyId);
 	}
+
+	@Override
+	public List<SurveyTitle> getSurveys(List<Long> surveyIds) {
+		return dslRepository.findSurveys(surveyIds);
+	}
 }

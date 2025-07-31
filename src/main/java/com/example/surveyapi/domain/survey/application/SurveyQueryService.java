@@ -40,14 +40,23 @@ public class SurveyQueryService {
 	//TODO 참여수 연산 기능 구현 필요 있음
 	@Transactional(readOnly = true)
 	public List<SearchSurveyTitleResponse> findSurveyByProjectId(String authHeader, Long projectId, Long lastSurveyId) {
-
 		List<SurveyTitle> surveyTitles = surveyQueryRepository.getSurveyTitles(projectId, lastSurveyId);
 		List<Long> surveyIds = surveyTitles.stream().map(SurveyTitle::getSurveyId).collect(Collectors.toList());
 		Map<String, Integer> partCounts = port.getParticipationCounts(authHeader, surveyIds).getSurveyPartCounts();
 
 		return surveyTitles
 			.stream()
-			.map(response -> SearchSurveyTitleResponse.from(response, partCounts.get(response.getSurveyId().toString())))
+			.map(
+				response -> SearchSurveyTitleResponse.from(response, partCounts.get(response.getSurveyId().toString())))
+			.toList();
+	}
+
+	@Transactional(readOnly = true)
+	public List<SearchSurveyTitleResponse> findSurveys(List<Long> surveyIds) {
+
+		return surveyQueryRepository.getSurveys(surveyIds)
+			.stream()
+			.map(response -> SearchSurveyTitleResponse.from(response, null))
 			.toList();
 	}
 } 

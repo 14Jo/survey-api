@@ -14,6 +14,7 @@ import com.example.surveyapi.domain.survey.domain.survey.QSurvey;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
+import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -69,12 +70,13 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 		int pageSize = 10;
 
 		return jpaQueryFactory
-			.select(
+			.select(Projections.constructor(SurveyTitle.class,
 				survey.surveyId,
 				survey.title,
+				survey.option,
 				survey.status,
 				survey.duration
-			)
+			))
 			.from(survey)
 			.where(
 				survey.projectId.eq(projectId),
@@ -82,14 +84,23 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 			)
 			.orderBy(survey.surveyId.desc())
 			.limit(pageSize)
-			.fetch()
-			.stream()
-			.map(tuple -> SurveyTitle.of(
-				tuple.get(survey.surveyId),
-				tuple.get(survey.title),
-				tuple.get(survey.status),
-				tuple.get(survey.duration)
+			.fetch();
+	}
+
+	@Override
+	public List<SurveyTitle> findSurveys(List<Long> surveyIds) {
+		QSurvey survey = QSurvey.survey;
+
+		return jpaQueryFactory
+			.select(Projections.constructor(SurveyTitle.class,
+				survey.surveyId,
+				survey.title,
+				survey.option,
+				survey.status,
+				survey.duration
 			))
-			.toList();
+			.from(survey)
+			.where(survey.surveyId.in(surveyIds))
+			.fetch();
 	}
 }

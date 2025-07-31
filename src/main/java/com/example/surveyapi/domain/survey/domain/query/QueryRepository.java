@@ -11,4 +11,6 @@ public interface QueryRepository {
 	Optional<SurveyDetail> getSurveyDetail(Long surveyId);
 
 	List<SurveyTitle> getSurveyTitles(Long projectId, Long lastSurveyId);
+
+	List<SurveyTitle> getSurveys(List<Long> surveyIds);
 }
