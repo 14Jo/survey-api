@@ -48,6 +48,7 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 
 		List<QuestionInfo> questions = questionEntities.stream()
 			.map(q -> QuestionInfo.of(
+				q.getQuestionId(),
 				q.getContent(),
 				q.getType(),
 				q.isRequired(),
