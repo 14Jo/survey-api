@@ -9,13 +9,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
-import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
@@ -118,16 +116,9 @@ public class ProjectService {
 	}
 
 	@Transactional
-	public CreateManagerResponse addManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
+	public void joinProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
-
-		// TODO: 회원 존재 여부
-
-		project.addManager(currentUserId, request.getUserId());
-		projectRepository.save(project);
-
-		return CreateManagerResponse.from(
-			project.getProjectManagers().get(project.getProjectManagers().size() - 1).getId());
+		project.addManager(currentUserId);
 	}
 
 	@Transactional
@@ -144,7 +135,7 @@ public class ProjectService {
 	}
 
 	@Transactional
-	public void joinProject(Long projectId, Long currentUserId) {
+	public void joinProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addMember(currentUserId);
 	}
