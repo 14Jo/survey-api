@@ -20,34 +20,21 @@ public class ProjectManagerTest {
 		Project project = createProject();
 
 		// when
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 
 		// then
 		assertEquals(2, project.getProjectManagers().size());
 	}
 
 	@Test
-	void 매니저_추가_READ_권한으로_시도_실패() {
-		// given
-		Project project = createProject();
-		project.addManager(1L, 2L);
-
-		// when & then
-		CustomException exception = assertThrows(CustomException.class, () -> {
-			project.addManager(2L, 3L);
-		});
-		assertEquals(CustomErrorCode.ACCESS_DENIED, exception.getErrorCode());
-	}
-
-	@Test
 	void 매니저_중복_추가_실패() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
-			project.addManager(1L, 2L);
+			project.addManager(2L);
 		});
 		assertEquals(CustomErrorCode.ALREADY_REGISTERED_MANAGER, exception.getErrorCode());
 	}
@@ -56,7 +43,7 @@ public class ProjectManagerTest {
 	void 매니저_권한_변경_정상() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 		ProjectManager manager = project.findManagerByUserId(2L);
 		ReflectionTestUtils.setField(manager, "id", 2L);
 
@@ -72,7 +59,7 @@ public class ProjectManagerTest {
 	void 매니저_권한_변경_OWNER_로_시도_시_예외() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 		ProjectManager manager = project.findManagerByUserId(2L);
 		ReflectionTestUtils.setField(manager, "id", 2L);
 
@@ -87,7 +74,7 @@ public class ProjectManagerTest {
 	void 매니저_권한_변경_소유자가_아닌_사용자_시도_실패() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 
 		// when & then
 		CustomException exception = assertThrows(CustomException.class, () -> {
@@ -113,7 +100,7 @@ public class ProjectManagerTest {
 	void 매니저_권한_변경_OWNER로_변경_시도_실패() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 		Long managerId = project.findManagerByUserId(2L).getId();
 
 		// when & then
@@ -127,7 +114,7 @@ public class ProjectManagerTest {
 	void 매니저_삭제_정상() {
 		// given
 		Project project = createProject();
-		project.addManager(1L, 2L);
+		project.addManager(2L);
 		ProjectManager targetProjectManager = project.findManagerByUserId(2L);
 		ReflectionTestUtils.setField(targetProjectManager, "id", 2L);
 
