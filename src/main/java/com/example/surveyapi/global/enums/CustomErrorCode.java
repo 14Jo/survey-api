@@ -13,6 +13,7 @@ public enum CustomErrorCode {
     ROLE_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "유효하지 않은 UserRole"),
     NOT_FOUND_SURVEY(HttpStatus.NOT_FOUND, "설문이 존재하지 않습니다"),
     STATUS_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "잘못된 상태코드입니다."),
+    INVALID_PERMISSION(HttpStatus.FORBIDDEN, "작성 권한이 없습니다"),
 
     // 프로젝트 에러
     START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
