@@ -12,13 +12,27 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class QuestionInfo {
+	private Long questionId;
 	private String content;
 	private QuestionType questionType;
 	private boolean isRequired;
 	private int displayOrder;
 	private List<ChoiceInfo> choices;
 
-	public static QuestionInfo of(String content, QuestionType questionType, boolean isRequired, int displayOrder, List<ChoiceInfo> choices) {
+	public static QuestionInfo of(Long questionId, String content, QuestionType questionType, boolean isRequired,
+		int displayOrder, List<ChoiceInfo> choices) {
+		QuestionInfo questionInfo = new QuestionInfo();
+		questionInfo.questionId = questionId;
+		questionInfo.content = content;
+		questionInfo.questionType = questionType;
+		questionInfo.isRequired = isRequired;
+		questionInfo.displayOrder = displayOrder;
+		questionInfo.choices = choices;
+		return questionInfo;
+	}
+
+	public static QuestionInfo of(String content, QuestionType questionType, boolean isRequired,
+		int displayOrder, List<ChoiceInfo> choices) {
 		QuestionInfo questionInfo = new QuestionInfo();
 		questionInfo.content = content;
 		questionInfo.questionType = questionType;
