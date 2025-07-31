@@ -15,9 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectService;
-import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
-import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
@@ -42,15 +40,14 @@ public class ProjectManagerController {
 	}
 
 	@PostMapping("/{projectId}/managers")
-	public ResponseEntity<ApiResponse<CreateManagerResponse>> addManager(
+	public ResponseEntity<ApiResponse<Void>> joinProjectManager(
 		@PathVariable Long projectId,
-		@Valid @RequestBody CreateManagerRequest request,
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		CreateManagerResponse response = projectService.addManager(projectId, request, currentUserId);
+		projectService.joinProjectManager(projectId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("협력자 추가 성공", response));
+			.body(ApiResponse.success("담당자 추가 성공"));
 	}
 
 	@PatchMapping("/{projectId}/managers/{managerId}/role")
@@ -63,7 +60,7 @@ public class ProjectManagerController {
 		projectService.updateManagerRole(projectId, managerId, request, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("협력자 권한 수정 성공"));
+			.body(ApiResponse.success("담당자 권한 수정 성공"));
 	}
 
 	@DeleteMapping("/{projectId}/managers/{managerId}")
@@ -75,6 +72,6 @@ public class ProjectManagerController {
 		projectService.deleteManager(projectId, managerId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("협력자 삭제 성공"));
+			.body(ApiResponse.success("담당자 삭제 성공"));
 	}
 }

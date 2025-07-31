@@ -37,11 +37,11 @@ public class ProjectMemberController {
 	}
 
 	@PostMapping("/{projectId}/members")
-	public ResponseEntity<ApiResponse<Void>> joinProject(
+	public ResponseEntity<ApiResponse<Void>> joinProjectMember(
 		@PathVariable Long projectId,
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		projectService.joinProject(projectId, currentUserId);
+		projectService.joinProjectMember(projectId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 참여 성공"));
