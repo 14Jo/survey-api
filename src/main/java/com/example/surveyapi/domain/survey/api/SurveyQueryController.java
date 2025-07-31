@@ -48,7 +48,7 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
 	}
 
-	@GetMapping("/surveys")
+	@GetMapping("/find-surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@RequestParam List<Long> surveyIds
 	) {
@@ -57,7 +57,7 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveys));
 	}
 
-	@GetMapping("/survey/status")
+	@GetMapping("/find-status")
 	public ResponseEntity<ApiResponse<SearchSurveyStatusResponse>> getSurveyStatus(
 		@RequestParam String surveyStatus
 	) {
