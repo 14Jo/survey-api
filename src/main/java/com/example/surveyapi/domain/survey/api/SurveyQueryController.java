@@ -45,4 +45,13 @@ public class SurveyQueryController {
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
 	}
+
+	@GetMapping("surveys")
+	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
+		@RequestParam List<Long> surveyIds
+	) {
+		List<SearchSurveyTitleResponse> surveys = surveyQueryService.findSurveys(surveyIds);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveys));
+	}
 }
