@@ -16,7 +16,7 @@ import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
 
-@Component
+@Component("surveyProjectAdapter")
 @RequiredArgsConstructor
 public class ProjectAdapter implements ProjectPort {
 
@@ -34,12 +34,12 @@ public class ProjectAdapter implements ProjectPort {
 		}
 
 		Map<String, Object> data = (Map<String, Object>)rawData;
-		
+
 		@SuppressWarnings("unchecked")
 		List<Long> memberIds = Optional.ofNullable(data.get("memberIds"))
 			.filter(memberIdsObj -> memberIdsObj instanceof List)
 			.map(memberIdsObj -> (List<Long>)memberIdsObj)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.SERVER_ERROR, 
+			.orElseThrow(() -> new CustomException(CustomErrorCode.SERVER_ERROR,
 				"memberIds 필드가 없거나 List 타입이 아닙니다."));
 
 		return ProjectValidDto.of(memberIds, userId);
@@ -58,11 +58,11 @@ public class ProjectAdapter implements ProjectPort {
 		}
 
 		Map<String, Object> data = (Map<String, Object>)rawData;
-		
+
 		String state = Optional.ofNullable(data.get("state"))
 			.filter(stateObj -> stateObj instanceof String)
 			.map(stateObj -> (String)stateObj)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.SERVER_ERROR, 
+			.orElseThrow(() -> new CustomException(CustomErrorCode.SERVER_ERROR,
 				"state 필드가 없거나 String 타입이 아닙니다."));
 
 		return ProjectStateDto.of(state);
