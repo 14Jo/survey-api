@@ -7,11 +7,13 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
+import com.example.surveyapi.domain.survey.domain.query.dto.SurveyStatusList;
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
 import com.example.surveyapi.domain.survey.domain.question.QQuestion;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.QSurvey;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.querydsl.core.types.Projections;
@@ -102,5 +104,18 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 			.from(survey)
 			.where(survey.surveyId.in(surveyIds))
 			.fetch();
+	}
+
+	@Override
+	public SurveyStatusList findSurveyStatus(SurveyStatus surveyStatus) {
+		QSurvey survey = QSurvey.survey;
+
+		List<Long> surveyIds = jpaQueryFactory
+			.select(survey.surveyId)
+			.from(survey)
+			.where(survey.status.eq(surveyStatus))
+			.fetch();
+
+		return new SurveyStatusList(surveyIds);
 	}
 }
