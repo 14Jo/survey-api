@@ -59,4 +59,14 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	public List<Project> findByStateAndIsDeletedFalse(ProjectState projectState) {
 		return projectJpaRepository.findByStateAndIsDeletedFalse(projectState);
 	}
+
+	@Override
+	public List<Project> findProjectsByMember(Long userId) {
+		return projectQuerydslRepository.findProjectsByMember(userId);
+	}
+
+	@Override
+	public List<Project> findProjectsByManager(Long userId) {
+		return projectQuerydslRepository.findProjectsByManager(userId);
+	}
 }
