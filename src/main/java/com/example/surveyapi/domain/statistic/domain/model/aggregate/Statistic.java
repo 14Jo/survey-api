@@ -18,6 +18,7 @@ import com.example.surveyapi.domain.statistic.domain.model.vo.BaseStats;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -49,7 +50,11 @@ public class Statistic extends BaseEntity {
 	@OneToMany(mappedBy = "statistic", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	private List<StatisticsItem> responses = new ArrayList<>();
 
-	public record ChoiceIdentifier(Long qId, Long cId, AnswerType type, LocalDateTime statisticHour) {}
+	@Column(nullable = false)
+	private Long lastProcessedParticipationId = 0L;
+
+	public record ChoiceIdentifier(Long qId, Long cId, AnswerType type, LocalDateTime statisticHour) {
+	}
 
 	public static Statistic create(Long surveyId) {
 		Statistic statistic = new Statistic();
@@ -85,7 +90,7 @@ public class Statistic extends BaseEntity {
 	}
 
 	private StatisticType decideType() {
-		if(status == StatisticStatus.COUNTING) {
+		if (status == StatisticStatus.COUNTING) {
 			return StatisticType.LIVE;
 		}
 		return StatisticType.BASE;
@@ -99,5 +104,11 @@ public class Statistic extends BaseEntity {
 		return detail.responses().stream()
 			.map(ResponseFactory::createFrom)
 			.flatMap(response -> response.getIdentifiers(statisticHour));
+	}
+
+	public void updateLastProcessedId(Long maxId) {
+		if (maxId != null && maxId > this.lastProcessedParticipationId) {
+			this.lastProcessedParticipationId = maxId;
+		}
 	}
 }
