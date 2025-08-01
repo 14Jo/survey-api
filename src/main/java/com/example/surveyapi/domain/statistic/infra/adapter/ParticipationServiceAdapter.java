@@ -5,7 +5,6 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.statistic.application.client.ParticipationInfoDto;
-import com.example.surveyapi.domain.statistic.application.client.ParticipationRequestDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
 import com.example.surveyapi.global.config.client.ExternalApiResponse;
 import com.example.surveyapi.global.config.client.participation.ParticipationApiClient;
@@ -20,19 +19,20 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ParticipationServiceAdapter implements ParticipationServicePort {
 
-		private final ParticipationApiClient participationApiClient;
-		private final ObjectMapper objectMapper;
+	private final ParticipationApiClient participationApiClient;
+	private final ObjectMapper objectMapper;
 
-		@Override
-		public List<ParticipationInfoDto> getParticipationInfos(String authHeader, ParticipationRequestDto dto) {
-			ExternalApiResponse response = participationApiClient.getParticipationInfos(authHeader, dto);
-			Object rawData = response.getOrThrow();
+	@Override
+	public List<ParticipationInfoDto> getParticipationInfos(String authHeader, List<Long> surveyIds) {
+		ExternalApiResponse response = participationApiClient.getParticipationInfos(authHeader, surveyIds);
+		Object rawData = response.getOrThrow();
 
-			List<ParticipationInfoDto> responses = objectMapper.convertValue(
-				rawData,
-				new TypeReference<List<ParticipationInfoDto>>() {}
-			);
+		List<ParticipationInfoDto> responses = objectMapper.convertValue(
+			rawData,
+			new TypeReference<List<ParticipationInfoDto>>() {
+			}
+		);
 
-			return responses;
-		}
+		return responses;
 	}
+}
