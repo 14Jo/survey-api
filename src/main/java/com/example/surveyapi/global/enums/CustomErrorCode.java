@@ -22,6 +22,8 @@ public enum CustomErrorCode {
     MISMATCH_REFRESH_TOKEN(HttpStatus.BAD_REQUEST,"리프레쉬 토큰 맞지 않습니다."),
     PROJECT_ROLE_OWNER(HttpStatus.CONFLICT,"소유한 프로젝트가 존재합니다"),
     SURVEY_IN_PROGRESS(HttpStatus.CONFLICT,"참여중인 설문이 존재합니다."),
+    PROVIDER_ID_NOT_FOUNT(HttpStatus.NOT_FOUND,"해당 providerId로 가입된 사용자가 존재하지 않습니다"),
+    OAUTH_ACCESS_TOKEN_FAILED(HttpStatus.BAD_REQUEST,"소셜 로그인 인증에 실패했습니다"),
 
     // 프로젝트 에러
     START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
