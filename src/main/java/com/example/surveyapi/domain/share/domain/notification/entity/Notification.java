@@ -56,6 +56,6 @@ public class Notification extends BaseEntity {
 	}
 
 	public static Notification createForShare(Share share, Long recipientId) {
-		return new Notification(share, recipientId, Status.READY_TO_SEND, null, null);
+		return new Notification(share, recipientId, Status.SENT, null, null);
 	}
 }
