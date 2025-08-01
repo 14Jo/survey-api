@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.share.application;
 
 import static org.assertj.core.api.Assertions.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.share.application.share.ShareService;
@@ -19,9 +19,10 @@ import com.example.surveyapi.domain.share.domain.notification.entity.Notificatio
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
+
 
 @Transactional
 @ActiveProfiles("test")
@@ -36,13 +37,15 @@ class ShareServiceTest {
 	@DisplayName("공유 생성 - 알림까지 정상 저장")
 	void createShare_success() {
 		//given
-		Long surveyId = 1L;
+		Long sourceId = 1L;
 		Long creatorId = 1L;
-		ShareMethod shareMethod = ShareMethod.URL;
+		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
 
 		//when
-		ShareResponse response = shareService.createShare(surveyId, creatorId, shareMethod, recipientIds);
+		ShareResponse response = shareService.createShare(
+			sourceType, sourceId, creatorId, expirationDate, recipientIds);
 
 		//then
 		Optional<Share> saved = shareRepository.findById(response.getId());
@@ -52,10 +55,11 @@ class ShareServiceTest {
 		List<Notification> notifications = share.getNotifications();
 
 		assertThat(response.getId()).isNotNull();
-		assertThat(response.getSurveyId()).isEqualTo(surveyId);
+		assertThat(response.getSourceType()).isEqualTo(sourceType);
+		assertThat(response.getSourceId()).isEqualTo(sourceId);
 		assertThat(response.getCreatorId()).isEqualTo(creatorId);
-		assertThat(response.getShareMethod()).isEqualTo(ShareMethod.URL);
-		assertThat(response.getShareLink()).startsWith("https://everysurvey.com/surveys/share/");
+		assertThat(response.getShareLink()).startsWith("https://localhost:8080/api/v2/share/projects/");
+		assertThat(response.getExpirationDate()).isEqualTo(expirationDate);
 		assertThat(response.getCreatedAt()).isNotNull();
 		assertThat(response.getUpdatedAt()).isNotNull();
 
@@ -67,7 +71,7 @@ class ShareServiceTest {
 		assertThat(notifications)
 			.allSatisfy(notification -> {
 				assertThat(notification.getShare()).isEqualTo(share);
-				assertThat(notification.getStatus()).isEqualTo(Status.READY_TO_SEND);
+				assertThat(notification.getStatus()).isEqualTo(Status.SENT);
 			});
 	}
 
@@ -75,10 +79,14 @@ class ShareServiceTest {
 	@DisplayName("공유 조회 - 조회 성공")
 	void getShare_success() {
 		//given
-		Long surveyId = 1L;
+		Long sourceId = 1L;
 		Long creatorId = 1L;
+		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		ShareResponse response = shareService.createShare(surveyId, creatorId, ShareMethod.URL, recipientIds);
+
+		ShareResponse response = shareService.createShare(
+			sourceType, sourceId, creatorId, expirationDate, recipientIds);
 
 		//when
 		ShareResponse result = shareService.getShare(response.getId(), creatorId);
@@ -86,17 +94,22 @@ class ShareServiceTest {
 		//then
 		assertThat(result).isNotNull();
 		assertThat(result.getId()).isEqualTo(response.getId());
-		assertThat(result.getSurveyId()).isEqualTo(surveyId);
+		assertThat(result.getSourceType()).isEqualTo(sourceType);
+		assertThat(result.getSourceId()).isEqualTo(sourceId);
 	}
 
 	@Test
 	@DisplayName("공유 조회 - 작성자 불일치 실패")
 	void getShare_failed_notCreator() {
 		//given
-		Long surveyId = 1L;
+		Long sourceId = 1L;
 		Long creatorId = 1L;
+		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		ShareResponse response = shareService.createShare(surveyId, creatorId, ShareMethod.URL, recipientIds);
+
+		ShareResponse response = shareService.createShare(
+			sourceType, sourceId, creatorId, expirationDate, recipientIds);
 
 		//when, then
 		assertThatThrownBy(() -> shareService.getShare(response.getId(), 123L))

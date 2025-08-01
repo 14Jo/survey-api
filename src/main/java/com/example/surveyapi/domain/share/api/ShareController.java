@@ -19,12 +19,12 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/share-tasks")
+@RequestMapping("/api")
 public class ShareController {
 	private final ShareService shareService;
 	private final NotificationService notificationService;
 
-	@PostMapping
+	@PostMapping("/v2/share-tasks")
 	public ResponseEntity<ApiResponse<ShareResponse>> createShare(
 		@Valid @RequestBody CreateShareRequest request,
 		@AuthenticationPrincipal Long creatorId
@@ -32,15 +32,15 @@ public class ShareController {
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
 		// TODO : 이벤트 처리 적용(위 리스트는 더미)
 		ShareResponse response = shareService.createShare(
-			request.getSurveyId(), creatorId,
-			request.getShareMethod(), recipientIds);
+			request.getSourceType(), request.getSourceId(),
+			creatorId, request.getExpirationDate(), recipientIds);
 
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
 			.body(ApiResponse.success("공유 캠페인 생성 완료", response));
 	}
 
-	@GetMapping("/{shareId}")
+	@GetMapping("/v1/share-tasks/{shareId}")
 	public ResponseEntity<ApiResponse<ShareResponse>> get(
 		@PathVariable Long shareId,
 		@AuthenticationPrincipal Long currentUserId
@@ -52,7 +52,7 @@ public class ShareController {
 			.body(ApiResponse.success("공유 작업 조회 성공", response));
 	}
 
-	@GetMapping("/{shareId}/notifications")
+	@GetMapping("/v1/share-tasks/{shareId}/notifications")
 	public ResponseEntity<ApiResponse<NotificationPageResponse>> getAll(
 		@PathVariable Long shareId,
 		@RequestParam(defaultValue = "0") int page,
