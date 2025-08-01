@@ -80,4 +80,8 @@ public class ShareService {
 
 		return share;
 	}
+
+	public String getRedirectUrl(Share share) {
+		return shareDomainService.getRedirectUrl(share);
+	}
 }

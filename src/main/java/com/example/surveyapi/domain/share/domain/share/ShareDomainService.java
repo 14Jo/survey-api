@@ -35,4 +35,13 @@ public class ShareDomainService {
 		}
 		throw new CustomException(CustomErrorCode.UNSUPPORTED_SHARE_METHOD);
 	}
+
+	public String getRedirectUrl(Share share) {
+		if (share.getSourceType() == ShareSourceType.PROJECT) {
+			return "/api/v2/projects/" + share.getSourceId();
+		} else if (share.getSourceType() == ShareSourceType.SURVEY) {
+			return "api/v1/survey/" + share.getSourceId() + "/detail";
+		}
+		throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
+	}
 }
