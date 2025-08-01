@@ -20,4 +20,8 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
     @Query("SELECT u.grade FROM User u WHERE u.id = :userId")
     Optional<Grade> findByGrade(@Param("userId") Long userId);
 
+    boolean existsByAuthProviderId(String authProviderId);
+
+    Optional<User> findByAuthProviderIdAndIsDeletedFalse(String authProviderId);
+
 }
