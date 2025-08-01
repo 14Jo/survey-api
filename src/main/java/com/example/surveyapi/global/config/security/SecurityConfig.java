@@ -2,6 +2,7 @@ package com.example.surveyapi.global.config.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -24,6 +25,7 @@ public class SecurityConfig {
     private final JwtUtil jwtUtil;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,11 +37,12 @@ public class SecurityConfig {
                 .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .accessDeniedHandler(jwtAccessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/reissue").permitAll()
                 .requestMatchers("/api/v1/survey/**").permitAll()
                 .requestMatchers("/error").permitAll()
+                .requestMatchers("/health/ok").permitAll()
                 .anyRequest().authenticated())
-            .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(new JwtFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

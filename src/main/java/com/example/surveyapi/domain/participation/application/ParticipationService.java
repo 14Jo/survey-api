@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.participation.application;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
+import com.example.surveyapi.domain.participation.application.dto.response.AnswerGroupResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationGroupResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
@@ -19,6 +21,7 @@ import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
+import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -95,7 +98,8 @@ public class ParticipationService {
 		List<ParticipationGroupResponse> result = new ArrayList<>();
 
 		for (Long surveyId : surveyIds) {
-			List<Participation> participationGroup = participationGroupBySurveyId.get(surveyId);
+			List<Participation> participationGroup = participationGroupBySurveyId.getOrDefault(surveyId,
+				Collections.emptyList());
 
 			List<ParticipationDetailResponse> participationDtos = new ArrayList<>();
 
@@ -135,5 +139,28 @@ public class ParticipationService {
 			.toList();
 
 		participation.update(responses);
+	}
+
+	@Transactional(readOnly = true)
+	public Map<Long, Long> getCountsBySurveyIds(List<Long> surveyIds) {
+		return participationRepository.countsBySurveyIds(surveyIds);
+	}
+
+	@Transactional(readOnly = true)
+	public List<AnswerGroupResponse> getAnswers(List<Long> questionIds) {
+		List<QuestionAnswer> questionAnswers = participationRepository.getAnswers(questionIds);
+
+		Map<Long, List<QuestionAnswer>> listMap = questionAnswers.stream()
+			.collect(Collectors.groupingBy(QuestionAnswer::getQuestionId));
+
+		return questionIds.stream()
+			.map(questionId -> {
+				List<Map<String, Object>> answers = listMap.getOrDefault(questionId, Collections.emptyList()).stream()
+					.map(QuestionAnswer::getAnswer)
+					.toList();
+
+				return AnswerGroupResponse.of(questionId, answers);
+			})
+			.toList();
 	}
 }

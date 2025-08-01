@@ -4,13 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.statistic.application.client.ParticipationInfoDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationRequestDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
-import com.example.surveyapi.domain.statistic.domain.dto.StatisticCommand;
-import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
+import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistics;
 import com.example.surveyapi.domain.statistic.domain.repository.StatisticRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -33,7 +31,7 @@ public class StatisticService {
 		if (statisticRepository.existsById(surveyId)) {
 			throw new CustomException(CustomErrorCode.STATISTICS_ALREADY_EXISTS);
 		}
-		Statistic statistic = Statistic.create(surveyId);
+		Statistics statistic = Statistics.create(surveyId);
 		statisticRepository.save(statistic);
 	}
 
@@ -43,8 +41,8 @@ public class StatisticService {
 		//TODO : Survey 도메인으로 부터 진행중인 설문 Id List 받아오기
 		List<Long> surveyIds = new ArrayList<>();
 		surveyIds.add(1L);
-		// surveyIds.add(2L);
-		// surveyIds.add(3L);
+		surveyIds.add(2L);
+		surveyIds.add(3L);
 
 		ParticipationRequestDto request = new ParticipationRequestDto(surveyIds);
 		List<ParticipationInfoDto> participationInfos = participationServicePort.getParticipationInfos(authHeader, request);

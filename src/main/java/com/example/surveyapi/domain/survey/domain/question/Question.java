@@ -71,7 +71,7 @@ public class Question extends BaseEntity {
 		question.type = type;
 		question.displayOrder = displayOrder;
 		question.isRequired = isRequired;
-		question.choices = choices;
+		question.choices = choices != null ? choices : new ArrayList<>();
 
 		if (choices != null && !choices.isEmpty()) {
 			question.duplicateChoiceOrder();
@@ -93,7 +93,7 @@ public class Question extends BaseEntity {
 			while (usedOrders.contains(candidate)) {
 				candidate++;
 			}
-			mutableChoices.add(new Choice(choice.getContent(), candidate));
+			mutableChoices.add(Choice.of(choice.getContent(), candidate));
 			usedOrders.add(candidate);
 		}
 
