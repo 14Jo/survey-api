@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.user.application.dto.request;
 
 import java.time.LocalDateTime;
 
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 
 import jakarta.validation.Valid;
@@ -32,6 +33,9 @@ public class SignupRequest {
         @NotBlank(message = "비밀번호는 필수입니다")
         @Size(min = 6, max = 20, message = "비밀번호는 6자 이상 20자 이하이어야 합니다")
         private String password;
+
+        @NotNull(message = "로그인 형식은 필수입니다.")
+        private Provider provider;
     }
 
     @Getter

@@ -37,8 +37,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String blackListToken = "blackListToken" + token;
         if(Boolean.TRUE.equals(redisTemplate.hasKey(blackListToken))){
-            request.setAttribute("exceptionMessage", "로그아웃한 유저입니다.");
-            throw new InsufficientAuthenticationException("로그아웃한 유저입니다.");
+            request.setAttribute("exceptionMessage", "로그인 후 이용해주세요");
+            throw new InsufficientAuthenticationException("로그인 후 이용해주세요");
         }
 
         try{
