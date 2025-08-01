@@ -55,7 +55,8 @@ public enum CustomErrorCode {
     // 공유 에러
     NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다."),
     ACCESS_DENIED_SHARE(HttpStatus.FORBIDDEN, "본인의 공유 작업 내역만 조회할 수 있습니다."),
-    UNSUPPORTED_SHARE_METHOD(HttpStatus.BAD_REQUEST, "지원하지 않는 공유 방법 입니다.");
+    UNSUPPORTED_SHARE_METHOD(HttpStatus.BAD_REQUEST, "지원하지 않는 공유 방법 입니다."),
+    SHARE_EXPIRED(HttpStatus.BAD_REQUEST, "유효하지 않은 공유 링크 입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

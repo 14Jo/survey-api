@@ -14,8 +14,8 @@ import com.example.surveyapi.global.exception.CustomException;
 
 @Service
 public class ShareDomainService {
-	private static final String SURVEY_URL = "https://everysurvey.com/surveys/share/";
-	private static final String PROJECT_URL = "https://everysurvey.com/projects/share/";
+	private static final String SURVEY_URL = "https://localhost:8080/api/v2/share/surveys/";
+	private static final String PROJECT_URL = "https://localhost:8080/api/v2/share/projects/";
 
 	public Share createShare(ShareSourceType sourceType, Long sourceId,
 		Long creatorId, LocalDateTime expirationDate,
