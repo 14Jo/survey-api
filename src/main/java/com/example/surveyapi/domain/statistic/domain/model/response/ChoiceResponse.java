@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.statistic.domain.model.response;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -28,10 +29,10 @@ public class ChoiceResponse implements Response {
 	}
 
 	@Override
-	public Stream<Statistic.ChoiceIdentifier> getIdentifiers() {
+	public Stream<Statistic.ChoiceIdentifier> getIdentifiers(LocalDateTime statisticHour) {
 		return this.choiceIds.stream()
 			.map(choiceId -> new Statistic.ChoiceIdentifier(
-				questionId, choiceId, answerType
+				questionId, choiceId, answerType, statisticHour
 			));
 	}
 }

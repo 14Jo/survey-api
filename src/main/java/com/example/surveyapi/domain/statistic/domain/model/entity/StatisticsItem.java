@@ -1,10 +1,13 @@
 package com.example.surveyapi.domain.statistic.domain.model.entity;
 
+import java.time.LocalDateTime;
+
 import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
 import com.example.surveyapi.domain.statistic.domain.model.enums.AnswerType;
 import com.example.surveyapi.domain.statistic.domain.model.enums.StatisticType;
 import com.example.surveyapi.global.model.BaseEntity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -47,9 +50,13 @@ public class StatisticsItem extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private AnswerType answerType;
 
+	@Column(nullable = false)
+	private LocalDateTime statisticHour;
+
 	public static StatisticsItem create(
 		Long questionId, Long choiceId, int count,
-		StatisticType type, AnswerType answerType
+		StatisticType type, AnswerType answerType,
+		LocalDateTime statisticHour
 	) {
 		StatisticsItem item = new StatisticsItem();
 		item.questionId = questionId;
@@ -57,6 +64,7 @@ public class StatisticsItem extends BaseEntity {
 		item.count = count;
 		item.type = type;
 		item.answerType = answerType;
+		item.statisticHour = statisticHour;
 		return item;
 	}
 

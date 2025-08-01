@@ -1,16 +1,18 @@
 package com.example.surveyapi.domain.statistic.domain.model.aggregate;
 
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.example.surveyapi.domain.statistic.domain.dto.StatisticCommand;
 import com.example.surveyapi.domain.statistic.domain.model.entity.StatisticsItem;
 import com.example.surveyapi.domain.statistic.domain.model.enums.AnswerType;
 import com.example.surveyapi.domain.statistic.domain.model.enums.StatisticStatus;
 import com.example.surveyapi.domain.statistic.domain.model.enums.StatisticType;
-import com.example.surveyapi.domain.statistic.domain.model.response.Response;
 import com.example.surveyapi.domain.statistic.domain.model.response.ResponseFactory;
 import com.example.surveyapi.domain.statistic.domain.model.vo.BaseStats;
 import com.example.surveyapi.global.model.BaseEntity;
@@ -47,7 +49,7 @@ public class Statistic extends BaseEntity {
 	@OneToMany(mappedBy = "statistic", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	private List<StatisticsItem> responses = new ArrayList<>();
 
-	public record ChoiceIdentifier(Long qId, Long cId, AnswerType type) {}
+	public record ChoiceIdentifier(Long qId, Long cId, AnswerType type, LocalDateTime statisticHour) {}
 
 	public static Statistic create(Long surveyId) {
 		Statistic statistic = new Statistic();
@@ -61,9 +63,7 @@ public class Statistic extends BaseEntity {
 		this.stats.addTotalResponses(command.getParticipations().size());
 
 		Map<ChoiceIdentifier, Long> counts = command.getParticipations().stream()
-			.flatMap(data -> data.responses().stream())
-			.map(ResponseFactory::createFrom)
-			.flatMap(Response::getIdentifiers)
+			.flatMap(this::createIdentifierStream)
 			.collect(Collectors.groupingBy(
 				id -> id,
 				Collectors.counting()
@@ -74,8 +74,10 @@ public class Statistic extends BaseEntity {
 				ChoiceIdentifier id = entry.getKey();
 				int count = entry.getValue().intValue();
 
-				return StatisticsItem.create(id.qId, id.cId, count,
-					decideType(), id.type);
+				return StatisticsItem.create(
+					id.qId, id.cId, count,
+					decideType(), id.type, id.statisticHour
+				);
 			}).toList();
 
 		newItems.forEach(item -> item.setStatistic(this));
@@ -87,5 +89,15 @@ public class Statistic extends BaseEntity {
 			return StatisticType.LIVE;
 		}
 		return StatisticType.BASE;
+	}
+
+	private Stream<ChoiceIdentifier> createIdentifierStream(
+		StatisticCommand.ParticipationDetailData detail
+	) {
+		LocalDateTime statisticHour = detail.participatedAt().truncatedTo(ChronoUnit.HOURS);
+
+		return detail.responses().stream()
+			.map(ResponseFactory::createFrom)
+			.flatMap(response -> response.getIdentifiers(statisticHour));
 	}
 }

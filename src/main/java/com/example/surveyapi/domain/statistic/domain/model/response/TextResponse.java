@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.statistic.domain.model.response;
 
+import java.time.LocalDateTime;
 import java.util.stream.Stream;
 
 import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
@@ -23,9 +24,9 @@ public class TextResponse implements Response {
 	}
 
 	@Override
-	public Stream<Statistic.ChoiceIdentifier> getIdentifiers() {
+	public Stream<Statistic.ChoiceIdentifier> getIdentifiers(LocalDateTime statisticHour) {
 		return Stream.of(new Statistic.ChoiceIdentifier(
-			questionId, null, answerType
+			questionId, null, answerType, statisticHour
 		));
 	}
 }
