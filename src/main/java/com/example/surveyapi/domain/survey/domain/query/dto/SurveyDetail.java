@@ -2,22 +2,36 @@ package com.example.surveyapi.domain.survey.domain.query.dto;
 
 import java.util.List;
 
+import com.example.surveyapi.domain.survey.domain.survey.Survey;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class SurveyDetail {
+	private Long surveyId;
 	private String title;
 	private String description;
+	private SurveyStatus status;
 	private SurveyDuration duration;
 	private SurveyOption option;
 	private List<QuestionInfo> questions;
 
+	public static SurveyDetail of(Survey survey, List<QuestionInfo> questions) {
+		SurveyDetail detail = new SurveyDetail();
+		detail.surveyId = survey.getSurveyId();
+		detail.title = survey.getTitle();
+		detail.description = survey.getDescription();
+		detail.status = survey.getStatus();
+		detail.duration = survey.getDuration();
+		detail.option = survey.getOption();
+		detail.questions = questions;
+		return detail;
+	}
 }

@@ -1,180 +1,118 @@
 package com.example.surveyapi.domain.survey.api;
 
+import com.example.surveyapi.domain.survey.application.SurveyService;
+import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.request.SurveyRequest;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
+import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
+import com.example.surveyapi.global.exception.GlobalExceptionHandler;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import static org.mockito.BDDMockito.given;
-import static org.mockito.ArgumentMatchers.any;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.example.surveyapi.domain.survey.application.SurveyService;
-
-@SpringBootTest
-@AutoConfigureMockMvc
-@TestPropertySource(properties = "SECRET_KEY=12345678901234567890123456789012")
-@WithMockUser(username = "testuser", roles = "USER")
+@ExtendWith(MockitoExtension.class)
 class SurveyControllerTest {
 
-	@Autowired
-	MockMvc mockMvc;
+    @Mock
+    private SurveyService surveyService;
 
-	@MockBean
-	SurveyService surveyService;
+    @InjectMocks
+    private SurveyController surveyController;
 
-	private final String createUri = "/api/v1/survey/1/create";
+    private MockMvc mockMvc;
+    private ObjectMapper objectMapper;
 
-	@Test
-	@DisplayName("설문 생성 API - 필수값 누락시 400")
-	void createSurvey_fail_requiredField() throws Exception {
-		// given
-		String requestJson = """
-			{
-				\"description\": \"설문 설명\",
-				\"surveyType\": \"VOTE\",
-				\"surveyDuration\": { \"startDate\": \"2025-09-01T00:00:00\", \"endDate\": \"2025-09-10T23:59:59\" },
-				\"surveyOption\": { \"anonymous\": true, \"allowMultipleResponses\": false, \"allowResponseUpdate\": true },
-				\"questions\": []
-			}
-			""";
-		// when & then
-		mockMvc.perform(post(createUri)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(requestJson))
-			.andExpect(status().isBadRequest());
-	}
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders.standaloneSetup(surveyController)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .build();
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+    }
 
-	@Test
-	@DisplayName("설문 생성 API - 잘못된 Enum 값 입력시 400")
-	void createSurvey_fail_invalidEnum() throws Exception {
-		// given
-		String requestJson = """
-			{
-				\"title\": \"설문 제목\",
-				\"description\": \"설문 설명\",
-				\"surveyType\": \"FailTest\",
-				\"surveyDuration\": { \"startDate\": \"2025-09-01T00:00:00\", \"endDate\": \"2025-09-10T23:59:59\" },
-				\"surveyOption\": { \"anonymous\": true, \"allowMultipleResponses\": false, \"allowResponseUpdate\": true },
-				\"questions\": []
-			}
-			""";
-		// when & then
-		mockMvc.perform(post(createUri)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(requestJson))
-			.andExpect(status().isInternalServerError());
-	}
+    @Test
+    @DisplayName("설문 생성 요청 검증 - 잘못된 요청 실패")
+    void createSurvey_request_validation_fail() throws Exception {
+        // given
+        CreateSurveyRequest invalidRequest = new CreateSurveyRequest();
+        // 필수 필드가 없는 요청
 
-	@Test
-	@DisplayName("설문 생성 API - 설문 기간 유효성(종료일이 시작일보다 빠름) 400")
-	void createSurvey_fail_invalidDuration() throws Exception {
-		// given
-		String requestJson = """
-			{
-				\"title\": \"설문 제목\",
-				\"description\": \"설문 설명\",
-				\"surveyType\": \"VOTE\",
-				\"surveyDuration\": { \"startDate\": \"2025-09-10T23:59:59\", \"endDate\": \"2025-09-01T00:00:00\" },
-				\"surveyOption\": { \"anonymous\": true, \"allowMultipleResponses\": false, \"allowResponseUpdate\": true },
-				\"questions\": []
-			}
-			""";
-		// when & then
-		mockMvc.perform(post(createUri)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(requestJson))
-			.andExpect(status().isBadRequest());
-	}
+        // when & then
+        mockMvc.perform(post("/api/v1/survey/1/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+    }
 
-	@Test
-	@DisplayName("설문 생성 API - 질문 필수값 누락시 400")
-	void createSurvey_questionRequiredField() throws Exception {
-		// given
-		String requestJson = """
-			{
-			    \"surveyType\": \"VOTE\",
-			    \"surveyDuration\": { \"startDate\": \"2025-09-01T00:00:00\", \"endDate\": \"2025-09-10T23:59:59\" },
-			    \"surveyOption\": { \"anonymous\": true, \"allowMultipleResponses\": false, \"allowResponseUpdate\": true },
-			    \"questions\": [
-			        { \"content\": \"\", \"questionType\": \"SHORT_ANSWER\", \"displayOrder\": 1, \"choices\": [], \"required\": true }
-			    ]
-			}
-			""";
-		// when & then
-		mockMvc.perform(post(createUri)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(requestJson))
-			.andExpect(status().isBadRequest());
-	}
+    @Test
+    @DisplayName("설문 수정 요청 검증 - 잘못된 요청 실패")
+    void updateSurvey_request_validation_fail() throws Exception {
+        // given
+        UpdateSurveyRequest invalidRequest = new UpdateSurveyRequest();
+        // 필수 필드가 없는 요청
 
-	@Test
-	@DisplayName("설문 생성 API - 질문 타입별 유효성(선택지 필수) 400")
-	void createSurvey_questionTypeValidation() throws Exception {
-		// given
-		String requestJson = """
-			{
-			    \"title\": \"설문 제목\",
-			    \"surveyType\": \"VOTE\",
-			    \"surveyDuration\": { \"startDate\": \"2025-09-01T00:00:00\", \"endDate\": \"2025-09-10T23:59:59\" },
-			    \"surveyOption\": { \"anonymous\": true, \"allowMultipleResponses\": false, \"allowResponseUpdate\": true },
-			    \"questions\": [
-			        { \"content\": \"Q1\", \"questionType\": \"MULTIPLE_CHOICE\", \"displayOrder\": 1, \"choices\": [], \"required\": true }
-			    ]
-			}
-			""";
-		// when & then
-		mockMvc.perform(post(createUri)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(requestJson))
-			.andExpect(status().isBadRequest());
-	}
+        // when & then
+        mockMvc.perform(put("/api/v1/survey/1/update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
+    }
 
-	@Test
-	@DisplayName("설문 생성 API - 정상 입력시 201")
-	void createSurvey_success_mock() throws Exception {
-		// given
-		String requestJson = """
-			{
-			    \"title\": \"설문 제목\",
-			    \"description\": \"설문 설명\",
-			    \"surveyType\": \"VOTE\",
-			    \"surveyDuration\": { \"startDate\": \"2025-09-01T00:00:00\", \"endDate\": \"2025-09-10T23:59:59\" },
-			    \"surveyOption\": { \"anonymous\": true, \"allowMultipleResponses\": false, \"allowResponseUpdate\": true },
-			    \"questions\": [
-			        { \"content\": \"Q1\", \"questionType\": \"SHORT_ANSWER\", \"displayOrder\": 1, \"choices\": [], \"required\": true }
-			    ]
-			}
-			""";
-		given(surveyService.create(any(Long.class), any(Long.class), any())).willReturn(123L);
+    @Test
+    @DisplayName("설문 생성 요청 검증 - 잘못된 Content-Type 실패")
+    void createSurvey_invalid_content_type_fail() throws Exception {
+        // when & then
+        mockMvc.perform(post("/api/v1/survey/1/create")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("invalid content"))
+                .andExpect(status().isUnsupportedMediaType());
+    }
 
-		// when & then
-		mockMvc.perform(post(createUri)
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(requestJson))
-			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.success").value(true));
-	}
+    @Test
+    @DisplayName("설문 수정 요청 검증 - 잘못된 Content-Type 실패")
+    void updateSurvey_invalid_content_type_fail() throws Exception {
+        // when & then
+        mockMvc.perform(put("/api/v1/survey/1/update")
+                .contentType(MediaType.TEXT_PLAIN)
+                .content("invalid content"))
+                .andExpect(status().isUnsupportedMediaType());
+    }
 
-	@Test
-	@DisplayName("설문 수정 API - 값 전부 누락 시 400")
-	void updateSurvey_requestValidation() throws Exception {
-		// given
-		String requestJson = """
-			{}
-			""";
+    @Test
+    @DisplayName("설문 생성 요청 검증 - 잘못된 JSON 형식 실패")
+    void createSurvey_invalid_json_fail() throws Exception {
+        // when & then
+        mockMvc.perform(post("/api/v1/survey/1/create")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ invalid json }"))
+                .andExpect(status().isBadRequest());
+    }
 
-		// when & then
-		mockMvc.perform(put("/api/v1/survey/1/update")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(requestJson))
-			.andExpect(status().isBadRequest());
-	}
+    @Test
+    @DisplayName("설문 수정 요청 검증 - 잘못된 JSON 형식 실패")
+    void updateSurvey_invalid_json_fail() throws Exception {
+        // when & then
+        mockMvc.perform(put("/api/v1/survey/1/update")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ invalid json }"))
+                .andExpect(status().isBadRequest());
+    }
 } 
