@@ -23,8 +23,8 @@ public class ProjectAdapter implements ProjectPort {
 	private final ProjectApiClient projectClient;
 
 	@Override
-	public ProjectValidDto getProjectMembers(Long projectId, Long userId) {
-		ExternalApiResponse projectMembers = projectClient.getProjectMembers(projectId);
+	public ProjectValidDto getProjectMembers(String authHeader, Long projectId, Long userId) {
+		ExternalApiResponse projectMembers = projectClient.getProjectMembers(authHeader);
 		if (!projectMembers.isSuccess())
 			throw new CustomException(CustomErrorCode.NOT_FOUND_PROJECT);
 
@@ -33,21 +33,21 @@ public class ProjectAdapter implements ProjectPort {
 			throw new CustomException(CustomErrorCode.SERVER_ERROR, "외부 API 응답 데이터가 없습니다.");
 		}
 
-		Map<String, Object> data = (Map<String, Object>)rawData;
+		List<Map<String, Object>> data = (List<Map<String, Object>>)rawData;
 
-		@SuppressWarnings("unchecked")
-		List<Long> memberIds = Optional.ofNullable(data.get("memberIds"))
-			.filter(memberIdsObj -> memberIdsObj instanceof List)
-			.map(memberIdsObj -> (List<Long>)memberIdsObj)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.SERVER_ERROR,
-				"memberIds 필드가 없거나 List 타입이 아닙니다."));
+		List<Integer> projectIds = data.stream()
+			.map(
+				map -> {
+					return (Integer)map.get("projectId");
+				}
+			).toList();
 
-		return ProjectValidDto.of(memberIds, userId);
+		return ProjectValidDto.of(projectIds, projectId);
 	}
 
 	@Override
-	public ProjectStateDto getProjectState(Long projectId) {
-		ExternalApiResponse projectState = projectClient.getProjectState(projectId);
+	public ProjectStateDto getProjectState(String authHeader, Long projectId) {
+		ExternalApiResponse projectState = projectClient.getProjectState(authHeader, projectId);
 		if (!projectState.isSuccess()) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_PROJECT);
 		}
