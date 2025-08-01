@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.application.dto.response;
+package com.example.surveyapi.domain.user.application.client;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class KakaoOauthResponse {
+public class KakaoAccessResponse {
     @JsonProperty("token_type")
     private String token_type;
 
