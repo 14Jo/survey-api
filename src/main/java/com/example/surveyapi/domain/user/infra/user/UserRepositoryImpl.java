@@ -51,4 +51,14 @@ public class UserRepositoryImpl implements UserRepository {
         return userJpaRepository.findByGrade(userId);
     }
 
+    @Override
+    public boolean existsByAuthProviderId(String providerId) {
+        return userJpaRepository.existsByAuthProviderId(providerId);
+    }
+
+    @Override
+    public Optional<User> findByAuthProviderIdAndIsDeletedFalse(String providerId) {
+        return userJpaRepository.findByAuthProviderIdAndIsDeletedFalse(providerId);
+    }
+
 }
