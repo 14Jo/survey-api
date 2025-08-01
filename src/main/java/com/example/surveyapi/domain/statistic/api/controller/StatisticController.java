@@ -2,7 +2,6 @@ package com.example.surveyapi.domain.statistic.api.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -30,12 +29,13 @@ public class StatisticController {
 			.body(ApiResponse.success("통계가 생성되었습니다.", null));
 	}
 
-	@GetMapping("/test/test")
+	//TODO 스케줄링
+	@PostMapping("/api/v2/statistics/realtime")
 	public ResponseEntity<ApiResponse<Void>> fetchLiveStatistics(
 		@RequestHeader("Authorization") String authHeader
 	) {
 		statisticService.calculateLiveStatistics(authHeader);
 
-		return ResponseEntity.ok(ApiResponse.success("성공.", null));
+		return ResponseEntity.ok(ApiResponse.success("실시간 통계 집계 성공.", null));
 	}
 }
