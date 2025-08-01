@@ -212,7 +212,8 @@ public class AuthService {
             request.getProfile().getAddress().getProvince(),
             request.getProfile().getAddress().getDistrict(),
             request.getProfile().getAddress().getDetailAddress(),
-            request.getProfile().getAddress().getPostalCode()
+            request.getProfile().getAddress().getPostalCode(),
+            request.getAuth().getProvider()
         );
 
         User createUser = userRepository.save(user);
