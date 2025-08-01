@@ -43,6 +43,7 @@ import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.global.config.client.ExternalApiResponse;
 import com.example.surveyapi.global.config.client.participation.ParticipationApiClient;
 import com.example.surveyapi.global.config.client.project.ProjectApiClient;
+import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -57,6 +58,9 @@ public class UserServiceTest {
     UserService userService;
 
     @Autowired
+    AuthService authService;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -67,6 +71,9 @@ public class UserServiceTest {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @MockitoBean
     private ProjectApiClient projectApiClient;
@@ -84,7 +91,7 @@ public class UserServiceTest {
         SignupRequest request = createSignupRequest(email, password);
 
         // when
-        SignupResponse signup = userService.signup(request);
+        SignupResponse signup = authService.signup(request);
 
         // then
         var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
@@ -131,7 +138,7 @@ public class UserServiceTest {
         SignupRequest request = createSignupRequest(email, password);
 
         // when
-        SignupResponse signup = userService.signup(request);
+        SignupResponse signup = authService.signup(request);
 
         // then
         var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
@@ -148,7 +155,7 @@ public class UserServiceTest {
         SignupRequest request = createSignupRequest(email, password);
 
         // when
-        SignupResponse signup = userService.signup(request);
+        SignupResponse signup = authService.signup(request);
 
         // then
         var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
@@ -166,10 +173,10 @@ public class UserServiceTest {
         SignupRequest rq2 = createSignupRequest(email, password);
 
         // when
-        userService.signup(rq1);
+        authService.signup(rq1);
 
         // then
-        assertThatThrownBy(() -> userService.signup(rq2))
+        assertThatThrownBy(() -> authService.signup(rq2))
             .isInstanceOf(CustomException.class);
     }
 
@@ -183,10 +190,15 @@ public class UserServiceTest {
         SignupRequest rq1 = createSignupRequest(email, password);
         SignupRequest rq2 = createSignupRequest(email, password);
 
+        SignupResponse signup = authService.signup(rq1);
+
+        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
+            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
+
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
-        String authHeader = "Bearer dummyAccessToken";
+        String authHeader = jwtUtil.createAccessToken(user.getId(), user.getRole());
 
         ExternalApiResponse fakeProjectResponse = fakeProjectResponse();
 
@@ -199,11 +211,10 @@ public class UserServiceTest {
             .thenReturn(fakeParticipationResponse);
 
         // when
-        SignupResponse signup = userService.signup(rq1);
-        userService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader);
+        authService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader);
 
         // then
-        assertThatThrownBy(() -> userService.signup(rq2))
+        assertThatThrownBy(() -> authService.signup(rq2))
             .isInstanceOf(CustomException.class);
     }
 
@@ -214,8 +225,8 @@ public class UserServiceTest {
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
         SignupRequest rq2 = createSignupRequest("user@example1.com", "Password123");
 
-        userService.signup(rq1);
-        userService.signup(rq2);
+        authService.signup(rq1);
+        authService.signup(rq2);
 
         PageRequest pageable = PageRequest.of(0, 10);
 
@@ -233,7 +244,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        SignupResponse signup = userService.signup(rq1);
+        SignupResponse signup = authService.signup(rq1);
 
         User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
@@ -253,7 +264,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        userService.signup(rq1);
+        authService.signup(rq1);
 
         Long invalidId = 9999L;
 
@@ -269,7 +280,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        SignupResponse signup = userService.signup(rq1);
+        SignupResponse signup = authService.signup(rq1);
 
         User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
@@ -289,7 +300,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        userService.signup(rq1);
+        authService.signup(rq1);
 
         Long userId = 9999L;
 
@@ -305,7 +316,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        SignupResponse signup = userService.signup(rq1);
+        SignupResponse signup = authService.signup(rq1);
 
         User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
@@ -351,7 +362,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        SignupResponse signup = userService.signup(rq1);
+        SignupResponse signup = authService.signup(rq1);
 
         User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
@@ -359,7 +370,7 @@ public class UserServiceTest {
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
-        String authHeader = "Bearer dummyAccessToken";
+        String authHeader = jwtUtil.createAccessToken(user.getId(), user.getRole());
 
         ExternalApiResponse fakeProjectResponse = fakeProjectResponse();
 
@@ -372,10 +383,10 @@ public class UserServiceTest {
             .thenReturn(fakeParticipationResponse);
 
         // when
-        userService.withdraw(user.getId(), userWithdrawRequest, authHeader);
+        authService.withdraw(user.getId(), userWithdrawRequest, authHeader);
 
         // then
-        assertThatThrownBy(() -> userService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader))
+        assertThatThrownBy(() -> authService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
 
@@ -387,7 +398,7 @@ public class UserServiceTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
 
-        SignupResponse signup = userService.signup(rq1);
+        SignupResponse signup = authService.signup(rq1);
 
         User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
@@ -401,7 +412,7 @@ public class UserServiceTest {
         String authHeader = "Bearer dummyAccessToken";
 
         // when & then
-        assertThatThrownBy(() -> userService.withdraw(user.getId(), userWithdrawRequest, authHeader))
+        assertThatThrownBy(() -> authService.withdraw(user.getId(), userWithdrawRequest, authHeader))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("유저를 찾을 수 없습니다");
     }

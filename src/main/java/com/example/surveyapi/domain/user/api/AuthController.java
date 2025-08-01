@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.surveyapi.domain.user.application.UserService;
+import com.example.surveyapi.domain.user.application.AuthService;
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
@@ -25,13 +25,13 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("api/v1")
 public class AuthController {
 
-    private final UserService userService;
+    private final AuthService authService;
 
     @PostMapping("/auth/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
         @Valid @RequestBody SignupRequest request
     ) {
-        SignupResponse signup = userService.signup(request);
+        SignupResponse signup = authService.signup(request);
 
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success("회원가입 성공", signup));
@@ -41,7 +41,7 @@ public class AuthController {
     public ResponseEntity<ApiResponse<LoginResponse>> login(
         @Valid @RequestBody LoginRequest request
     ) {
-        LoginResponse login = userService.login(request);
+        LoginResponse login = authService.login(request);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("로그인 성공", login));
@@ -53,7 +53,7 @@ public class AuthController {
         @AuthenticationPrincipal Long userId,
         @RequestHeader("Authorization") String authHeader
     ) {
-        userService.withdraw(userId, request, authHeader);
+        authService.withdraw(userId, request, authHeader);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));
@@ -64,7 +64,7 @@ public class AuthController {
         @RequestHeader("Authorization") String authHeader,
         @AuthenticationPrincipal Long userId
     ) {
-        userService.logout(authHeader, userId);
+        authService.logout(authHeader, userId);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("로그아웃 되었습니다.", null));
@@ -75,7 +75,7 @@ public class AuthController {
         @RequestHeader("Authorization") String accessToken,
         @RequestHeader("RefreshToken") String refreshToken // Bearer 까지 넣어서
     ) {
-        LoginResponse reissue = userService.reissue(accessToken, refreshToken);
+        LoginResponse reissue = authService.reissue(accessToken, refreshToken);
 
         return ResponseEntity.status(HttpStatus.OK)
             .body(ApiResponse.success("토큰이 재발급되었습니다.", reissue));
