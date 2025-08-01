@@ -44,6 +44,7 @@ import com.example.surveyapi.domain.participation.domain.participation.vo.Partic
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.surveyapi.domain.survey.application.SurveyQueryService;
 
 @WebMvcTest(ParticipationController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -59,7 +60,7 @@ class ParticipationControllerTest {
 	private ParticipationService participationService;
 
 	@MockBean
-	private com.example.surveyapi.domain.survey.application.SurveyQueryService surveyQueryService;
+	private SurveyQueryService surveyQueryService;
 
 	@AfterEach
 	void tearDown() {
