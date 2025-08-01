@@ -48,7 +48,7 @@ public class StatisticService {
 
 		ParticipationRequestDto request = new ParticipationRequestDto(surveyIds);
 		List<ParticipationInfoDto> participationInfos = participationServicePort.getParticipationInfos(authHeader, request);
-
+		log.info("participationInfos: {}", participationInfos);
 
 		participationInfos.forEach(info -> {
 			Statistic statistic = getStatistic(info.surveyId());
@@ -67,6 +67,7 @@ public class StatisticService {
 		List<StatisticCommand.ParticipationDetailData> detail =
 			info.participations().stream()
 				.map(participation -> new StatisticCommand.ParticipationDetailData(
+					participation.participatedAt(),
 					participation.responses().stream()
 						.map(response -> new StatisticCommand.ResponseData(
 							response.questionId(), response.answer()

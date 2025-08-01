@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.statistic.domain.dto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ public class StatisticCommand {
 	List<ParticipationDetailData> participations;
 
 	public record ParticipationDetailData(
+		LocalDateTime participatedAt,
 		List<ResponseData> responses
 	) {}
 
