@@ -71,7 +71,7 @@ public class Question extends BaseEntity {
 		question.type = type;
 		question.displayOrder = displayOrder;
 		question.isRequired = isRequired;
-		question.choices = choices;
+		question.choices = choices != null ? choices : new ArrayList<>();
 
 		if (choices != null && !choices.isEmpty()) {
 			question.duplicateChoiceOrder();
