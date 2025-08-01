@@ -67,6 +67,6 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
 	@Override
 	public List<Project> findProjectsByManager(Long userId) {
-		return projectQuerydslRepository.findProjectByManager(userId);
+		return projectQuerydslRepository.findProjectsByManager(userId);
 	}
 }

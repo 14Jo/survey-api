@@ -118,8 +118,8 @@ public class ProjectQuerydslRepository {
 
 	public List<Project> findProjectsByMember(Long userId) {
 
-		return query.selectFrom(project)
-			.join(projectMember.project, project)
+		return query.select(projectMember.project)
+			.from(projectMember)
 			.where(
 				isMemberUser(userId),
 				isMemberNotDeleted(),
@@ -128,13 +128,13 @@ public class ProjectQuerydslRepository {
 			.fetch();
 	}
 
-	public List<Project> findProjectByManager(Long userId) {
+	public List<Project> findProjectsByManager(Long userId) {
 
-		return query.selectFrom(project)
-			.join(projectManager.project, project)
+		return query.select(projectManager.project)
+			.from(projectManager)
 			.where(
-				isMemberUser(userId),
-				isMemberNotDeleted(),
+				isManagerUser(userId),
+				isManagerNotDeleted(),
 				isProjectNotDeleted()
 			)
 			.fetch();
