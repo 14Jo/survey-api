@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface ParticipationServicePort {
 
-	List<ParticipationInfoDto> getParticipationInfos(String authHeader, ParticipationRequestDto dto);
+	List<ParticipationInfoDto> getParticipationInfos(String authHeader, List<Long> surveyIds);
 }
