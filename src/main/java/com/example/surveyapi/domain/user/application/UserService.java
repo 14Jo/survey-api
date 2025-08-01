@@ -23,7 +23,6 @@ import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,11 +33,6 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-    private final RedisTemplate<String, String> redisTemplate;
-    private final ProjectPort projectPort;
-    private final ParticipationPort participationPort;
-
 
     @Transactional(readOnly = true)
     public Page<UserInfoResponse> getAll(Pageable pageable) {
@@ -87,7 +81,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserSnapShotResponse snapshot(Long userId){
+    public UserSnapShotResponse snapshot(Long userId) {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 

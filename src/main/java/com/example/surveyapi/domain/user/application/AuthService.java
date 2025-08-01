@@ -22,6 +22,7 @@ import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
+import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.oauth.KakaoOauthProperties;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
@@ -69,7 +70,7 @@ public class AuthService {
         return createAccessAndSaveRefresh(user);
     }
 
-    // Todo 회원 탈퇴 시 이벤트 -> @UserWithdraw 어노테이션을 붙이기만 하면 됩니다.
+    @UserWithdraw
     @Transactional
     public void withdraw(Long userId, UserWithdrawRequest request, String authHeader) {
 
@@ -106,8 +107,14 @@ public class AuthService {
 
         user.delete();
 
-        // 상위 트랜잭션이 유지됨
-        logout(authHeader,userId);
+        String accessToken = jwtUtil.subStringToken(authHeader);
+
+        validateTokenType(accessToken, "access");
+
+        addBlackLists(accessToken);
+
+        String redisKey = "refreshToken" + userId;
+        redisTemplate.delete(redisKey);
     }
 
     @Transactional
@@ -260,9 +267,8 @@ public class AuthService {
         try {
             return kakaoOauthPort.getKakaoUserInfo("Bearer " + accessToken);
         } catch (Exception e) {
-            // throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
             log.error("카카오 사용자 정보 요청 실패 : " , e);
-            throw new RuntimeException("오류발생 : " + e.getMessage());
+            throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
         }
     }
 }
