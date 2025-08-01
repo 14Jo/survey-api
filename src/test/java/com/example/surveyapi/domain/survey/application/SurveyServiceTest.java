@@ -32,6 +32,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,6 +52,7 @@ class SurveyServiceTest {
     private Survey mockSurvey;
     private ProjectValidDto validProject;
     private ProjectStateDto openProjectState;
+    private String authHeader = "Bearer token";
 
     @BeforeEach
     void setUp() {
@@ -89,7 +91,7 @@ class SurveyServiceTest {
         );
         ReflectionTestUtils.setField(mockSurvey, "surveyId", 1L);
 
-        validProject = ProjectValidDto.of(List.of(1L, 2L, 3L), 1L);
+        validProject = ProjectValidDto.of(List.of(1, 2, 3), 1L);
         openProjectState = ProjectStateDto.of("IN_PROGRESS");
     }
 
@@ -97,8 +99,8 @@ class SurveyServiceTest {
     @DisplayName("설문 생성 - 성공")
     void createSurvey_success() {
         // given
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
-        when(projectPort.getProjectState(anyLong())).thenReturn(openProjectState);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectState(anyString(), anyLong())).thenReturn(openProjectState);
         when(surveyRepository.save(any(Survey.class))).thenAnswer(invocation -> {
             Survey survey = invocation.getArgument(0);
             ReflectionTestUtils.setField(survey, "surveyId", 1L);
@@ -106,7 +108,7 @@ class SurveyServiceTest {
         });
 
         // when
-        Long surveyId = surveyService.create(1L, 1L, createRequest);
+        Long surveyId = surveyService.create(authHeader, 1L, 1L, createRequest);
 
         // then
         assertThat(surveyId).isEqualTo(1L);
@@ -117,11 +119,11 @@ class SurveyServiceTest {
     @DisplayName("설문 생성 - 프로젝트에 참여하지 않은 사용자")
     void createSurvey_fail_invalidPermission() {
         // given
-        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2L, 3L), 1L);
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(invalidProject);
+        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2, 3), 1L);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(invalidProject);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.create(1L, 1L, createRequest))
+        assertThatThrownBy(() -> surveyService.create(authHeader, 1L, 1L, createRequest))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PERMISSION);
     }
@@ -130,12 +132,12 @@ class SurveyServiceTest {
     @DisplayName("설문 생성 - 종료된 프로젝트")
     void createSurvey_fail_closedProject() {
         // given
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
         ProjectStateDto closedProjectState = ProjectStateDto.of("CLOSED");
-        when(projectPort.getProjectState(anyLong())).thenReturn(closedProjectState);
+        when(projectPort.getProjectState(anyString(), anyLong())).thenReturn(closedProjectState);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.create(1L, 1L, createRequest))
+        assertThatThrownBy(() -> surveyService.create(authHeader, 1L, 1L, createRequest))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PROJECT_STATE);
     }
@@ -146,11 +148,11 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
-        when(projectPort.getProjectState(anyLong())).thenReturn(openProjectState);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectState(anyString(), anyLong())).thenReturn(openProjectState);
 
         // when
-        Long surveyId = surveyService.update(1L, 1L, updateRequest);
+        Long surveyId = surveyService.update(authHeader, 1L, 1L, updateRequest);
 
         // then
         assertThat(surveyId).isEqualTo(1L);
@@ -174,7 +176,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.of(inProgressSurvey));
 
         // when & then
-        assertThatThrownBy(() -> surveyService.update(1L, 1L, updateRequest))
+        assertThatThrownBy(() -> surveyService.update(authHeader, 1L, 1L, updateRequest))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.CONFLICT);
     }
@@ -187,7 +189,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> surveyService.update(1L, 1L, updateRequest))
+        assertThatThrownBy(() -> surveyService.update(authHeader, 1L, 1L, updateRequest))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.NOT_FOUND_SURVEY);
     }
@@ -198,11 +200,11 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2L, 3L), 1L);
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(invalidProject);
+        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2, 3), 1L);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(invalidProject);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.update(1L, 1L, updateRequest))
+        assertThatThrownBy(() -> surveyService.update(authHeader, 1L, 1L, updateRequest))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PERMISSION);
     }
@@ -213,12 +215,12 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
         ProjectStateDto closedProjectState = ProjectStateDto.of("CLOSED");
-        when(projectPort.getProjectState(anyLong())).thenReturn(closedProjectState);
+        when(projectPort.getProjectState(anyString(), anyLong())).thenReturn(closedProjectState);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.update(1L, 1L, updateRequest))
+        assertThatThrownBy(() -> surveyService.update(authHeader, 1L, 1L, updateRequest))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PROJECT_STATE);
     }
@@ -229,11 +231,11 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
-        when(projectPort.getProjectState(anyLong())).thenReturn(openProjectState);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectState(anyString(), anyLong())).thenReturn(openProjectState);
 
         // when
-        Long surveyId = surveyService.delete(1L, 1L);
+        Long surveyId = surveyService.delete(authHeader, 1L, 1L);
 
         // then
         assertThat(surveyId).isEqualTo(1L);
@@ -257,7 +259,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.of(inProgressSurvey));
 
         // when & then
-        assertThatThrownBy(() -> surveyService.delete(1L, 1L))
+        assertThatThrownBy(() -> surveyService.delete(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.CONFLICT);
     }
@@ -270,7 +272,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> surveyService.delete(1L, 1L))
+        assertThatThrownBy(() -> surveyService.delete(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.NOT_FOUND_SURVEY);
     }
@@ -281,11 +283,11 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2L, 3L), 1L);
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(invalidProject);
+        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2, 3), 1L);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(invalidProject);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.delete(1L, 1L))
+        assertThatThrownBy(() -> surveyService.delete(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PERMISSION);
     }
@@ -296,12 +298,12 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
         ProjectStateDto closedProjectState = ProjectStateDto.of("CLOSED");
-        when(projectPort.getProjectState(anyLong())).thenReturn(closedProjectState);
+        when(projectPort.getProjectState(anyString(), anyLong())).thenReturn(closedProjectState);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.delete(1L, 1L))
+        assertThatThrownBy(() -> surveyService.delete(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PROJECT_STATE);
     }
@@ -312,13 +314,14 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
 
         // when
-        Long surveyId = surveyService.open(1L, 1L);
+        Long surveyId = surveyService.open(authHeader, 1L, 1L);
 
         // then
         assertThat(surveyId).isEqualTo(1L);
+        assertThat(mockSurvey.getStatus()).isEqualTo(SurveyStatus.IN_PROGRESS);
         verify(surveyRepository).stateUpdate(any(Survey.class));
     }
 
@@ -339,7 +342,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.of(inProgressSurvey));
 
         // when & then
-        assertThatThrownBy(() -> surveyService.open(1L, 1L))
+        assertThatThrownBy(() -> surveyService.open(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_STATE_TRANSITION);
     }
@@ -352,7 +355,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> surveyService.open(1L, 1L))
+        assertThatThrownBy(() -> surveyService.open(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.NOT_FOUND_SURVEY);
     }
@@ -363,11 +366,11 @@ class SurveyServiceTest {
         // given
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(mockSurvey));
-        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2L, 3L), 1L);
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(invalidProject);
+        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2, 3), 1L);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(invalidProject);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.open(1L, 1L))
+        assertThatThrownBy(() -> surveyService.open(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PERMISSION);
     }
@@ -387,13 +390,14 @@ class SurveyServiceTest {
 
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(inProgressSurvey));
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(validProject);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
 
         // when
-        Long surveyId = surveyService.close(1L, 1L);
+        Long surveyId = surveyService.close(authHeader, 1L, 1L);
 
         // then
         assertThat(surveyId).isEqualTo(1L);
+        assertThat(inProgressSurvey.getStatus()).isEqualTo(SurveyStatus.CLOSED);
         verify(surveyRepository).stateUpdate(any(Survey.class));
     }
 
@@ -405,7 +409,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.of(mockSurvey));
 
         // when & then
-        assertThatThrownBy(() -> surveyService.close(1L, 1L))
+        assertThatThrownBy(() -> surveyService.close(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_STATE_TRANSITION);
     }
@@ -418,7 +422,7 @@ class SurveyServiceTest {
             .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> surveyService.close(1L, 1L))
+        assertThatThrownBy(() -> surveyService.close(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.NOT_FOUND_SURVEY);
     }
@@ -438,11 +442,11 @@ class SurveyServiceTest {
 
         when(surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(anyLong(), anyLong()))
             .thenReturn(Optional.of(inProgressSurvey));
-        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2L, 3L), 1L);
-        when(projectPort.getProjectMembers(anyLong(), anyLong())).thenReturn(invalidProject);
+        ProjectValidDto invalidProject = ProjectValidDto.of(List.of(2, 3), 1L);
+        when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(invalidProject);
 
         // when & then
-        assertThatThrownBy(() -> surveyService.close(1L, 1L))
+        assertThatThrownBy(() -> surveyService.close(authHeader, 1L, 1L))
             .isInstanceOf(CustomException.class)
             .hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PERMISSION);
     }

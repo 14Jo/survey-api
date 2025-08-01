@@ -57,6 +57,7 @@ class SurveyControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/v1/survey/1/create")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -71,6 +72,7 @@ class SurveyControllerTest {
 
         // when & then
         mockMvc.perform(put("/api/v1/survey/1/update")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -81,6 +83,7 @@ class SurveyControllerTest {
     void createSurvey_invalid_content_type_fail() throws Exception {
         // when & then
         mockMvc.perform(post("/api/v1/survey/1/create")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("invalid content"))
                 .andExpect(status().isUnsupportedMediaType());
@@ -91,6 +94,7 @@ class SurveyControllerTest {
     void updateSurvey_invalid_content_type_fail() throws Exception {
         // when & then
         mockMvc.perform(put("/api/v1/survey/1/update")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("invalid content"))
                 .andExpect(status().isUnsupportedMediaType());
@@ -101,6 +105,7 @@ class SurveyControllerTest {
     void createSurvey_invalid_json_fail() throws Exception {
         // when & then
         mockMvc.perform(post("/api/v1/survey/1/create")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ invalid json }"))
                 .andExpect(status().isBadRequest());
@@ -111,6 +116,7 @@ class SurveyControllerTest {
     void updateSurvey_invalid_json_fail() throws Exception {
         // when & then
         mockMvc.perform(put("/api/v1/survey/1/update")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ invalid json }"))
                 .andExpect(status().isBadRequest());
