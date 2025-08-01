@@ -38,6 +38,7 @@ public class SecurityConfig {
                 .accessDeniedHandler(jwtAccessDeniedHandler))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/reissue").permitAll()
+                .requestMatchers("/auth/kakao/**").permitAll()
                 .requestMatchers("/api/v1/survey/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/health/ok").permitAll()

@@ -3,9 +3,6 @@ package com.example.surveyapi.domain.survey.api;
 import com.example.surveyapi.domain.survey.application.SurveyService;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.request.SurveyRequest;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -19,10 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -57,6 +50,7 @@ class SurveyControllerTest {
 
         // when & then
         mockMvc.perform(post("/api/v1/survey/1/create")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -71,6 +65,7 @@ class SurveyControllerTest {
 
         // when & then
         mockMvc.perform(put("/api/v1/survey/1/update")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
@@ -81,6 +76,7 @@ class SurveyControllerTest {
     void createSurvey_invalid_content_type_fail() throws Exception {
         // when & then
         mockMvc.perform(post("/api/v1/survey/1/create")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("invalid content"))
                 .andExpect(status().isUnsupportedMediaType());
@@ -91,6 +87,7 @@ class SurveyControllerTest {
     void updateSurvey_invalid_content_type_fail() throws Exception {
         // when & then
         mockMvc.perform(put("/api/v1/survey/1/update")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("invalid content"))
                 .andExpect(status().isUnsupportedMediaType());
@@ -101,6 +98,7 @@ class SurveyControllerTest {
     void createSurvey_invalid_json_fail() throws Exception {
         // when & then
         mockMvc.perform(post("/api/v1/survey/1/create")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ invalid json }"))
                 .andExpect(status().isBadRequest());
@@ -111,6 +109,7 @@ class SurveyControllerTest {
     void updateSurvey_invalid_json_fail() throws Exception {
         // when & then
         mockMvc.perform(put("/api/v1/survey/1/update")
+                .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ invalid json }"))
                 .andExpect(status().isBadRequest());
