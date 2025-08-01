@@ -39,7 +39,6 @@ public class Share extends BaseEntity {
 	private Long creatorId;
 	@Column(name = "token", nullable = false)
 	private String token;
-	@Enumerated(EnumType.STRING)
 	@Column(name = "link", nullable = false, unique = true)
 	private String link;
 	@Column(name = "expiration", nullable = false)
