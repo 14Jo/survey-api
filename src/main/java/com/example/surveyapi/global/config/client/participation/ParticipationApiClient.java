@@ -27,7 +27,7 @@ public interface ParticipationApiClient {
 		@RequestParam List<Long> surveyIds
 	);
 
-    @GetExchange("/api/v2/members/me/participations")
+    @GetExchange("/api/v1/members/me/participations")
     ExternalApiResponse getSurveyStatus(
         @RequestHeader("Authorization") String authHeader,
         @RequestParam Long userId,
