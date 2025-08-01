@@ -39,4 +39,9 @@ public class ShareRepositoryImpl implements ShareRepository {
 	public Optional<Share> findByToken(String token) {
 		return shareJpaRepository.findByToken(token);
 	}
+
+	@Override
+	public void delete(Share share) {
+		shareJpaRepository.delete(share);
+	}
 }

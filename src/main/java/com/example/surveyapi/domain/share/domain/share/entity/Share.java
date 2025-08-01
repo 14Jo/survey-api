@@ -80,4 +80,8 @@ public class Share extends BaseEntity {
 			notifications.add(Notification.createForShare(this, recipientId));
 		});
 	}
+
+	public boolean isDeleted() {
+		return isDeleted;
+	}
 }

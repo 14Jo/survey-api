@@ -14,4 +14,6 @@ public interface ShareRepository {
 	Optional<Share> findById(Long id);
 
 	Optional<Share> findByToken(String token);
+
+	void delete(Share share);
 }
