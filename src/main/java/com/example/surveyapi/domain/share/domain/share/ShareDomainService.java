@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.share.domain.share;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -14,9 +15,9 @@ public class ShareDomainService {
 	private static final String BASE_URL = "https://everysurvey.com/surveys/share/";
 	private static final String BASE_EMAIL = "email://";
 
-	public Share createShare(Long surveyId, Long creatorId, ShareMethod shareMethod) {
+	public Share createShare(Long surveyId, Long creatorId, ShareMethod shareMethod, List<Long> recipientIds) {
 		String link = generateLink(shareMethod);
-		return new Share(surveyId, creatorId, shareMethod, link);
+		return new Share(surveyId, creatorId, shareMethod, link, recipientIds);
 	}
 
 	public String generateLink(ShareMethod shareMethod) {
