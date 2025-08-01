@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProjectAdapter implements ProjectPort {
+public class UserProjectAdapter implements ProjectPort {
 
     private final ProjectApiClient projectApiClient;
     private final ObjectMapper objectMapper;

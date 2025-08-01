@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.participation.application.dto.response;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -15,6 +16,7 @@ import lombok.NoArgsConstructor;
 public class ParticipationDetailResponse {
 
 	private Long participationId;
+	private LocalDateTime participatedAt;
 	private List<AnswerDetail> responses;
 
 	public static ParticipationDetailResponse from(Participation participation) {
@@ -25,6 +27,7 @@ public class ParticipationDetailResponse {
 
 		ParticipationDetailResponse participationDetail = new ParticipationDetailResponse();
 		participationDetail.participationId = participation.getId();
+		participationDetail.participatedAt = participation.getUpdatedAt();
 		participationDetail.responses = responses;
 
 		return participationDetail;

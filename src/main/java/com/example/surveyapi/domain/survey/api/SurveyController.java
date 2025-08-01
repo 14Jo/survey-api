@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,58 +28,63 @@ public class SurveyController {
 
 	private final SurveyService surveyService;
 
-	//TODO 생성자 ID 구현 필요
 	@PostMapping("/{projectId}/create")
 	public ResponseEntity<ApiResponse<Long>> create(
 		@PathVariable Long projectId,
 		@Valid @RequestBody CreateSurveyRequest request,
-		@AuthenticationPrincipal Long creatorId
+		@AuthenticationPrincipal Long creatorId,
+		@RequestHeader("Authorization") String authHeader
 	) {
-		Long surveyId = surveyService.create(projectId, creatorId, request);
+		Long surveyId = surveyService.create(authHeader, projectId, creatorId, request);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.success("설문 생성 성공", surveyId));
 	}
 
-	//TODO 수정자 ID 구현 필요
 	@PatchMapping("/{surveyId}/open")
 	public ResponseEntity<ApiResponse<String>> open(
 		@PathVariable Long surveyId,
-		@AuthenticationPrincipal Long creatorId
+		@AuthenticationPrincipal Long creatorId,
+		@RequestHeader("Authorization") String authHeader
 	) {
-		String result = surveyService.open(surveyId, creatorId);
+		surveyService.open(authHeader, surveyId, creatorId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 시작 성공", result));
+		return ResponseEntity.status(HttpStatus.OK)
+		.body(ApiResponse.success("설문 시작 성공", "X"));
 	}
 
 	@PatchMapping("/{surveyId}/close")
 	public ResponseEntity<ApiResponse<String>> close(
 		@PathVariable Long surveyId,
-		@AuthenticationPrincipal Long creatorId
+		@AuthenticationPrincipal Long creatorId,
+		@RequestHeader("Authorization") String authHeader
 	) {
-		String result = surveyService.close(surveyId, creatorId);
+		surveyService.close(authHeader, surveyId, creatorId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 종료 성공", result));
+		return ResponseEntity.status(HttpStatus.OK)
+		.body(ApiResponse.success("설문 종료 성공", "X"));
 	}
 
 	@PutMapping("/{surveyId}/update")
-	public ResponseEntity<ApiResponse<String>> update(
+	public ResponseEntity<ApiResponse<Long>> update(
 		@PathVariable Long surveyId,
 		@Valid @RequestBody UpdateSurveyRequest request,
-		@AuthenticationPrincipal Long creatorId
+		@AuthenticationPrincipal Long creatorId,
+		@RequestHeader("Authorization") String authHeader
 	) {
-		String result = surveyService.update(surveyId, creatorId, request);
+		Long updatedSurveyId = surveyService.update(authHeader, surveyId, creatorId, request);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 수정 성공", result));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 수정 성공", updatedSurveyId));
 	}
 
 	@DeleteMapping("/{surveyId}/delete")
-	public ResponseEntity<ApiResponse<String>> delete(
+	public ResponseEntity<ApiResponse<Long>> delete(
 		@PathVariable Long surveyId,
-		@AuthenticationPrincipal Long creatorId
+		@AuthenticationPrincipal Long creatorId,
+		@RequestHeader("Authorization") String authHeader
 	) {
-		String result = surveyService.delete(surveyId, creatorId);
+		Long deletedSurveyId = surveyService.delete(authHeader, surveyId, creatorId);
 
-		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", result));
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 삭제 성공", deletedSurveyId));
 	}
 }

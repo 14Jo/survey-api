@@ -34,7 +34,10 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 
 		Survey surveyResult = jpaQueryFactory
 			.selectFrom(survey)
-			.where(survey.surveyId.eq(surveyId))
+			.where(
+				survey.surveyId.eq(surveyId),
+				survey.status.ne(SurveyStatus.DELETED)
+			)
 			.fetchOne();
 
 		if (surveyResult == null) {
@@ -83,6 +86,7 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 			.from(survey)
 			.where(
 				survey.projectId.eq(projectId),
+				survey.status.ne(SurveyStatus.DELETED),
 				lastSurveyId != null ? survey.surveyId.lt(lastSurveyId) : null
 			)
 			.orderBy(survey.surveyId.desc())
@@ -103,7 +107,10 @@ public class QueryDslRepositoryImpl implements QueryDslRepository {
 				survey.duration
 			))
 			.from(survey)
-			.where(survey.surveyId.in(surveyIds))
+			.where(
+				survey.surveyId.in(surveyIds),
+				survey.status.ne(SurveyStatus.DELETED)
+			)
 			.fetch();
 	}
 
