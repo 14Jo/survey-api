@@ -44,7 +44,7 @@ public class JwtUtil {
         return BEARER_PREFIX +
             Jwts.builder()
                 .subject(String.valueOf(userId))
-                .claim("userRole", userRole)
+                .claim("userRole", userRole.name())
                 .claim("type", "access")
                 .expiration(new Date(date.getTime() + TOKEN_TIME))
                 .issuedAt(date)
@@ -58,7 +58,7 @@ public class JwtUtil {
         return BEARER_PREFIX +
             Jwts.builder()
                 .subject(String.valueOf(userId))
-                .claim("userRole", userRole)
+                .claim("userRole", userRole.name())
                 .claim("type", "refresh")
                 .expiration(new Date(date.getTime() + REFRESH_TIME))
                 .issuedAt(date)
