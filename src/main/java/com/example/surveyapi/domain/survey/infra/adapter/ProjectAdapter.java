@@ -3,7 +3,6 @@ package com.example.surveyapi.domain.survey.infra.adapter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
