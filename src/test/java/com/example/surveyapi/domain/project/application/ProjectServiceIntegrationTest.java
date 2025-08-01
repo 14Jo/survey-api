@@ -7,17 +7,14 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
-import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager;
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
@@ -103,11 +100,9 @@ class ProjectServiceIntegrationTest {
 	void 프로젝트_매니저_추가_정상동작() {
 		// given
 		Long projectId = createSampleProject();
-		CreateManagerRequest request = new CreateManagerRequest();
-		ReflectionTestUtils.setField(request, "userId", 2L);
 
 		// when
-		projectService.addManager(projectId, request, 1L);
+		projectService.joinProjectManager(projectId, 2L);
 
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();
@@ -119,16 +114,13 @@ class ProjectServiceIntegrationTest {
 	void 프로젝트_매니저_권한_변경_정상동작() {
 		// given
 		Long projectId = createSampleProject();
-
-		CreateManagerRequest createManager = new CreateManagerRequest();
-		ReflectionTestUtils.setField(createManager, "userId", 2L);
-		CreateManagerResponse added = projectService.addManager(projectId, createManager, 1L);
+		projectService.joinProjectManager(projectId, 2L);
 
 		UpdateManagerRoleRequest roleRequest = new UpdateManagerRoleRequest();
 		ReflectionTestUtils.setField(roleRequest, "newRole", ManagerRole.WRITE);
 
 		// when
-		projectService.updateManagerRole(projectId, added.getManagerId(), roleRequest, 1L);
+		projectService.updateManagerRole(projectId, 2L, roleRequest, 1L);
 
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();
@@ -140,13 +132,10 @@ class ProjectServiceIntegrationTest {
 	void 프로젝트_매니저_삭제_정상동작() {
 		// given
 		Long projectId = createSampleProject();
-
-		CreateManagerRequest createManager = new CreateManagerRequest();
-		ReflectionTestUtils.setField(createManager, "userId", 2L);
-		CreateManagerResponse added = projectService.addManager(projectId, createManager, 1L);
+		projectService.joinProjectManager(projectId, 2L);
 
 		// when
-		projectService.deleteManager(projectId, added.getManagerId(), 1L);
+		projectService.deleteManager(projectId, 2L, 1L);
 
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();
@@ -157,10 +146,7 @@ class ProjectServiceIntegrationTest {
 	void 프로젝트_소유자_위임_정상동작() {
 		// given
 		Long projectId = createSampleProject();
-
-		CreateManagerRequest createManager = new CreateManagerRequest();
-		ReflectionTestUtils.setField(createManager, "userId", 2L);
-		projectService.addManager(projectId, createManager, 1L);
+		projectService.joinProjectManager(projectId, 2L);
 
 		UpdateProjectOwnerRequest ownerRequest = new UpdateProjectOwnerRequest();
 		ReflectionTestUtils.setField(ownerRequest, "newOwnerId", 2L);
@@ -182,8 +168,8 @@ class ProjectServiceIntegrationTest {
 		Long projectId = createSampleProject();
 
 		// when
-		projectService.joinProject(projectId, 2L);
-		projectService.joinProject(projectId, 3L);
+		projectService.joinProjectMember(projectId, 2L);
+		projectService.joinProjectMember(projectId, 3L);
 
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();
@@ -194,9 +180,9 @@ class ProjectServiceIntegrationTest {
 	void 프로젝트_참여인원_ID_리스트_정상_조회() {
 		// given
 		Long projectId = createSampleProject();
-		projectService.joinProject(projectId, 2L);
-		projectService.joinProject(projectId, 3L);
-		projectService.joinProject(projectId, 4L);
+		projectService.joinProjectMember(projectId, 2L);
+		projectService.joinProjectMember(projectId, 3L);
+		projectService.joinProjectMember(projectId, 4L);
 
 		// when
 		ProjectMemberIdsResponse response = projectService.getProjectMemberIds(projectId);
@@ -211,8 +197,8 @@ class ProjectServiceIntegrationTest {
 	void 프로젝트_멤버_탈퇴_정상동작() {
 		// given
 		Long projectId = createSampleProject();
-		projectService.joinProject(projectId, 2L);
-		projectService.joinProject(projectId, 3L);
+		projectService.joinProjectMember(projectId, 2L);
+		projectService.joinProjectMember(projectId, 3L);
 
 		// when
 		projectService.leaveProject(projectId, 2L);

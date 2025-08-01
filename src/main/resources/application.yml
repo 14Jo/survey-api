@@ -31,6 +31,11 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
+# JWT Secret Key
+jwt:
+  secret:
+    key : ${SECRET_KEY}
+
 logging:
   level:
     org.springframework.security: DEBUG
