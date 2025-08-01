@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.statistic.application.client.ParticipationInfoDto;
-import com.example.surveyapi.domain.statistic.application.client.ParticipationRequestDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
-import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistics;
+import com.example.surveyapi.domain.statistic.domain.dto.StatisticCommand;
+import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
 import com.example.surveyapi.domain.statistic.domain.repository.StatisticRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -31,7 +32,7 @@ public class StatisticService {
 		if (statisticRepository.existsById(surveyId)) {
 			throw new CustomException(CustomErrorCode.STATISTICS_ALREADY_EXISTS);
 		}
-		Statistics statistic = Statistics.create(surveyId);
+		Statistic statistic = Statistic.create(surveyId);
 		statisticRepository.save(statistic);
 	}
 
@@ -44,8 +45,7 @@ public class StatisticService {
 		surveyIds.add(2L);
 		surveyIds.add(3L);
 
-		ParticipationRequestDto request = new ParticipationRequestDto(surveyIds);
-		List<ParticipationInfoDto> participationInfos = participationServicePort.getParticipationInfos(authHeader, request);
+		List<ParticipationInfoDto> participationInfos = participationServicePort.getParticipationInfos(authHeader, surveyIds);
 		log.info("participationInfos: {}", participationInfos);
 
 		participationInfos.forEach(info -> {
