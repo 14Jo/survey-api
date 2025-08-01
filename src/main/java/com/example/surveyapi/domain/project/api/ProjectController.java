@@ -174,7 +174,7 @@ public class ProjectController {
 		projectService.deleteManager(projectId, managerId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("담당자 삭제 성공"));
+			.body(ApiResponse.success("담당자 참여 성공"));
 	}
 
 	// ProjectMember
