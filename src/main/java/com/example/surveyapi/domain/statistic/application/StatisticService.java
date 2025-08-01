@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.example.surveyapi.domain.statistic.application.client.ParticipationInfoDto;
-import com.example.surveyapi.domain.statistic.application.client.ParticipationRequestDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
 import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistics;
 import com.example.surveyapi.domain.statistic.domain.repository.StatisticRepository;
@@ -40,8 +39,8 @@ public class StatisticService {
 		surveyIds.add(2L);
 		surveyIds.add(3L);
 
-		ParticipationRequestDto request = new ParticipationRequestDto(surveyIds);
-		List<ParticipationInfoDto> participationInfos = participationServicePort.getParticipationInfos(authHeader, request);
+		List<ParticipationInfoDto> participationInfos = participationServicePort.getParticipationInfos(authHeader,
+			surveyIds);
 		log.info("ParticipationInfos: {}", participationInfos);
 	}
 }
