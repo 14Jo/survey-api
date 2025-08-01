@@ -1,16 +1,18 @@
 package com.example.surveyapi.domain.participation.domain.participation.vo;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @EqualsAndHashCode
 public class ParticipantInfo {
@@ -20,11 +22,14 @@ public class ParticipantInfo {
 	@Enumerated(EnumType.STRING)
 	private Gender gender;
 
-	private String region;
+	private Region region;
 
-	public ParticipantInfo(LocalDate birth, Gender gender, String region) {
-		this.birth = birth;
-		this.gender = gender;
-		this.region = region;
+	public static ParticipantInfo of(String birth, Gender gender, String province, String district) {
+		ParticipantInfo participantInfo = new ParticipantInfo();
+		participantInfo.birth = LocalDateTime.parse(birth).toLocalDate();
+		participantInfo.gender = gender;
+		participantInfo.region = Region.of(province, district);
+
+		return participantInfo;
 	}
 }

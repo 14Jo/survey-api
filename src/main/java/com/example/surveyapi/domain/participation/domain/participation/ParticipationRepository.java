@@ -11,4 +11,6 @@ public interface ParticipationRepository extends ParticipationQueryRepository {
 	List<Participation> findAllBySurveyIdIn(List<Long> surveyIds);
 
 	Optional<Participation> findById(Long participationId);
+
+	boolean exists(Long surveyId, Long memberId);
 }

@@ -3,7 +3,9 @@ package com.example.surveyapi.domain.participation.application.dto.response;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,20 +34,18 @@ public class ParticipationInfoResponse {
 	public static class SurveyInfoOfParticipation {
 
 		private Long surveyId;
-		private String surveyTitle;
-		private String surveyStatus;
+		private String title;
+		private SurveyStatus status;
 		private LocalDate endDate;
 		private boolean allowResponseUpdate;
 
-		// TODO: 타 도메인 통신으로 받는 데이터
-		public static SurveyInfoOfParticipation of(Long surveyId, String surveyTitle, String surveyStatus,
-			LocalDate endDate, boolean allowResponseUpdate) {
+		public static SurveyInfoOfParticipation from(SurveyInfoDto surveyInfoDto) {
 			SurveyInfoOfParticipation surveyInfo = new SurveyInfoOfParticipation();
-			surveyInfo.surveyId = surveyId;
-			surveyInfo.surveyTitle = surveyTitle;
-			surveyInfo.surveyStatus = surveyStatus;
-			surveyInfo.endDate = endDate;
-			surveyInfo.allowResponseUpdate = allowResponseUpdate;
+			surveyInfo.surveyId = surveyInfoDto.getSurveyId();
+			surveyInfo.title = surveyInfoDto.getTitle();
+			surveyInfo.status = surveyInfoDto.getStatus();
+			surveyInfo.endDate = surveyInfoDto.getDuration().getEndDate().toLocalDate();
+			surveyInfo.allowResponseUpdate = surveyInfoDto.getOption().isAllowResponseUpdate();
 
 			return surveyInfo;
 		}
