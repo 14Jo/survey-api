@@ -12,9 +12,9 @@ public class ProjectValidDto {
 
 	private Boolean valid;
 
-	public static ProjectValidDto of(List<Long> memberIds, Long userId) {
+	public static ProjectValidDto of(List<Integer> projectIds, Long currentProjectId) {
 		ProjectValidDto dto = new ProjectValidDto();
-		dto.valid = memberIds.contains(userId);
+		dto.valid = projectIds.contains(currentProjectId.intValue());
 		return dto;
 	}
 }

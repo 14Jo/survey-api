@@ -3,6 +3,7 @@ package com.example.surveyapi.domain.survey.infra.adapter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
@@ -24,7 +25,7 @@ public class ProjectAdapter implements ProjectPort {
 
 	@Override
 	public ProjectValidDto getProjectMembers(String authHeader, Long projectId, Long userId) {
-		ExternalApiResponse projectMembers = projectClient.getProjectMembers(authHeader, projectId);
+		ExternalApiResponse projectMembers = projectClient.getProjectMembers(authHeader);
 		if (!projectMembers.isSuccess())
 			throw new CustomException(CustomErrorCode.NOT_FOUND_PROJECT);
 
@@ -33,16 +34,16 @@ public class ProjectAdapter implements ProjectPort {
 			throw new CustomException(CustomErrorCode.SERVER_ERROR, "외부 API 응답 데이터가 없습니다.");
 		}
 
-		Map<String, Object> data = (Map<String, Object>)rawData;
+		List<Map<String, Object>> data = (List<Map<String, Object>>)rawData;
 
-		@SuppressWarnings("unchecked")
-		List<Long> memberIds = Optional.ofNullable(data.get("memberIds"))
-			.filter(memberIdsObj -> memberIdsObj instanceof List)
-			.map(memberIdsObj -> (List<Long>)memberIdsObj)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.SERVER_ERROR,
-				"memberIds 필드가 없거나 List 타입이 아닙니다."));
+		List<Integer> projectIds = data.stream()
+			.map(
+				map -> {
+					return (Integer)map.get("projectId");
+				}
+			).toList();
 
-		return ProjectValidDto.of(memberIds, userId);
+		return ProjectValidDto.of(projectIds, projectId);
 	}
 
 	@Override
