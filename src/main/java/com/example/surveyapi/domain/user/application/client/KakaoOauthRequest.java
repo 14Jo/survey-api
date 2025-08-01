@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.application.dto.request;
+package com.example.surveyapi.domain.user.application.client;
 
 import lombok.AccessLevel;
 import lombok.Getter;
