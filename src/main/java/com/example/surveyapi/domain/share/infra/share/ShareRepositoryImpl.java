@@ -16,11 +16,6 @@ public class ShareRepositoryImpl implements ShareRepository {
 	private final ShareJpaRepository shareJpaRepository;
 
 	@Override
-	public Optional<Share> findBySurveyId(Long surveyId) {
-		return shareJpaRepository.findBySurveyId(surveyId);
-	}
-
-	@Override
 	public Optional<Share> findByLink(String link) {
 		return shareJpaRepository.findByLink(link);
 	}
