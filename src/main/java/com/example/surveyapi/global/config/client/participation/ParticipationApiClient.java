@@ -15,10 +15,10 @@ import com.example.surveyapi.global.config.client.ExternalApiResponse;
 @HttpExchange
 public interface ParticipationApiClient {
 
-	@PostExchange("/api/v1/surveys/participations")
+	@GetExchange("/api/v1/surveys/participations")
 	ExternalApiResponse getParticipationInfos(
 		@RequestHeader("Authorization") String authHeader,
-		@RequestBody ParticipationRequestDto dto
+		@RequestParam List<Long> surveyIds
 	);
 
 	@GetExchange("/api/v2/surveys/participations/count")
@@ -27,7 +27,7 @@ public interface ParticipationApiClient {
 		@RequestParam List<Long> surveyIds
 	);
 
-    @GetExchange("/api/v2/members/me/participations")
+    @GetExchange("/api/v1/members/me/participations")
     ExternalApiResponse getSurveyStatus(
         @RequestHeader("Authorization") String authHeader,
         @RequestParam Long userId,

@@ -82,7 +82,9 @@ jobs:
           SPRING_DATASOURCE_USERNAME: ljy
           SPRING_DATASOURCE_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
           SECRET_KEY: test-secret-key-for-testing-only
-        
+          ACTION_REDIS_HOST: ${{ secrets.ACTION_REDIS_HOST }}
+          ACTION_REDIS_PORT: ${{ secrets.ACTION_REDIS_PORT }}
+
       # 6단계: 프로젝트 빌드 (테스트 통과 후 실행)
       - name: Build with Gradle
         # gradlew 명령어로 스프링 부트 프로젝트를 빌드함. 이걸 해야 .jar 파일이 생김.

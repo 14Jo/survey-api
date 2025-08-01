@@ -16,7 +16,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class ParticipationAdapter implements ParticipationPort {
+public class UserParticipationAdapter implements ParticipationPort {
 
     private final ParticipationApiClient participationApiClient;
     private final ObjectMapper objectMapper;
@@ -37,7 +37,8 @@ public class ParticipationAdapter implements ParticipationPort {
                 new TypeReference<List<UserSurveyStatusResponse>>() {
                 }
             );
-
         return surveyStatusList;
     }
+
+
 }

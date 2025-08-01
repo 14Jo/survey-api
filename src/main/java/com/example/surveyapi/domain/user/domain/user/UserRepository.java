@@ -19,5 +19,9 @@ public interface UserRepository {
 
     Optional<User> findByIdAndIsDeletedFalse(Long userId);
 
+    Optional<User> findById(Long userId);
+
     Optional<Grade> findByGrade(Long userId);
+
+    Optional<User> findByAuthProviderIdAndIsDeletedFalse(String providerId);
 }
