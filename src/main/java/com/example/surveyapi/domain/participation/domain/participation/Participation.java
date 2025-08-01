@@ -78,7 +78,7 @@ public class Participation extends BaseEntity {
 		}
 	}
 
-	public void update(List<Response> newResponses) {
+	public void update(List<Response> newResponses, ParticipantInfo participantInfo) {
 		Map<Long, Response> responseMap = this.responses.stream()
 			.collect(Collectors.toMap(Response::getQuestionId, response -> response));
 
@@ -90,5 +90,6 @@ public class Participation extends BaseEntity {
 				response.updateAnswer(newResponse.getAnswer());
 			}
 		}
+		this.participantInfo = participantInfo;
 	}
 }
