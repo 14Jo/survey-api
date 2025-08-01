@@ -23,8 +23,8 @@ public class ProjectAdapter implements ProjectPort {
 	private final ProjectApiClient projectClient;
 
 	@Override
-	public ProjectValidDto getProjectMembers(Long projectId, Long userId) {
-		ExternalApiResponse projectMembers = projectClient.getProjectMembers(projectId);
+	public ProjectValidDto getProjectMembers(String authHeader, Long projectId, Long userId) {
+		ExternalApiResponse projectMembers = projectClient.getProjectMembers(authHeader, projectId);
 		if (!projectMembers.isSuccess())
 			throw new CustomException(CustomErrorCode.NOT_FOUND_PROJECT);
 
@@ -46,8 +46,8 @@ public class ProjectAdapter implements ProjectPort {
 	}
 
 	@Override
-	public ProjectStateDto getProjectState(Long projectId) {
-		ExternalApiResponse projectState = projectClient.getProjectState(projectId);
+	public ProjectStateDto getProjectState(String authHeader, Long projectId) {
+		ExternalApiResponse projectState = projectClient.getProjectState(authHeader, projectId);
 		if (!projectState.isSuccess()) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_PROJECT);
 		}

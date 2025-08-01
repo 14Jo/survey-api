@@ -30,16 +30,17 @@ public class SurveyService {
 
 	@Transactional
 	public Long create(
+		String authHeader,
 		Long projectId,
 		Long creatorId,
 		CreateSurveyRequest request
 	) {
-		ProjectValidDto projectValid = projectPort.getProjectMembers(projectId, creatorId);
+		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, projectId, creatorId);
 		if (!projectValid.getValid()) {
 			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
 		}
 
-		ProjectStateDto projectState = projectPort.getProjectState(projectId);
+		ProjectStateDto projectState = projectPort.getProjectState(authHeader, projectId);
 		if (projectState.isClosed()) {
 			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE, "종료된 프로젝트에서는 설문을 생성할 수 없습니다.");
 		}
@@ -57,7 +58,7 @@ public class SurveyService {
 
 	//TODO 실제 업데이트 적용 컬럼 수 계산하는 쿼리 작성 필요
 	@Transactional
-	public Long update(Long surveyId, Long userId, UpdateSurveyRequest request) {
+	public Long update(String authHeader, Long surveyId, Long userId, UpdateSurveyRequest request) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
@@ -65,12 +66,12 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.CONFLICT, "진행 중인 설문은 수정할 수 없습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(survey.getProjectId(), userId);
+		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
 		if (!projectValid.getValid()) {
 			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
 		}
 
-		ProjectStateDto projectState = projectPort.getProjectState(survey.getProjectId());
+		ProjectStateDto projectState = projectPort.getProjectState(authHeader, survey.getProjectId());
 		if (projectState.isClosed()) {
 			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE, "종료된 프로젝트에서는 설문을 수정할 수 없습니다.");
 		}
@@ -104,7 +105,7 @@ public class SurveyService {
 	}
 
 	@Transactional
-	public Long delete(Long surveyId, Long userId) {
+	public Long delete(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
@@ -112,12 +113,12 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.CONFLICT, "진행 중인 설문은 삭제할 수 없습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(survey.getProjectId(), userId);
+		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
 		if (!projectValid.getValid()) {
 			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
 		}
 
-		ProjectStateDto projectState = projectPort.getProjectState(survey.getProjectId());
+		ProjectStateDto projectState = projectPort.getProjectState(authHeader, survey.getProjectId());
 		if (projectState.isClosed()) {
 			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE, "종료된 프로젝트에서는 설문을 삭제할 수 없습니다.");
 		}
@@ -129,7 +130,7 @@ public class SurveyService {
 	}
 
 	@Transactional
-	public Long open(Long surveyId, Long userId) {
+	public Long open(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
@@ -137,7 +138,7 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION, "준비 중인 설문만 시작할 수 있습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(survey.getProjectId(), userId);
+		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
 		if (!projectValid.getValid()) {
 			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
 		}
@@ -149,7 +150,7 @@ public class SurveyService {
 	}
 
 	@Transactional
-	public Long close(Long surveyId, Long userId) {
+	public Long close(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
@@ -157,7 +158,7 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION, "진행 중인 설문만 종료할 수 있습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(survey.getProjectId(), userId);
+		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
 		if (!projectValid.getValid()) {
 			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
 		}

@@ -14,11 +14,13 @@ public interface ProjectApiClient {
 
 	@GetExchange("/api/v2/projects/{projectId}/members")
 	ExternalApiResponse getProjectMembers(
+		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long projectId
 	);
 
 	@GetExchange("/api/v2/projects/{projectId}/state")
 	ExternalApiResponse getProjectState(
+		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long projectId
 	);
 
