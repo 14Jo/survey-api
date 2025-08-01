@@ -47,13 +47,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<Grade> findByGrade(Long userId) {
-        return userJpaRepository.findByGrade(userId);
+    public Optional<User> findById(Long userId) {
+        return userJpaRepository.findById(userId);
     }
 
     @Override
-    public boolean existsByAuthProviderId(String providerId) {
-        return userJpaRepository.existsByAuthProviderId(providerId);
+    public Optional<Grade> findByGrade(Long userId) {
+        return userJpaRepository.findByGrade(userId);
     }
 
     @Override
