@@ -12,4 +12,6 @@ public interface ShareJpaRepository extends JpaRepository<Share, Long> {
 	Optional<Share> findByLink(String link);
 
 	Optional<Share> findById(Long id);
+
+	Optional<Share> findByToken(String token);
 }
