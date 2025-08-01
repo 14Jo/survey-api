@@ -57,17 +57,6 @@ public class ProjectMemberController {
 			.body(ApiResponse.success("프로젝트 참여 인원 조회 성공", response));
 	}
 
-	@DeleteMapping("/{projectId}/managers")
-	public ResponseEntity<ApiResponse<Void>> leaveProjectManager(
-		@PathVariable Long projectId,
-		@AuthenticationPrincipal Long currentUserId
-	) {
-		projectService.leaveProjectManager(projectId, currentUserId);
-
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("프로젝트 매니저 탈퇴 성공"));
-	}
-
 	@DeleteMapping("/{projectId}/members")
 	public ResponseEntity<ApiResponse<Void>> leaveProjectMember(
 		@PathVariable Long projectId,

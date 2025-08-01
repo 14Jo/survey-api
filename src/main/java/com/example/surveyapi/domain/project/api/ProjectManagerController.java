@@ -63,6 +63,17 @@ public class ProjectManagerController {
 			.body(ApiResponse.success("담당자 권한 수정 성공"));
 	}
 
+	@DeleteMapping("/{projectId}/managers")
+	public ResponseEntity<ApiResponse<Void>> leaveProjectManager(
+		@PathVariable Long projectId,
+		@AuthenticationPrincipal Long currentUserId
+	) {
+		projectService.leaveProjectManager(projectId, currentUserId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 매니저 탈퇴 성공"));
+	}
+
 	@DeleteMapping("/{projectId}/managers/{managerId}")
 	public ResponseEntity<ApiResponse<Void>> deleteManager(
 		@PathVariable Long projectId,
