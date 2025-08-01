@@ -19,11 +19,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.example.surveyapi.domain.share.api.ShareController;
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
@@ -64,6 +62,7 @@ class ShareControllerTest {
 		Long creatorId = 1L;
 		ShareMethod shareMethod = ShareMethod.URL;
 		String shareLink = "https://example.com/share/12345";
+		List<Long> recipientIds = List.of(2L, 3L, 4L);
 
 		String requestJson = """
 			{
@@ -72,14 +71,14 @@ class ShareControllerTest {
 				\"shareMethod\": \"URL\"
 			}
 			""";
-		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink);
+		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod))).willReturn(mockResponse);
+		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -103,6 +102,7 @@ class ShareControllerTest {
 		Long creatorId = 1L;
 		ShareMethod shareMethod = ShareMethod.EMAIL;
 		String shareLink = "email://12345";
+		List<Long> recipientIds = List.of(2L, 3L, 4L);
 
 		String requestJson = """
 			{
@@ -111,14 +111,14 @@ class ShareControllerTest {
 				\"shareMethod\": \"EMAIL\"
 			}
 			""";
-		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink);
+		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod))).willReturn(mockResponse);
+		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
