@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.statistic.application.client;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -10,6 +11,7 @@ public record ParticipationInfoDto(
 	//public record ParticipationInfoDto()
 	public record ParticipationDetailDto(
 		Long participationId,
+		LocalDateTime participatedAt,
 		List<SurveyResponseDto> responses
 	) {}
 
