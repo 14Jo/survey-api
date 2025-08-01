@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
+import com.example.surveyapi.domain.participation.application.client.UserServicePort;
+import com.example.surveyapi.domain.participation.application.client.UserSnapshotDto;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
@@ -43,6 +45,7 @@ public class ParticipationService {
 
 	private final ParticipationRepository participationRepository;
 	private final SurveyServicePort surveyPort;
+	private final UserServicePort userPort;
 
 	@Transactional
 	public Long create(String authHeader, Long surveyId, Long memberId, CreateParticipationRequest request) {
@@ -52,17 +55,20 @@ public class ParticipationService {
 
 		validateSurveyActive(surveyDetail);
 
-		// TODO: memberId가 설문의 대상이 맞는지 공유에 검증 요청
-
 		List<ResponseData> responseDataList = request.getResponseDataList();
 		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
 
 		// 문항과 답변 유효성 검증
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		// TODO: 멤버의 participantInfo 스냅샷 설정을 위해 Member에 요청, REST 통신으로 받아온 json 데이터를 dto로 받을지 고려하고
-		// TODO: participantInfo를 도메인 create 에서 생성하도록 수정
-		ParticipantInfo participantInfo = new ParticipantInfo();
+		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, memberId);
+		ParticipantInfo participantInfo = ParticipantInfo.of(
+			userSnapshot.getBirth(),
+			userSnapshot.getGender(),
+			userSnapshot.getRegion().getProvince(),
+			userSnapshot.getRegion().getDistrict()
+		);
+
 		Participation participation = Participation.create(memberId, surveyId, participantInfo, responseDataList);
 
 		Participation savedParticipation = participationRepository.save(participation);
@@ -140,12 +146,11 @@ public class ParticipationService {
 	}
 
 	@Transactional
-	public void update(String authHeader, Long loginMemberId, Long participationId,
+	public void update(String authHeader, Long memberId, Long participationId,
 		CreateParticipationRequest request) {
 		Participation participation = getParticipationOrThrow(participationId);
-		// TODO: userId, surveyId만 최소한으로 가져오고 검증할지 고려
 
-		participation.validateOwner(loginMemberId);
+		participation.validateOwner(memberId);
 
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, participation.getSurveyId());
 
@@ -162,7 +167,15 @@ public class ParticipationService {
 			.map(responseData -> Response.create(responseData.getQuestionId(), responseData.getAnswer()))
 			.toList();
 
-		participation.update(responses);
+		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, memberId);
+		ParticipantInfo participantInfo = ParticipantInfo.of(
+			userSnapshot.getBirth(),
+			userSnapshot.getGender(),
+			userSnapshot.getRegion().getProvince(),
+			userSnapshot.getRegion().getDistrict()
+		);
+
+		participation.update(responses, participantInfo);
 	}
 
 	@Transactional(readOnly = true)
@@ -243,6 +256,8 @@ public class ParticipationService {
 				log.info("REQUIRED_QUESTION_NOT_ANSWERED questionId : {}", questionId);
 				throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
 			}
+
+			// TODO: choice도 유효성 검사
 		}
 	}
 

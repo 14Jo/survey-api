@@ -32,8 +32,8 @@ public class SurveyServiceAdapter implements SurveyServicePort {
 
 	@Override
 	public List<SurveyInfoDto> getSurveyInfoList(String authHeader, List<Long> surveyIds) {
-		ExternalApiResponse surveyDetail = surveyApiClient.getSurveyInfoList(authHeader, surveyIds);
-		Object rawData = surveyDetail.getOrThrow();
+		ExternalApiResponse surveyInfoList = surveyApiClient.getSurveyInfoList(authHeader, surveyIds);
+		Object rawData = surveyInfoList.getOrThrow();
 
 		return objectMapper.convertValue(rawData, new TypeReference<List<SurveyInfoDto>>() {
 		});
