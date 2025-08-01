@@ -82,7 +82,9 @@ public class User extends BaseEntity {
         String email, String password,
         String name, LocalDateTime birthDate, Gender gender,
         String province, String district,
-        String detailAddress, String postalCode
+        String detailAddress, String postalCode,
+        Provider provider
+
     ) {
         Address address = Address.of(
             province, district,
@@ -96,7 +98,7 @@ public class User extends BaseEntity {
 
         Auth auth = Auth.create(
             user, email, password,
-            Provider.LOCAL, null);
+            provider, null);
 
         user.auth = auth;
 
