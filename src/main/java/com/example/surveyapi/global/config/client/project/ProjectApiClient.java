@@ -12,13 +12,12 @@ import com.example.surveyapi.global.config.client.ExternalApiResponse;
 @HttpExchange
 public interface ProjectApiClient {
 
-	@GetExchange("/api/v2/projects/{projectId}/members")
+	@GetExchange("/api/v2/projects//me/managers")
 	ExternalApiResponse getProjectMembers(
-		@RequestHeader("Authorization") String authHeader,
-		@PathVariable Long projectId
+		@RequestHeader("Authorization") String authHeader
 	);
 
-	@GetExchange("/api/v2/projects/{projectId}/state")
+	@GetExchange("/api/v2/projects/{projectId}")
 	ExternalApiResponse getProjectState(
 		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long projectId
