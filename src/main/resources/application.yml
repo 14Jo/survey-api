@@ -28,12 +28,17 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     redis:
-      host : ${REDIS_HOST}
-      port : ${REDIS_PORT}
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
 logging:
   level:
     org.springframework.security: DEBUG
+
+# JWT Secret Key
+jwt:
+  secret:
+    key: ${SECRET_KEY}
 
 oauth:
   kakao:
@@ -63,7 +68,3 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-# JWT Secret Key
-jwt:
-  secret:
-    key : ${SECRET_KEY}
