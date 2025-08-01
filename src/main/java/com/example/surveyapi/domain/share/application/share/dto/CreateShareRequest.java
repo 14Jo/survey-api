@@ -1,6 +1,6 @@
 package com.example.surveyapi.domain.share.application.share.dto;
 
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
