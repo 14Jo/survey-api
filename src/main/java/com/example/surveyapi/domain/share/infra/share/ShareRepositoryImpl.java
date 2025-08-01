@@ -34,4 +34,9 @@ public class ShareRepositoryImpl implements ShareRepository {
 	public Optional<Share> findById(Long id) {
 		return shareJpaRepository.findById(id);
 	}
+
+	@Override
+	public Optional<Share> findByToken(String token) {
+		return shareJpaRepository.findByToken(token);
+	}
 }

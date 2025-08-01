@@ -12,4 +12,6 @@ public interface ShareRepository {
 	Share save(Share share);
 
 	Optional<Share> findById(Long id);
+
+	Optional<Share> findByToken(String token);
 }
