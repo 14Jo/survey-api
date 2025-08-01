@@ -29,7 +29,7 @@ import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.util.PageInfo;
@@ -44,41 +44,45 @@ class ShareControllerTest {
 	@MockBean
 	private NotificationService notificationService;
 
-	private final String URI = "/api/v1/share-tasks";
+	private final String URI = "/api/v2/share-tasks";
+
+	private final Long sourceId = 1L;
+	private final Long creatorId = 1L;
+	private final List<Long> recipientIds = List.of(2L, 3L, 4L);
 
 	@BeforeEach
 	void setUp() {
 		TestingAuthenticationToken auth =
-			new TestingAuthenticationToken(1L, null, "ROLE_USER");
+			new TestingAuthenticationToken(creatorId, null, "ROLE_USER");
 		auth.setAuthenticated(true);
 		SecurityContextHolder.getContext().setAuthentication(auth);
 	}
 
 	@Test
-	@DisplayName("공유 생성 api - url 정상 요청, 201 return")
+	@DisplayName("공유 생성 api - PROJECT 정상 요청, 201 return")
 	void createShare_success_url() throws Exception {
 		//given
-		Long surveyId = 1L;
-		Long creatorId = 1L;
-		ShareMethod shareMethod = ShareMethod.URL;
+		String token = "token-123";
+		ShareSourceType sourceType = ShareSourceType.PROJECT;
 		String shareLink = "https://example.com/share/12345";
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		String requestJson = """
 			{
-				\"surveyId\": 1,
-				\"creatorId\": 1,
-				\"shareMethod\": \"URL\"
+				\"sourceType\": \"PROJECT\",
+				\"sourceId\": 1,
+				\"expirationDate\": \"2025-12-31T23:59:59\"
 			}
 			""";
-		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink, recipientIds);
+
+		Share shareMock = new Share(sourceType, sourceId, creatorId, token, shareLink, expirationDate, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod), eq(recipientIds))).willReturn(mockResponse);
+		given(shareService.createShare(eq(sourceType), eq(sourceId), eq(creatorId), eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -86,39 +90,39 @@ class ShareControllerTest {
 			.content(requestJson))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data.surveyId").value(1))
+			.andExpect(jsonPath("$.data.sourceType").value("PROJECT"))
+			.andExpect(jsonPath("$.data.sourceId").value(1))
 			.andExpect(jsonPath("$.data.creatorId").value(1))
-			.andExpect(jsonPath("$.data.shareMethod").value("URL"))
 			.andExpect(jsonPath("$.data.shareLink").value("https://example.com/share/12345"))
 			.andExpect(jsonPath("$.data.createdAt").exists())
 			.andExpect(jsonPath("$.data.updatedAt").exists());
 	}
 
 	@Test
-	@DisplayName("공유 생성 api - email 정상 요청, 201 return")
+	@DisplayName("공유 생성 api - SURVEY 정상 요청, 201 return")
 	void createShare_success_email() throws Exception {
 		//given
-		Long surveyId = 1L;
-		Long creatorId = 1L;
-		ShareMethod shareMethod = ShareMethod.EMAIL;
-		String shareLink = "email://12345";
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		String token = "token-123";
+		ShareSourceType sourceType = ShareSourceType.SURVEY;
+		String shareLink = "https://example.com/share/12345";
+		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		String requestJson = """
 			{
-				\"surveyId\": 1,
-				\"creatorId\": 1,
-				\"shareMethod\": \"EMAIL\"
+				"sourceType": "SURVEY",
+				"sourceId": 1,
+				"expirationDate": "2025-12-31T23:59:59"
 			}
 			""";
-		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink, recipientIds);
+
+		Share shareMock = new Share(sourceType, sourceId, creatorId, token, shareLink, expirationDate, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod), eq(recipientIds))).willReturn(mockResponse);
+		given(shareService.createShare(eq(sourceType), eq(sourceId), eq(creatorId), eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -126,10 +130,10 @@ class ShareControllerTest {
 				.content(requestJson))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data.surveyId").value(1))
+			.andExpect(jsonPath("$.data.sourceType").value("SURVEY"))
+			.andExpect(jsonPath("$.data.sourceId").value(1))
 			.andExpect(jsonPath("$.data.creatorId").value(1))
-			.andExpect(jsonPath("$.data.shareMethod").value("EMAIL"))
-			.andExpect(jsonPath("$.data.shareLink").value("email://12345"))
+			.andExpect(jsonPath("$.data.shareLink").value("https://example.com/share/12345"))
 			.andExpect(jsonPath("$.data.createdAt").exists())
 			.andExpect(jsonPath("$.data.updatedAt").exists());
 	}
