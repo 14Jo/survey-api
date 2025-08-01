@@ -14,7 +14,7 @@ public class ShareQueryDslRepositoryImpl implements ShareQueryDslRepository {
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public boolean isExist(Long surveyId, Long userId) {
+	public boolean isExist(Long sourceId, Long userId) {
 		QShare share = QShare.share;
 		QNotification notification = QNotification.notification;
 
@@ -23,7 +23,7 @@ public class ShareQueryDslRepositoryImpl implements ShareQueryDslRepository {
 			.from(share)
 			.join(share.notifications, notification)
 			.where(
-				share.surveyId.eq(surveyId),
+				share.sourceId.eq(sourceId),
 				notification.recipientId.eq(userId)
 			)
 			.fetchFirst();

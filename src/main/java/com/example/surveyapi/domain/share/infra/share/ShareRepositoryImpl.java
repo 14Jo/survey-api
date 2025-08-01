@@ -16,11 +16,6 @@ public class ShareRepositoryImpl implements ShareRepository {
 	private final ShareJpaRepository shareJpaRepository;
 
 	@Override
-	public Optional<Share> findBySurveyId(Long surveyId) {
-		return shareJpaRepository.findBySurveyId(surveyId);
-	}
-
-	@Override
 	public Optional<Share> findByLink(String link) {
 		return shareJpaRepository.findByLink(link);
 	}
@@ -33,5 +28,15 @@ public class ShareRepositoryImpl implements ShareRepository {
 	@Override
 	public Optional<Share> findById(Long id) {
 		return shareJpaRepository.findById(id);
+	}
+
+	@Override
+	public Optional<Share> findByToken(String token) {
+		return shareJpaRepository.findByToken(token);
+	}
+
+	@Override
+	public void delete(Share share) {
+		shareJpaRepository.delete(share);
 	}
 }

@@ -7,9 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 
 public interface ShareRepository {
-	Optional<Share> findBySurveyId(Long surveyId);
 	Optional<Share> findByLink(String link);
 	Share save(Share share);
 
 	Optional<Share> findById(Long id);
+
+	Optional<Share> findByToken(String token);
+
+	void delete(Share share);
 }
