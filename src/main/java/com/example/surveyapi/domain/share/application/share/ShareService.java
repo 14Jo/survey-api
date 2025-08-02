@@ -11,8 +11,8 @@ import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.share.repository.query.ShareQueryRepository;
-import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -28,10 +28,10 @@ public class ShareService {
 	private final ShareDomainService shareDomainService;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, LocalDateTime expirationDate, List<Long> recipientIds) {
+		Long creatorId, ShareMethod shareMethod, LocalDateTime expirationDate, List<Long> recipientIds) {
 		//TODO : 설문 존재 여부 검증
 
-		Share share = shareDomainService.createShare(sourceType, sourceId, creatorId, expirationDate, recipientIds);
+		Share share = shareDomainService.createShare(sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
 		Share saved = shareRepository.save(share);
 
 		return ShareResponse.from(saved);

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.model.BaseEntity;
 
@@ -37,6 +38,8 @@ public class Share extends BaseEntity {
 	private Long sourceId;
 	@Column(name = "creator_id", nullable = false)
 	private Long creatorId;
+	@Enumerated(EnumType.STRING)
+	private ShareMethod shareMethod;
 	@Column(name = "token", nullable = false)
 	private String token;
 	@Column(name = "link", nullable = false, unique = true)
@@ -47,10 +50,11 @@ public class Share extends BaseEntity {
 	@OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Notification> notifications = new ArrayList<>();
 
-	public Share(ShareSourceType sourceType, Long sourceId, Long creatorId, String token, String link, LocalDateTime expirationDate, List<Long> recipientIds) {
+	public Share(ShareSourceType sourceType, Long sourceId, Long creatorId, ShareMethod shareMethod, String token, String link, LocalDateTime expirationDate, List<Long> recipientIds) {
 		this.sourceType = sourceType;
 		this.sourceId = sourceId;
 		this.creatorId = creatorId;
+		this.shareMethod = shareMethod;
 		this.token = token;
 		this.link = link;
 		this.expirationDate = expirationDate;
