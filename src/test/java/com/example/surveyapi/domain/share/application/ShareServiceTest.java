@@ -19,6 +19,7 @@ import com.example.surveyapi.domain.share.domain.notification.entity.Notificatio
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -42,10 +43,11 @@ class ShareServiceTest {
 		ShareSourceType sourceType = ShareSourceType.PROJECT;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		ShareMethod shareMethod = ShareMethod.URL;
 
 		//when
 		ShareResponse response = shareService.createShare(
-			sourceType, sourceId, creatorId, expirationDate, recipientIds);
+			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
 
 		//then
 		Optional<Share> saved = shareRepository.findById(response.getId());
@@ -58,6 +60,7 @@ class ShareServiceTest {
 		assertThat(response.getSourceType()).isEqualTo(sourceType);
 		assertThat(response.getSourceId()).isEqualTo(sourceId);
 		assertThat(response.getCreatorId()).isEqualTo(creatorId);
+		assertThat(response.getShareMethod()).isEqualTo(shareMethod);
 		assertThat(response.getShareLink()).startsWith("https://localhost:8080/api/v2/share/projects/");
 		assertThat(response.getExpirationDate()).isEqualTo(expirationDate);
 		assertThat(response.getCreatedAt()).isNotNull();
@@ -84,9 +87,10 @@ class ShareServiceTest {
 		ShareSourceType sourceType = ShareSourceType.PROJECT;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		ShareMethod shareMethod = ShareMethod.URL;
 
 		ShareResponse response = shareService.createShare(
-			sourceType, sourceId, creatorId, expirationDate, recipientIds);
+			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
 
 		//when
 		ShareResponse result = shareService.getShare(response.getId(), creatorId);
@@ -96,6 +100,7 @@ class ShareServiceTest {
 		assertThat(result.getId()).isEqualTo(response.getId());
 		assertThat(result.getSourceType()).isEqualTo(sourceType);
 		assertThat(result.getSourceId()).isEqualTo(sourceId);
+		assertThat(result.getShareMethod()).isEqualTo(shareMethod);
 	}
 
 	@Test
@@ -107,9 +112,10 @@ class ShareServiceTest {
 		ShareSourceType sourceType = ShareSourceType.PROJECT;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		ShareMethod shareMethod = ShareMethod.URL;
 
 		ShareResponse response = shareService.createShare(
-			sourceType, sourceId, creatorId, expirationDate, recipientIds);
+			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
 
 		//when, then
 		assertThatThrownBy(() -> shareService.getShare(response.getId(), 123L))

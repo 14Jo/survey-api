@@ -3,7 +3,7 @@ package com.example.surveyapi.domain.share.application.share.dto;
 import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 
 import lombok.Getter;
@@ -14,6 +14,7 @@ public class ShareResponse {
 	private final ShareSourceType sourceType;
 	private final Long sourceId;
 	private final Long creatorId;
+	private final ShareMethod shareMethod;
 	private final String token;
 	private final String shareLink;
 	private final LocalDateTime expirationDate;
@@ -25,6 +26,7 @@ public class ShareResponse {
 		this.sourceType = share.getSourceType();
 		this.sourceId = share.getSourceId();
 		this.creatorId = share.getCreatorId();
+		this.shareMethod = share.getShareMethod();
 		this.token = share.getToken();
 		this.shareLink = share.getLink();
 		this.expirationDate = share.getExpirationDate();

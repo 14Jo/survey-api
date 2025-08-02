@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -18,12 +18,12 @@ public class ShareDomainService {
 	private static final String PROJECT_URL = "https://localhost:8080/api/v2/share/projects/";
 
 	public Share createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, LocalDateTime expirationDate,
-		List<Long> recipientIds) {
+		Long creatorId, ShareMethod shareMethod,
+		LocalDateTime expirationDate, List<Long> recipientIds) {
 		String token = UUID.randomUUID().toString().replace("-", "");
 		String link = generateLink(sourceType, token);
 
-		return new Share(sourceType, sourceId, creatorId, token, link, expirationDate, recipientIds);
+		return new Share(sourceType, sourceId, creatorId, shareMethod, token, link, expirationDate, recipientIds);
 	}
 
 	public String generateLink(ShareSourceType sourceType, String token) {

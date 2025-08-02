@@ -8,9 +8,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
-import com.example.surveyapi.domain.statistic.domain.model.enums.SourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -37,15 +36,17 @@ class ShareDomainServiceTest {
 		ShareSourceType sourceType = ShareSourceType.SURVEY;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		ShareMethod shareMethod = ShareMethod.URL;
 
 		//when
 		Share share = shareDomainService.createShare(
-			sourceType, sourceId, creatorId, expirationDate, recipientIds);
+			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
 
 		//then
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
+		assertThat(share.getShareMethod()).isEqualTo(shareMethod);
 		assertThat(share.getLink()).startsWith("https://localhost:8080/api/v2/share/surveys/");
 		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/api/v2/share/surveys/".length());
 	}
@@ -59,15 +60,17 @@ class ShareDomainServiceTest {
 		ShareSourceType sourceType = ShareSourceType.PROJECT;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		ShareMethod shareMethod = ShareMethod.URL;
 
 		//when
 		Share share = shareDomainService.createShare(
-			sourceType, sourceId, creatorId, expirationDate, recipientIds);
+			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
 
 		//then
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
+		assertThat(share.getShareMethod()).isEqualTo(shareMethod);
 		assertThat(share.getLink()).startsWith("https://localhost:8080/api/v2/share/projects/");
 		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/api/v2/share/projects/".length());
 	}
@@ -79,7 +82,7 @@ class ShareDomainServiceTest {
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		Share share = new Share(
-			ShareSourceType.SURVEY, 1L, 1L, "token", "link", expirationDate, List.of());
+			ShareSourceType.SURVEY, 1L, 1L, ShareMethod.URL, "token", "link", expirationDate, List.of());
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
@@ -94,7 +97,7 @@ class ShareDomainServiceTest {
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		Share share = new Share(
-			ShareSourceType.PROJECT, 1L, 1L, "token", "link", expirationDate, List.of());
+			ShareSourceType.PROJECT, 1L, 1L, ShareMethod.URL, "token", "link", expirationDate, List.of());
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);

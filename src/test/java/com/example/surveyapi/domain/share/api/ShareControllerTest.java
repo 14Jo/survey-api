@@ -29,6 +29,7 @@ import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -64,6 +65,7 @@ class ShareControllerTest {
 		//given
 		String token = "token-123";
 		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		ShareMethod shareMethod = ShareMethod.URL;
 		String shareLink = "https://example.com/share/12345";
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
@@ -71,18 +73,21 @@ class ShareControllerTest {
 			{
 				\"sourceType\": \"PROJECT\",
 				\"sourceId\": 1,
+				\"shareMethod\": \"URL\",
 				\"expirationDate\": \"2025-12-31T23:59:59\"
 			}
 			""";
 
-		Share shareMock = new Share(sourceType, sourceId, creatorId, token, shareLink, expirationDate, recipientIds);
+		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(sourceType), eq(sourceId), eq(creatorId), eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
+		given(shareService.createShare(eq(sourceType), eq(sourceId),
+			eq(creatorId), eq(shareMethod),
+			eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -93,6 +98,7 @@ class ShareControllerTest {
 			.andExpect(jsonPath("$.data.sourceType").value("PROJECT"))
 			.andExpect(jsonPath("$.data.sourceId").value(1))
 			.andExpect(jsonPath("$.data.creatorId").value(1))
+			.andExpect(jsonPath("$.data.shareMethod").value("URL"))
 			.andExpect(jsonPath("$.data.shareLink").value("https://example.com/share/12345"))
 			.andExpect(jsonPath("$.data.createdAt").exists())
 			.andExpect(jsonPath("$.data.updatedAt").exists());
@@ -105,24 +111,28 @@ class ShareControllerTest {
 		String token = "token-123";
 		ShareSourceType sourceType = ShareSourceType.SURVEY;
 		String shareLink = "https://example.com/share/12345";
+		ShareMethod shareMethod = ShareMethod.URL;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		String requestJson = """
 			{
 				"sourceType": "SURVEY",
 				"sourceId": 1,
+				"shareMethod": "URL",
 				"expirationDate": "2025-12-31T23:59:59"
 			}
 			""";
 
-		Share shareMock = new Share(sourceType, sourceId, creatorId, token, shareLink, expirationDate, recipientIds);
+		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(sourceType), eq(sourceId), eq(creatorId), eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
+		given(shareService.createShare(eq(sourceType), eq(sourceId),
+			eq(creatorId), eq(shareMethod),
+			eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -133,6 +143,7 @@ class ShareControllerTest {
 			.andExpect(jsonPath("$.data.sourceType").value("SURVEY"))
 			.andExpect(jsonPath("$.data.sourceId").value(1))
 			.andExpect(jsonPath("$.data.creatorId").value(1))
+			.andExpect(jsonPath("$.data.shareMethod").value("URL"))
 			.andExpect(jsonPath("$.data.shareLink").value("https://example.com/share/12345"))
 			.andExpect(jsonPath("$.data.createdAt").exists())
 			.andExpect(jsonPath("$.data.updatedAt").exists());

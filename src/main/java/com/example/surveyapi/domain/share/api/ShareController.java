@@ -33,7 +33,8 @@ public class ShareController {
 		// TODO : 이벤트 처리 적용(위 리스트는 더미)
 		ShareResponse response = shareService.createShare(
 			request.getSourceType(), request.getSourceId(),
-			creatorId, request.getExpirationDate(), recipientIds);
+			creatorId, request.getShareMethod(),
+			request.getExpirationDate(), recipientIds);
 
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
