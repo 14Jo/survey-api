@@ -31,7 +31,6 @@ import com.example.surveyapi.domain.participation.domain.participation.Participa
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
 import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
-import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -61,13 +60,7 @@ public class ParticipationService {
 		// 문항과 답변 유효성 검증
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, memberId);
-		ParticipantInfo participantInfo = ParticipantInfo.of(
-			userSnapshot.getBirth(),
-			userSnapshot.getGender(),
-			userSnapshot.getRegion().getProvince(),
-			userSnapshot.getRegion().getDistrict()
-		);
+		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, memberId);
 
 		Participation participation = Participation.create(memberId, surveyId, participantInfo, responseDataList);
 
@@ -163,19 +156,9 @@ public class ParticipationService {
 		// 문항과 답변 유효성 검사
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		List<Response> responses = responseDataList.stream()
-			.map(responseData -> Response.create(responseData.getQuestionId(), responseData.getAnswer()))
-			.toList();
+		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, memberId);
 
-		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, memberId);
-		ParticipantInfo participantInfo = ParticipantInfo.of(
-			userSnapshot.getBirth(),
-			userSnapshot.getGender(),
-			userSnapshot.getRegion().getProvince(),
-			userSnapshot.getRegion().getDistrict()
-		);
-
-		participation.update(responses, participantInfo);
+		participation.update(responseDataList, participantInfo);
 	}
 
 	@Transactional(readOnly = true)
@@ -313,5 +296,16 @@ public class ParticipationService {
 		}
 
 		return false;
+	}
+
+	private ParticipantInfo getParticipantInfoByUser(String authHeader, Long memberId) {
+		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, memberId);
+
+		return ParticipantInfo.of(
+			userSnapshot.getBirth(),
+			userSnapshot.getGender(),
+			userSnapshot.getRegion().getProvince(),
+			userSnapshot.getRegion().getDistrict()
+		);
 	}
 }
