@@ -53,6 +53,18 @@ public class UserControllerTest {
     @Autowired
     ObjectMapper objectMapper;
 
+    // private MockMvc mockMvc;
+    //
+    // @BeforeEach
+    // void setup(){
+    //     mockMvc = MockMvcBuilders.standaloneSetup(userController)
+    //         .setControllerAdvice(new GlobalExceptionHandler())
+    //         .build();
+    //
+    //     objectMapper = new ObjectMapper();
+    //     objectMapper.registerModule(new JavaTimeModule());
+    // }
+
     @Test
     @DisplayName("회원가입 - 성공")
     void signup_success() throws Exception {
@@ -234,7 +246,7 @@ public class UserControllerTest {
         // when & then
         mockMvc.perform(get("/api/v1/users/grade"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.grade").value("LV1"));
+            .andExpect(jsonPath("$.data.grade").value("BRONZE"));
     }
 
     @WithMockUser(username = "testUser", roles = "USER")
