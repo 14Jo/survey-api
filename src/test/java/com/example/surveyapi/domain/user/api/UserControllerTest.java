@@ -168,7 +168,6 @@ public class UserControllerTest {
             UserInfoResponse.from(user1),
             UserInfoResponse.from(user2)
         );
-
         given(userService.getAll(any(Pageable.class)))
             .willThrow(new CustomException(CustomErrorCode.USER_LIST_EMPTY));
 
@@ -202,7 +201,6 @@ public class UserControllerTest {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com");
         User user = create(rq1);
-
         given(userService.getUser(user.getId()))
             .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
@@ -253,7 +251,6 @@ public class UserControllerTest {
         // given
         String longName = "a".repeat(21);
         UpdateUserRequest invalidRequest = updateRequest(longName);
-
         // when & then
         mockMvc.perform(patch("/api/v1/users")
                 .contentType(MediaType.APPLICATION_JSON)
