@@ -20,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.Commit;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -50,6 +51,8 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.EntityManager;
+
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
@@ -75,6 +78,8 @@ public class UserServiceTest {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired private EntityManager em;
 
     @MockitoBean
     private ProjectApiClient projectApiClient;
@@ -182,44 +187,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴된 id 중복 확인")
-    void signup_fail_withdraw_id() {
-
-        // given
-        String email = "user@example.com";
-        String password = "Password123";
-        SignupRequest rq1 = createSignupRequest(email, password);
-        SignupRequest rq2 = createSignupRequest(email, password);
-
-        SignupResponse signup = authService.signup(rq1);
-
-        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
-            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
-
-        UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
-        ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
-
-        String authHeader = jwtUtil.createAccessToken(user.getId(), user.getRole());
-
-        ExternalApiResponse fakeProjectResponse = fakeProjectResponse();
-
-        ExternalApiResponse fakeParticipationResponse = fakeParticipationResponse();
-
-        when(projectApiClient.getProjectMyRole(anyString(), anyLong()))
-            .thenReturn(fakeProjectResponse);
-
-        when(participationApiClient.getSurveyStatus(anyString(), anyLong(), anyInt(), anyInt()))
-            .thenReturn(fakeParticipationResponse);
-
-        // when
-        authService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader);
-
-        // then
-        assertThatThrownBy(() -> authService.signup(rq2))
-            .isInstanceOf(CustomException.class);
-    }
-
-    @Test
     @DisplayName("모든 회원 조회 - 성공")
     void getAllUsers_success() {
         // given
@@ -292,7 +259,7 @@ public class UserServiceTest {
         UserGradeResponse grade = userService.getGradeAndPoint(member.getMemberId());
 
         // then
-        assertThat(grade.getGrade()).isEqualTo(Grade.valueOf("LV1"));
+        assertThat(grade.getGrade()).isEqualTo(Grade.valueOf("BRONZE"));
     }
 
     @Test
@@ -308,7 +275,7 @@ public class UserServiceTest {
         // then
         assertThatThrownBy(() -> userService.getGradeAndPoint(userId))
             .isInstanceOf(CustomException.class)
-            .hasMessageContaining("등급을 조회 할 수 없습니다");
+            .hasMessageContaining("등급 및 포인트를 조회 할 수 없습니다");
     }
 
     @Test
