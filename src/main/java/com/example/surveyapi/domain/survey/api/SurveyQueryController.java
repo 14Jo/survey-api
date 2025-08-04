@@ -26,7 +26,7 @@ public class SurveyQueryController {
 
 	private final SurveyQueryService surveyQueryService;
 
-	@GetMapping("/v1/survey/{surveyId}/detail")
+	@GetMapping("/v1/surveys/{surveyId}")
 	public ResponseEntity<ApiResponse<SearchSurveyDetailResponse>> getSurveyDetail(
 		@PathVariable Long surveyId,
 		@RequestHeader("Authorization") String authHeader
@@ -36,7 +36,7 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}
 
-	@GetMapping("/v1/survey/{projectId}/survey-list")
+	@GetMapping("/v1/projects/{projectId}/surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@PathVariable Long projectId,
 		@RequestParam(required = false) Long lastSurveyId,
