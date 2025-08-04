@@ -156,9 +156,7 @@ public class ParticipationService {
 		// 문항과 답변 유효성 검사
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, memberId);
-
-		participation.update(responseDataList, participantInfo);
+		participation.update(responseDataList);
 	}
 
 	@Transactional(readOnly = true)
