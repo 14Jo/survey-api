@@ -14,7 +14,6 @@ import lombok.NoArgsConstructor;
 public class UpdateUserResponse {
 
     private Long memberId;
-    private String name;
     private LocalDateTime updatedAt;
     private ProfileResponse profile;
 
@@ -26,18 +25,21 @@ public class UpdateUserResponse {
         AddressResponse addressDto = new AddressResponse();
 
         dto.memberId = user.getId();
-        dto.name = user.getProfile().getName();
         dto.updatedAt = user.getUpdatedAt();
         dto.profile = profileDto;
 
-        profileDto.birthDate = user.getProfile().getBirthDate();
-        profileDto.gender = user.getProfile().getGender();
+
+        profileDto.name = user.getProfile().getName();
+        profileDto.phoneNumber = user.getProfile().getPhoneNumber();
+        profileDto.nickName = user.getProfile().getNickName();
+        profileDto.birthDate = user.getDemographics().getBirthDate();
+        profileDto.gender = user.getDemographics().getGender();
         profileDto.address = addressDto;
 
-        addressDto.province = user.getProfile().getAddress().getProvince();
-        addressDto.district = user.getProfile().getAddress().getDistrict();
-        addressDto.detailAddress = user.getProfile().getAddress().getDetailAddress();
-        addressDto.postalCode = user.getProfile().getAddress().getPostalCode();
+        addressDto.province = user.getDemographics().getAddress().getProvince();
+        addressDto.district = user.getDemographics().getAddress().getDistrict();
+        addressDto.detailAddress = user.getDemographics().getAddress().getDetailAddress();
+        addressDto.postalCode = user.getDemographics().getAddress().getPostalCode();
 
         return dto;
     }
@@ -46,6 +48,9 @@ public class UpdateUserResponse {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ProfileResponse {
 
+        private String name;
+        private String phoneNumber;
+        private String nickName;
         private LocalDateTime birthDate;
         private Gender gender;
         private AddressResponse address;
