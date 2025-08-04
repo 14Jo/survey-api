@@ -55,10 +55,10 @@ public class UserController {
     public ResponseEntity<ApiResponse<UserGradeResponse>> getGrade(
         @AuthenticationPrincipal Long userId
     ) {
-        UserGradeResponse grade = userService.getGrade(userId);
+        UserGradeResponse success = userService.getGradeAndPoint(userId);
 
         return ResponseEntity.status(HttpStatus.OK)
-            .body(ApiResponse.success("회원 등급 조회 성공", grade));
+            .body(ApiResponse.success("회원 등급 조회 성공", success));
     }
 
     @PatchMapping("/v1/users")
