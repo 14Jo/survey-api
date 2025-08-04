@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .requestMatchers("/auth/kakao/**").permitAll()
                 .requestMatchers("/api/v1/survey/**").permitAll()
                 .requestMatchers("/error").permitAll()
-                .requestMatchers("/health/ok").permitAll()
+                .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class);
 

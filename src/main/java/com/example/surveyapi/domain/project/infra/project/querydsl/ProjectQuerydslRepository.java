@@ -18,6 +18,7 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectSearchResult;
+import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
@@ -113,6 +114,30 @@ public class ProjectQuerydslRepository {
 			.fetchOne();
 
 		return new PageImpl<>(content, pageable, total != null ? total : 0L);
+	}
+
+	public List<Project> findProjectsByMember(Long userId) {
+
+		return query.select(projectMember.project)
+			.from(projectMember)
+			.where(
+				isMemberUser(userId),
+				isMemberNotDeleted(),
+				isProjectNotDeleted()
+			)
+			.fetch();
+	}
+
+	public List<Project> findProjectsByManager(Long userId) {
+
+		return query.select(projectManager.project)
+			.from(projectManager)
+			.where(
+				isManagerUser(userId),
+				isManagerNotDeleted(),
+				isProjectNotDeleted()
+			)
+			.fetch();
 	}
 
 	// 내부 메소드

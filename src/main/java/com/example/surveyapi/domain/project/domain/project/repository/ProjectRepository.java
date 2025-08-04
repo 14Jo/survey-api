@@ -27,4 +27,8 @@ public interface ProjectRepository {
 	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
 
 	List<Project> findByStateAndIsDeletedFalse(ProjectState projectState);
+
+	List<Project> findProjectsByMember(Long userId);
+
+	List<Project> findProjectsByManager(Long userId);
 }

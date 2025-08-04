@@ -147,7 +147,13 @@ public class ProjectService {
 	}
 
 	@Transactional
-	public void leaveProject(Long projectId, Long currentUserId) {
+	public void leaveProjectManager(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.removeManager(currentUserId);
+	}
+
+	@Transactional
+	public void leaveProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
 	}
