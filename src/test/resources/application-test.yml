@@ -14,8 +14,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   data:
     redis:
-      host : ${ACTION_REDIS_HOST}
-      port : ${ACTION_REDIS_PORT}
+      host: ${ACTION_REDIS_HOST:localhost}
+      port: ${ACTION_REDIS_PORT:6379}
 # JWT Secret Key for test environment
 jwt:
   secret:

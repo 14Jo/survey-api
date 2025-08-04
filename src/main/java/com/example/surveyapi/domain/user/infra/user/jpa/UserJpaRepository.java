@@ -6,8 +6,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 
 public interface UserJpaRepository extends JpaRepository<User, Long> {
 
@@ -19,8 +19,8 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
 
     Optional<User> findById(Long id);
 
-    @Query("SELECT u.grade FROM User u WHERE u.id = :userId")
-    Optional<Grade> findByGrade(@Param("userId") Long userId);
+    @Query("SELECT u.grade, u.point FROM User u WHERE u.id = :userId")
+    Optional<UserGradePoint> findByGradeAndPoint(@Param("userId") Long userId);
 
     Optional<User> findByAuthProviderIdAndIsDeletedFalse(String authProviderId);
 

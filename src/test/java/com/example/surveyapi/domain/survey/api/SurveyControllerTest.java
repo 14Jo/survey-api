@@ -49,7 +49,7 @@ class SurveyControllerTest {
         // 필수 필드가 없는 요청
 
         // when & then
-        mockMvc.perform(post("/api/v1/survey/1/create")
+        mockMvc.perform(post("/api/v1/projects/1/surveys")
                 .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -64,7 +64,7 @@ class SurveyControllerTest {
         // 필수 필드가 없는 요청
 
         // when & then
-        mockMvc.perform(put("/api/v1/survey/1/update")
+        mockMvc.perform(put("/api/v1/surveys/1")
                 .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
@@ -75,7 +75,7 @@ class SurveyControllerTest {
     @DisplayName("설문 생성 요청 검증 - 잘못된 Content-Type 실패")
     void createSurvey_invalid_content_type_fail() throws Exception {
         // when & then
-        mockMvc.perform(post("/api/v1/survey/1/create")
+        mockMvc.perform(post("/api/v1/projects/1/surveys")
                 .header("Authorization", "Bearer token")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("invalid content"))
@@ -86,7 +86,7 @@ class SurveyControllerTest {
     @DisplayName("설문 수정 요청 검증 - 잘못된 Content-Type 실패")
     void updateSurvey_invalid_content_type_fail() throws Exception {
         // when & then
-        mockMvc.perform(put("/api/v1/survey/1/update")
+        mockMvc.perform(put("/api/v1/surveys/1")
                 .header("Authorization", "Bearer token")
                 .contentType(MediaType.TEXT_PLAIN)
                 .content("invalid content"))
@@ -97,7 +97,7 @@ class SurveyControllerTest {
     @DisplayName("설문 생성 요청 검증 - 잘못된 JSON 형식 실패")
     void createSurvey_invalid_json_fail() throws Exception {
         // when & then
-        mockMvc.perform(post("/api/v1/survey/1/create")
+        mockMvc.perform(post("/api/v1/projects/1/surveys")
                 .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ invalid json }"))
@@ -108,7 +108,7 @@ class SurveyControllerTest {
     @DisplayName("설문 수정 요청 검증 - 잘못된 JSON 형식 실패")
     void updateSurvey_invalid_json_fail() throws Exception {
         // when & then
-        mockMvc.perform(put("/api/v1/survey/1/update")
+        mockMvc.perform(put("/api/v1/surveys/1")
                 .header("Authorization", "Bearer token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ invalid json }"))
