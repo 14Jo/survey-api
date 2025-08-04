@@ -4,7 +4,6 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,25 +25,23 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.participation.application.ParticipationService;
+import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
-import com.example.surveyapi.domain.participation.application.dto.request.ParticipationGroupRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
-import com.example.surveyapi.domain.participation.application.dto.response.ParticipationGroupResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
+import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.surveyapi.domain.survey.application.SurveyQueryService;
 
 @WebMvcTest(ParticipationController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -58,9 +55,6 @@ class ParticipationControllerTest {
 
 	@MockBean
 	private ParticipationService participationService;
-
-	@MockBean
-	private SurveyQueryService surveyQueryService;
 
 	@AfterEach
 	void tearDown() {
@@ -99,6 +93,7 @@ class ParticipationControllerTest {
 
 		// when & then
 		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isCreated())
@@ -118,6 +113,7 @@ class ParticipationControllerTest {
 
 		// when & then
 		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isBadRequest())
@@ -133,13 +129,14 @@ class ParticipationControllerTest {
 		Pageable pageable = PageRequest.of(0, 5);
 
 		ParticipationInfo p1 = new ParticipationInfo(1L, 1L, LocalDateTime.now().minusWeeks(1));
-		ParticipationInfoResponse.SurveyInfoOfParticipation s1 = ParticipationInfoResponse.SurveyInfoOfParticipation.of(
-			1L, "설문 제목1", "진행 중",
-			LocalDate.now().plusWeeks(1), true);
+		SurveyInfoDto dto1 = createSurveyInfoDto(1L, "설문 제목1");
+		ParticipationInfoResponse.SurveyInfoOfParticipation s1 = ParticipationInfoResponse.SurveyInfoOfParticipation.from(
+			dto1);
+
 		ParticipationInfo p2 = new ParticipationInfo(2L, 2L, LocalDateTime.now().minusWeeks(1));
-		ParticipationInfoResponse.SurveyInfoOfParticipation s2 = ParticipationInfoResponse.SurveyInfoOfParticipation.of(
-			2L, "설문 제목2", "종료", LocalDate.now().minusWeeks(1),
-			false);
+		SurveyInfoDto dto2 = createSurveyInfoDto(2L, "설문 제목2");
+		ParticipationInfoResponse.SurveyInfoOfParticipation s2 = ParticipationInfoResponse.SurveyInfoOfParticipation.from(
+			dto2);
 
 		List<ParticipationInfoResponse> participationResponses = List.of(
 			ParticipationInfoResponse.of(p1, s1),
@@ -147,16 +144,30 @@ class ParticipationControllerTest {
 		);
 		Page<ParticipationInfoResponse> pageResponse = new PageImpl<>(participationResponses, pageable,
 			participationResponses.size());
-
-		when(participationService.gets(eq(1L), any(Pageable.class))).thenReturn(pageResponse);
+		when(participationService.gets(anyString(), eq(1L), any(Pageable.class))).thenReturn(pageResponse);
 
 		// when & then
 		mockMvc.perform(get("/api/v1/members/me/participations")
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("나의 참여 목록 조회에 성공하였습니다."))
-			.andExpect(jsonPath("$.data.content[0].surveyInfo.surveyTitle").value("설문 제목1"))
-			.andExpect(jsonPath("$.data.content[1].surveyInfo.surveyTitle").value("설문 제목2"));
+			.andExpect(jsonPath("$.data.content[0].surveyInfo.title").value("설문 제목1"))
+			.andExpect(jsonPath("$.data.content[1].surveyInfo.title").value("설문 제목2"));
+	}
+
+	private SurveyInfoDto createSurveyInfoDto(Long id, String title) {
+		SurveyInfoDto dto = new SurveyInfoDto();
+		ReflectionTestUtils.setField(dto, "surveyId", id);
+		ReflectionTestUtils.setField(dto, "title", title);
+		ReflectionTestUtils.setField(dto, "status", SurveyStatus.IN_PROGRESS);
+		SurveyInfoDto.Duration duration = new SurveyInfoDto.Duration();
+		ReflectionTestUtils.setField(duration, "endDate", LocalDateTime.now().plusDays(1));
+		ReflectionTestUtils.setField(dto, "duration", duration);
+		SurveyInfoDto.Option option = new SurveyInfoDto.Option();
+		ReflectionTestUtils.setField(option, "allowResponseUpdate", true);
+		ReflectionTestUtils.setField(dto, "option", option);
+		return dto;
 	}
 
 	@Test
@@ -172,76 +183,16 @@ class ParticipationControllerTest {
 		ReflectionTestUtils.setField(request, "responseDataList", List.of(responseData));
 
 		doThrow(new CustomException(CustomErrorCode.SURVEY_ALREADY_PARTICIPATED))
-			.when(participationService).create(eq(surveyId), eq(1L), any(CreateParticipationRequest.class));
+			.when(participationService)
+			.create(anyString(), eq(surveyId), eq(1L), any(CreateParticipationRequest.class));
 
 		// when & then
 		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.SURVEY_ALREADY_PARTICIPATED.getMessage()));
-	}
-
-	@Test
-	@DisplayName("여러 설문에 대한 모든 참여 응답 기록 조회 API")
-	void getAllBySurveyIds() throws Exception {
-		// given
-		Long memberId = 1L;
-		authenticateUser(memberId);
-
-		List<Long> surveyIds = List.of(10L, 20L);
-		ParticipationGroupRequest request = new ParticipationGroupRequest();
-		ReflectionTestUtils.setField(request, "surveyIds", surveyIds);
-
-		ParticipationDetailResponse detail1 = ParticipationDetailResponse.from(
-			Participation.create(memberId, 10L, new ParticipantInfo(),
-				List.of(createResponseData(1L, Map.of("textAnswer", "answer1"))))
-		);
-		ReflectionTestUtils.setField(detail1, "participationId", 1L);
-
-		ParticipationDetailResponse detail2 = ParticipationDetailResponse.from(
-			Participation.create(memberId, 10L, new ParticipantInfo(),
-				List.of(createResponseData(2L, Map.of("textAnswer", "answer2"))))
-		);
-		ReflectionTestUtils.setField(detail2, "participationId", 2L);
-
-		ParticipationGroupResponse group1 = ParticipationGroupResponse.of(10L, List.of(detail1, detail2));
-		ParticipationGroupResponse group2 = ParticipationGroupResponse.of(20L, Collections.emptyList());
-
-		List<ParticipationGroupResponse> serviceResult = List.of(group1, group2);
-
-		when(participationService.getAllBySurveyIds(eq(surveyIds))).thenReturn(serviceResult);
-
-		// when & then
-		mockMvc.perform(post("/api/v1/surveys/participations")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request)))
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.message").value("여러 참여 기록 조회에 성공하였습니다."))
-			.andExpect(jsonPath("$.data.length()").value(2))
-			.andExpect(jsonPath("$.data[0].surveyId").value(10L))
-			.andExpect(jsonPath("$.data[0].participations[0].participationId").value(1L))
-			.andExpect(jsonPath("$.data[0].participations[0].responses[0].answer.textAnswer").value("answer1"))
-			.andExpect(jsonPath("$.data[1].surveyId").value(20L))
-			.andExpect(jsonPath("$.data[1].participations").isEmpty());
-	}
-
-	@Test
-	@DisplayName("여러 설문에 대한 모든 참여 응답 기록 조회 API 실패 - surveyIds 비어있음")
-	void getAllBySurveyIds_emptyRequestSurveyIds() throws Exception {
-		// given
-		authenticateUser(1L);
-
-		ParticipationGroupRequest request = new ParticipationGroupRequest();
-		ReflectionTestUtils.setField(request, "surveyIds", Collections.emptyList());
-
-		// when & then
-		mockMvc.perform(post("/api/v1/surveys/participations")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(request)))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.message").value("요청 데이터 검증에 실패하였습니다."))
-			.andExpect(jsonPath("$.data.surveyIds").value("must not be empty"));
 	}
 
 	@Test
@@ -255,7 +206,8 @@ class ParticipationControllerTest {
 		List<ResponseData> responseDataList = List.of(createResponseData(1L, Map.of("text", "응답 상세 조회")));
 
 		ParticipationDetailResponse serviceResult = ParticipationDetailResponse.from(
-			Participation.create(memberId, 1L, new ParticipantInfo(), responseDataList)
+			Participation.create(memberId, 1L, ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
+				responseDataList)
 		);
 		ReflectionTestUtils.setField(serviceResult, "participationId", participationId);
 
@@ -319,10 +271,11 @@ class ParticipationControllerTest {
 			List.of(createResponseData(1L, Map.of("textAnswer", "수정된 답변"))));
 
 		doNothing().when(participationService)
-			.update(eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
+			.update(anyString(), eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
 		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isOk())
@@ -343,10 +296,11 @@ class ParticipationControllerTest {
 
 		doThrow(new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION))
 			.when(participationService)
-			.update(eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
+			.update(anyString(), eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
 		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isNotFound())
@@ -367,10 +321,11 @@ class ParticipationControllerTest {
 
 		doThrow(new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW))
 			.when(participationService)
-			.update(eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
+			.update(anyString(), eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
 		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isForbidden())
@@ -389,6 +344,7 @@ class ParticipationControllerTest {
 
 		// when & then
 		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isBadRequest())
