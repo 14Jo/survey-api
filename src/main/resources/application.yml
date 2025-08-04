@@ -11,6 +11,18 @@ spring:
         format_sql: true
         show_sql: true
 
+# =======================================================
+# == Actuator 공통 설정 추가
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+# =======================================================
+
 ---
 # 개발(dev) 프로필 - 로컬 PostgreSQL DB 설정
 spring:
@@ -47,9 +59,6 @@ oauth:
     token-uri: https://kauth.kakao.com/oauth/token
     user-info-uri: https://kapi.kakao.com/v2/user/me
 
-
-
-
 ---
 # 운영(prod) 프로필 - PostgreSQL (EC2 등 외부 서버) 설정
 spring:
@@ -68,3 +77,11 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+# =======================================================
+# == 운영(prod) 환경을 위한 Actuator 보안 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health, info, prometheus"
+# =======================================================

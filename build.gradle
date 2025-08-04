@@ -57,6 +57,18 @@ dependencies {
     // OAuth
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
+    // Testcontainers JUnit 5 지원 라이브러리
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.8'
+
+    // PostgreSQL 컨테이너 라이브러리
+    testImplementation 'org.testcontainers:postgresql:1.19.8'
+
+    // Actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // Prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
 }
 
 tasks.named('test') {
