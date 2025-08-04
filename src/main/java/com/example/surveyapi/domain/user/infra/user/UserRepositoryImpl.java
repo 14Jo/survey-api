@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.infra.user.dsl.QueryDslRepository;
 import com.example.surveyapi.domain.user.infra.user.jpa.UserJpaRepository;
 
