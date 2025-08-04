@@ -22,13 +22,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/survey")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class SurveyController {
 
 	private final SurveyService surveyService;
 
-	@PostMapping("/{projectId}/create")
+	@PostMapping("/projects/{projectId}/surveys")
 	public ResponseEntity<ApiResponse<Long>> create(
 		@PathVariable Long projectId,
 		@Valid @RequestBody CreateSurveyRequest request,
@@ -65,7 +65,7 @@ public class SurveyController {
 		.body(ApiResponse.success("설문 종료 성공", "X"));
 	}
 
-	@PutMapping("/{surveyId}/update")
+	@PutMapping("/surveys/{surveyId}")
 	public ResponseEntity<ApiResponse<Long>> update(
 		@PathVariable Long surveyId,
 		@Valid @RequestBody UpdateSurveyRequest request,
@@ -77,7 +77,7 @@ public class SurveyController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("설문 수정 성공", updatedSurveyId));
 	}
 
-	@DeleteMapping("/{surveyId}/delete")
+	@DeleteMapping("/surveys/{surveyId}")
 	public ResponseEntity<ApiResponse<Long>> delete(
 		@PathVariable Long surveyId,
 		@AuthenticationPrincipal Long creatorId,
