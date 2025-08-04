@@ -43,7 +43,7 @@ public class ShareExternalController {
 	public ResponseEntity<Void> redirectToProject(@PathVariable String token) {
 		Share share = shareService.getShareByToken(token);
 
-		if (share.getSourceType() != ShareSourceType.PROJECT) {
+		if (share.getSourceType() != ShareSourceType.PROJECT_MEMBER) {
 			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
 		}
 

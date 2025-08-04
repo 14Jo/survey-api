@@ -40,7 +40,7 @@ class ShareServiceTest {
 		//given
 		Long sourceId = 1L;
 		Long creatorId = 1L;
-		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		ShareSourceType sourceType = ShareSourceType.PROJECT_MEMBER;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
 		ShareMethod shareMethod = ShareMethod.URL;
@@ -84,7 +84,7 @@ class ShareServiceTest {
 		//given
 		Long sourceId = 1L;
 		Long creatorId = 1L;
-		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		ShareSourceType sourceType = ShareSourceType.PROJECT_MEMBER;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
 		ShareMethod shareMethod = ShareMethod.URL;
@@ -109,7 +109,7 @@ class ShareServiceTest {
 		//given
 		Long sourceId = 1L;
 		Long creatorId = 1L;
-		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		ShareSourceType sourceType = ShareSourceType.PROJECT_MEMBER;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 		List<Long> recipientIds = List.of(2L, 3L, 4L);
 		ShareMethod shareMethod = ShareMethod.URL;

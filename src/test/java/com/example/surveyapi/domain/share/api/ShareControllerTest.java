@@ -64,14 +64,14 @@ class ShareControllerTest {
 	void createShare_success_url() throws Exception {
 		//given
 		String token = "token-123";
-		ShareSourceType sourceType = ShareSourceType.PROJECT;
+		ShareSourceType sourceType = ShareSourceType.PROJECT_MANAGER;
 		ShareMethod shareMethod = ShareMethod.URL;
 		String shareLink = "https://example.com/share/12345";
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		String requestJson = """
 			{
-				\"sourceType\": \"PROJECT\",
+				\"sourceType\": \"PROJECT_MANAGER\",
 				\"sourceId\": 1,
 				\"shareMethod\": \"URL\",
 				\"expirationDate\": \"2025-12-31T23:59:59\"
