@@ -31,6 +31,8 @@ import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 
@@ -59,10 +61,13 @@ public class UserControllerTest {
             {
               "auth": {
                 "email": "user@example.com",
-                "password": "Password123"
+                "password": "Password123",
+                "provider" : "LOCAL"
               },
               "profile": {
                 "name": "홍길동",
+                "phoneNumber" : "010-1234-5678",
+                "nickName": "길동이123",
                 "birthDate": "1990-01-01T09:00:00",
                 "gender": "MALE",
                 "address": {
@@ -93,10 +98,13 @@ public class UserControllerTest {
             {
               "auth": {
                 "email": "",
-                "password": "Password123"
+                "password": "Password123",
+                "provider" : "LOCAL"
               },
               "profile": {
                 "name": "홍길동",
+                "phoneNumber" : "010-1234-5678",
+                "nickName": "길동이123",
                 "birthDate": "1990-01-01T09:00:00",
                 "gender": "MALE",
                 "address": {
@@ -164,10 +172,8 @@ public class UserControllerTest {
         User user1 = create(rq1);
         User user2 = create(rq2);
 
-        List<UserInfoResponse> users = List.of(
-            UserInfoResponse.from(user1),
-            UserInfoResponse.from(user2)
-        );
+        UserInfoResponse.from(user1);
+        UserInfoResponse.from(user2);
 
         given(userService.getAll(any(Pageable.class)))
             .willThrow(new CustomException(CustomErrorCode.USER_LIST_EMPTY));
@@ -192,7 +198,7 @@ public class UserControllerTest {
         // then
         mockMvc.perform(get("/api/v1/users/me"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.name").value("홍길동"));
+            .andExpect(jsonPath("$.data.profile.name").value("홍길동"));
     }
 
     @WithMockUser(username = "testUser", roles = "USER")
@@ -219,9 +225,10 @@ public class UserControllerTest {
         SignupRequest rq1 = createSignupRequest("user@example.com");
         User user = create(rq1);
         UserInfoResponse member = UserInfoResponse.from(user);
-        UserGradeResponse grade = UserGradeResponse.from(user.getGrade());
+        UserGradePoint userGradePoint = new UserGradePoint(user.getGrade(), user.getPoint());
+        UserGradeResponse grade = UserGradeResponse.from(userGradePoint);
 
-        given(userService.getGrade(member.getMemberId()))
+        given(userService.getGradeAndPoint(member.getMemberId()))
             .willReturn(grade);
 
         // when & then
@@ -238,7 +245,7 @@ public class UserControllerTest {
         User user = create(rq1);
         UserInfoResponse member = UserInfoResponse.from(user);
 
-        given(userService.getGrade(member.getMemberId()))
+        given(userService.getGradeAndPoint(member.getMemberId()))
             .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         // then
@@ -268,6 +275,7 @@ public class UserControllerTest {
         SignupRequest.AuthRequest auth = new SignupRequest.AuthRequest();
         ReflectionTestUtils.setField(auth, "email", email);
         ReflectionTestUtils.setField(auth, "password", "Password123");
+        ReflectionTestUtils.setField(auth, "provider", Provider.LOCAL);
 
         SignupRequest.AddressRequest address = new SignupRequest.AddressRequest();
         ReflectionTestUtils.setField(address, "province", "서울특별시");
@@ -277,6 +285,8 @@ public class UserControllerTest {
 
         SignupRequest.ProfileRequest profile = new SignupRequest.ProfileRequest();
         ReflectionTestUtils.setField(profile, "name", "홍길동");
+        ReflectionTestUtils.setField(profile, "phoneNumber", "010-1234-5678");
+        ReflectionTestUtils.setField(profile, "nickName", "길동이123");
         ReflectionTestUtils.setField(profile, "birthDate", LocalDateTime.parse("1990-01-01T09:00:00"));
         ReflectionTestUtils.setField(profile, "gender", Gender.MALE);
         ReflectionTestUtils.setField(profile, "address", address);
@@ -293,33 +303,29 @@ public class UserControllerTest {
             request.getAuth().getEmail(),
             request.getAuth().getPassword(),
             request.getProfile().getName(),
+            request.getProfile().getPhoneNumber(),
+            request.getProfile().getNickName(),
             request.getProfile().getBirthDate(),
             request.getProfile().getGender(),
             request.getProfile().getAddress().getProvince(),
             request.getProfile().getAddress().getDistrict(),
             request.getProfile().getAddress().getDetailAddress(),
-            request.getProfile().getAddress().getPostalCode()
+            request.getProfile().getAddress().getPostalCode(),
+            request.getAuth().getProvider()
         );
     }
 
     private UpdateUserRequest updateRequest(String name) {
         UpdateUserRequest updateUserRequest = new UpdateUserRequest();
 
-        UpdateUserRequest.UpdateAuthRequest auth = new UpdateUserRequest.UpdateAuthRequest();
-        ReflectionTestUtils.setField(auth, "password", null);
-
-        UpdateUserRequest.UpdateAddressRequest address = new UpdateUserRequest.UpdateAddressRequest();
-        ReflectionTestUtils.setField(address, "province", null);
-        ReflectionTestUtils.setField(address, "district", null);
-        ReflectionTestUtils.setField(address, "detailAddress", null);
-        ReflectionTestUtils.setField(address, "postalCode", null);
-
-        UpdateUserRequest.UpdateProfileRequest profile = new UpdateUserRequest.UpdateProfileRequest();
-        ReflectionTestUtils.setField(profile, "name", name);
-        ReflectionTestUtils.setField(profile, "address", address);
-
-        ReflectionTestUtils.setField(updateUserRequest, "auth", auth);
-        ReflectionTestUtils.setField(updateUserRequest, "profile", profile);
+        ReflectionTestUtils.setField(updateUserRequest, "password", null);
+        ReflectionTestUtils.setField(updateUserRequest, "name", name);
+        ReflectionTestUtils.setField(updateUserRequest, "phoneNumber", null);
+        ReflectionTestUtils.setField(updateUserRequest, "nickName", null);
+        ReflectionTestUtils.setField(updateUserRequest, "province", null);
+        ReflectionTestUtils.setField(updateUserRequest, "district", null);
+        ReflectionTestUtils.setField(updateUserRequest, "detailAddress", null);
+        ReflectionTestUtils.setField(updateUserRequest, "postalCode", null);
 
         return updateUserRequest;
     }

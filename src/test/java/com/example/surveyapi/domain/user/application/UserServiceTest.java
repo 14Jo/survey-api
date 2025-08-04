@@ -36,6 +36,7 @@ import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResp
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
@@ -96,7 +97,7 @@ public class UserServiceTest {
         // then
         var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(savedUser.getProfile().getName()).isEqualTo("홍길동");
-        assertThat(savedUser.getProfile().getAddress().getProvince()).isEqualTo("서울특별시");
+        assertThat(savedUser.getDemographics().getAddress().getProvince()).isEqualTo("서울특별시");
     }
 
     @Test
@@ -288,7 +289,7 @@ public class UserServiceTest {
         UserInfoResponse member = UserInfoResponse.from(user);
 
         // when
-        UserGradeResponse grade = userService.getGrade(member.getMemberId());
+        UserGradeResponse grade = userService.getGradeAndPoint(member.getMemberId());
 
         // then
         assertThat(grade.getGrade()).isEqualTo(Grade.valueOf("LV1"));
@@ -305,7 +306,7 @@ public class UserServiceTest {
         Long userId = 9999L;
 
         // then
-        assertThatThrownBy(() -> userService.getGrade(userId))
+        assertThatThrownBy(() -> userService.getGradeAndPoint(userId))
             .isInstanceOf(CustomException.class)
             .hasMessageContaining("등급을 조회 할 수 없습니다");
     }
@@ -323,14 +324,15 @@ public class UserServiceTest {
 
         UpdateUserRequest request = updateRequest("홍길동2");
 
-        String encryptedPassword = Optional.ofNullable(request.getAuth().getPassword())
+        String encryptedPassword = Optional.ofNullable(request.getPassword())
             .map(passwordEncoder::encode)
-            .orElse(null);
+            .orElseGet(() -> user.getAuth().getPassword());
 
         UpdateUserRequest.UpdateData data = UpdateUserRequest.UpdateData.of(request, encryptedPassword);
 
         user.update(
             data.getPassword(), data.getName(),
+            data.getPhoneNumber(), data.getNickName(),
             data.getProvince(), data.getDistrict(),
             data.getDetailAddress(), data.getPostalCode()
         );
@@ -339,7 +341,7 @@ public class UserServiceTest {
         UpdateUserResponse update = userService.update(request, user.getId());
 
         // then
-        assertThat(update.getName()).isEqualTo("홍길동2");
+        assertThat(update.getProfile().getName()).isEqualTo("홍길동2");
     }
 
     @Test
@@ -428,12 +430,16 @@ public class UserServiceTest {
         ReflectionTestUtils.setField(addressRequest, "postalCode", "06134");
 
         ReflectionTestUtils.setField(profileRequest, "name", "홍길동");
+        ReflectionTestUtils.setField(profileRequest, "phoneNumber", "010-1234-5678");
+        ReflectionTestUtils.setField(profileRequest, "nickName", "길동이123");
         ReflectionTestUtils.setField(profileRequest, "birthDate", LocalDateTime.parse("1990-01-01T09:00:00"));
         ReflectionTestUtils.setField(profileRequest, "gender", Gender.MALE);
         ReflectionTestUtils.setField(profileRequest, "address", addressRequest);
 
+
         ReflectionTestUtils.setField(authRequest, "email", email);
         ReflectionTestUtils.setField(authRequest, "password", password);
+        ReflectionTestUtils.setField(authRequest, "provider", Provider.LOCAL);
 
         SignupRequest request = new SignupRequest();
         ReflectionTestUtils.setField(request, "auth", authRequest);
@@ -445,21 +451,15 @@ public class UserServiceTest {
     private UpdateUserRequest updateRequest(String name) {
         UpdateUserRequest updateUserRequest = new UpdateUserRequest();
 
-        UpdateUserRequest.UpdateAuthRequest auth = new UpdateUserRequest.UpdateAuthRequest();
-        ReflectionTestUtils.setField(auth, "password", null);
 
-        UpdateUserRequest.UpdateAddressRequest address = new UpdateUserRequest.UpdateAddressRequest();
-        ReflectionTestUtils.setField(address, "province", null);
-        ReflectionTestUtils.setField(address, "district", null);
-        ReflectionTestUtils.setField(address, "detailAddress", null);
-        ReflectionTestUtils.setField(address, "postalCode", null);
-
-        UpdateUserRequest.UpdateProfileRequest profile = new UpdateUserRequest.UpdateProfileRequest();
-        ReflectionTestUtils.setField(profile, "name", name);
-        ReflectionTestUtils.setField(profile, "address", address);
-
-        ReflectionTestUtils.setField(updateUserRequest, "auth", auth);
-        ReflectionTestUtils.setField(updateUserRequest, "profile", profile);
+        ReflectionTestUtils.setField(updateUserRequest, "password", null);
+        ReflectionTestUtils.setField(updateUserRequest, "name", name);
+        ReflectionTestUtils.setField(updateUserRequest, "phoneNumber", null);
+        ReflectionTestUtils.setField(updateUserRequest, "nickName", null);
+        ReflectionTestUtils.setField(updateUserRequest, "province", null);
+        ReflectionTestUtils.setField(updateUserRequest, "district", null);
+        ReflectionTestUtils.setField(updateUserRequest, "detailAddress", null);
+        ReflectionTestUtils.setField(updateUserRequest, "postalCode", null);
 
         return updateUserRequest;
     }
