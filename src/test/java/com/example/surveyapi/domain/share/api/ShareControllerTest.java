@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,7 +26,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
@@ -33,7 +35,6 @@ import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.util.PageInfo;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(ShareController.class)
@@ -174,10 +175,10 @@ class ShareControllerTest {
 		NotificationResponse mockNotification = new NotificationResponse(
 			1L, currentUserId, Status.SENT, LocalDateTime.now(), null
 		);
-		PageInfo pageInfo = new PageInfo(size, page, 1, 1);
-		NotificationPageResponse response = new NotificationPageResponse(List.of(mockNotification), pageInfo);
+		List<NotificationResponse> content = List.of(mockNotification);
+		Page<NotificationResponse> responses = new PageImpl<>(content, PageRequest.of(page, size), content.size());
 
-		given(notificationService.gets(eq(shareId), eq(currentUserId), eq(page), eq(size))).willReturn(response);
+		given(notificationService.gets(eq(shareId), eq(currentUserId), eq(PageRequest.of(page, size)))).willReturn(responses);
 
 		//when, then
 		mockMvc.perform(get("/api/v1/share-tasks/{shareId}/notifications", shareId)
@@ -201,13 +202,7 @@ class ShareControllerTest {
 		int page = 0;
 		int size = 0;
 
-		NotificationResponse mockNotification = new NotificationResponse(
-			1L, currentUserId, Status.SENT, LocalDateTime.now(), null
-		);
-		PageInfo pageInfo = new PageInfo(size, page, 1, 1);
-		NotificationPageResponse response = new NotificationPageResponse(List.of(mockNotification), pageInfo);
-
-		given(notificationService.gets(eq(invalidShareId), eq(currentUserId), eq(page), eq(size)))
+		given(notificationService.gets(eq(invalidShareId), eq(currentUserId), eq(PageRequest.of(page, size))))
 			.willThrow(new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
 		//when, then

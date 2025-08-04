@@ -2,13 +2,15 @@ package com.example.surveyapi.domain.share.api;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
+import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.CreateShareRequest;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
@@ -54,13 +56,12 @@ public class ShareController {
 	}
 
 	@GetMapping("/v1/share-tasks/{shareId}/notifications")
-	public ResponseEntity<ApiResponse<NotificationPageResponse>> getAll(
+	public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAll(
 		@PathVariable Long shareId,
-		@RequestParam(defaultValue = "0") int page,
-		@RequestParam(defaultValue = "10") int size,
-		@AuthenticationPrincipal Long currentId
+		@AuthenticationPrincipal Long currentId,
+		Pageable pageable
 	) {
-		NotificationPageResponse response = notificationService.gets(shareId, currentId, page, size);
+		Page<NotificationResponse> response = notificationService.gets(shareId, currentId, pageable);
 
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
