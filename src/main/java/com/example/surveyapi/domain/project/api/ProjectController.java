@@ -138,7 +138,7 @@ public class ProjectController {
 		projectService.joinProjectManager(projectId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("담당자 추가 성공"));
+			.body(ApiResponse.success("담당자로 참여 성공"));
 	}
 
 	@PatchMapping("/{projectId}/managers/{managerId}/role")
@@ -174,7 +174,7 @@ public class ProjectController {
 		projectService.deleteManager(projectId, managerId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("담당자 참여 성공"));
+			.body(ApiResponse.success("담당자 삭제 성공"));
 	}
 
 	// ProjectMember
