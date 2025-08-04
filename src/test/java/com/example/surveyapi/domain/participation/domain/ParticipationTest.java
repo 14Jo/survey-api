@@ -12,6 +12,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
+import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -25,7 +26,7 @@ class ParticipationTest {
 		// given
 		Long memberId = 1L;
 		Long surveyId = 1L;
-		ParticipantInfo participantInfo = new ParticipantInfo();
+		ParticipantInfo participantInfo = ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구");
 
 		// when
 		Participation participation = Participation.create(memberId, surveyId, participantInfo,
@@ -55,13 +56,15 @@ class ParticipationTest {
 		List<ResponseData> responseDataList = List.of(responseData1, responseData2);
 
 		// when
-		Participation participation = Participation.create(memberId, surveyId, new ParticipantInfo(), responseDataList);
+		Participation participation = Participation.create(memberId, surveyId,
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"), responseDataList);
 
 		// then
 		assertThat(participation).isNotNull();
 		assertThat(participation.getSurveyId()).isEqualTo(surveyId);
 		assertThat(participation.getMemberId()).isEqualTo(memberId);
-		assertThat(participation.getParticipantInfo()).isEqualTo(new ParticipantInfo());
+		assertThat(participation.getParticipantInfo()).isEqualTo(
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"));
 
 		assertThat(participation.getResponses()).hasSize(2);
 		Response createdResponse1 = participation.getResponses().get(0);
@@ -80,7 +83,8 @@ class ParticipationTest {
 	void validateOwner_notThrowException() {
 		// given
 		Long ownerId = 1L;
-		Participation participation = Participation.create(ownerId, 1L, new ParticipantInfo(), Collections.emptyList());
+		Participation participation = Participation.create(ownerId, 1L,
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"), Collections.emptyList());
 
 		// when & then
 		assertThatCode(() -> participation.validateOwner(ownerId))
@@ -93,7 +97,8 @@ class ParticipationTest {
 		// given
 		Long ownerId = 1L;
 		Long otherId = 2L;
-		Participation participation = Participation.create(ownerId, 1L, new ParticipantInfo(), Collections.emptyList());
+		Participation participation = Participation.create(ownerId, 1L,
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"), Collections.emptyList());
 
 		// when & then
 		assertThatThrownBy(() -> participation.validateOwner(otherId))
@@ -107,7 +112,7 @@ class ParticipationTest {
 		// given
 		Long memberId = 1L;
 		Long surveyId = 1L;
-		ParticipantInfo participantInfo = new ParticipantInfo();
+		ParticipantInfo participantInfo = ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구");
 
 		ResponseData ResponseData1 = new ResponseData();
 		ReflectionTestUtils.setField(ResponseData1, "questionId", 1L);
@@ -121,13 +126,18 @@ class ParticipationTest {
 		Participation participation = Participation.create(memberId, surveyId, participantInfo,
 			initialResponseDataList);
 
-		Response newResponse1 = Response.create(1L, Map.of("textAnswer", "수정된 답변1"));
-		Response newResponse2 = Response.create(2L, Map.of("choice", "4"));
+		ResponseData newResponseData1 = new ResponseData();
+		ReflectionTestUtils.setField(newResponseData1, "questionId", 1L);
+		ReflectionTestUtils.setField(newResponseData1, "answer", Map.of("textAnswer", "수정된 답변1"));
 
-		List<Response> newResponses = List.of(newResponse1, newResponse2);
+		ResponseData newResponseData2 = new ResponseData();
+		ReflectionTestUtils.setField(newResponseData2, "questionId", 2L);
+		ReflectionTestUtils.setField(newResponseData2, "answer", Map.of("choice", "4"));
+
+		List<ResponseData> newResponseDataList = List.of(newResponseData1, newResponseData2);
 
 		// when
-		participation.update(newResponses);
+		participation.update(newResponseDataList);
 
 		// then
 		assertThat(participation.getResponses()).hasSize(2);
