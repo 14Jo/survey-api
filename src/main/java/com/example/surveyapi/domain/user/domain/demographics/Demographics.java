@@ -63,4 +63,7 @@ public class Demographics extends BaseEntity {
         return demographics;
     }
 
+    public void masking(){
+        this.address.masking();
+    }
 }
