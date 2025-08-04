@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
@@ -52,8 +53,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<Grade> findByGrade(Long userId) {
-        return userJpaRepository.findByGrade(userId);
+    public Optional<UserGradePoint> findByGradeAndPoint(Long userId) {
+        return userJpaRepository.findByGradeAndPoint(userId);
     }
 
     @Override
