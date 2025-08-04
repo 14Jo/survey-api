@@ -205,7 +205,6 @@ public class ProjectService {
 		}
 	}
 
-	// TODO: LIST별 fetchJoin 생각
 	private Project findByIdOrElseThrow(Long projectId) {
 
 		return projectRepository.findByIdAndIsDeletedFalse(projectId)
