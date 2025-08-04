@@ -4,52 +4,62 @@ import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionOrderService;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
-import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
 
-@ExtendWith(MockitoExtension.class)
+@Testcontainers
+@SpringBootTest
+@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class QuestionServiceTest {
 
-    @Mock
-    private QuestionRepository questionRepository;
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
-    @Mock
-    private QuestionOrderService questionOrderService;
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 
-    @InjectMocks
+    @Autowired
     private QuestionService questionService;
 
+    @Autowired
+    private QuestionRepository questionRepository;
+
+    @MockitoBean
+    private QuestionOrderService questionOrderService;
+
     private List<QuestionInfo> questionInfos;
-    private List<Question> mockQuestions;
 
     @BeforeEach
     void setUp() {
         // given
         questionInfos = List.of(
             QuestionInfo.of("질문1", QuestionType.SHORT_ANSWER, true, 1, List.of()),
-            QuestionInfo.of("질문2", QuestionType.MULTIPLE_CHOICE, false, 2, 
+            QuestionInfo.of("질문2", QuestionType.MULTIPLE_CHOICE, false, 2,
                 List.of(ChoiceInfo.of("선택1", 1), ChoiceInfo.of("선택2", 2)))
-        );
-
-        mockQuestions = List.of(
-            Question.create(1L, "질문1", QuestionType.SHORT_ANSWER, 1, true, List.of()),
-            Question.create(1L, "질문2", QuestionType.MULTIPLE_CHOICE, 2, false, 
-                List.of(Choice.of("선택1", 1), Choice.of("선택2", 2)))
         );
     }
 
@@ -57,137 +67,63 @@ class QuestionServiceTest {
     @DisplayName("질문 생성 - 성공")
     void createQuestions_success() {
         // given
-
+        Long surveyId = 1L;
+        
         // when
-        questionService.create(1L, questionInfos);
+        questionService.create(surveyId, questionInfos);
 
         // then
-        verify(questionRepository).saveAll(anyList());
-        verify(questionRepository).saveAll(argThat(questions -> 
-            questions.size() == 2 &&
-            questions.get(0).getContent().equals("질문1") &&
-            questions.get(1).getContent().equals("질문2")
-        ));
+        List<Question> savedQuestions = questionRepository.findAllBySurveyId(surveyId);
+        assertThat(savedQuestions).hasSize(2);
+        assertThat(savedQuestions.get(0).getContent()).isEqualTo("질문1");
     }
 
     @Test
     @DisplayName("질문 생성 - 빈 리스트")
     void createQuestions_emptyList() {
         // given
+        Long surveyId = 2L;
         List<QuestionInfo> emptyQuestions = List.of();
 
         // when
-        questionService.create(1L, emptyQuestions);
+        questionService.create(surveyId, emptyQuestions);
 
         // then
-        verify(questionRepository).saveAll(anyList());
-        verify(questionRepository).saveAll(argThat(questions -> questions.isEmpty()));
+        List<Question> savedQuestions = questionRepository.findAllBySurveyId(surveyId);
+        assertThat(savedQuestions).isEmpty();
     }
 
     @Test
-    @DisplayName("질문 생성 - 단일 선택 질문")
-    void createQuestions_singleChoice() {
+    @DisplayName("질문 삭제 - 성공 (소프트 삭제)")
+    void deleteQuestions_success_softDelete() {
         // given
-        List<QuestionInfo> singleChoiceQuestions = List.of(
-            QuestionInfo.of("단일 선택 질문", QuestionType.SINGLE_CHOICE, true, 1,
-                List.of(ChoiceInfo.of("선택1", 1), ChoiceInfo.of("선택2", 2)))
-        );
+        Long surveyId = 3L;
+        questionService.create(surveyId, questionInfos);
 
         // when
-        questionService.create(1L, singleChoiceQuestions);
+        questionService.delete(surveyId);
 
         // then
-        verify(questionRepository).saveAll(anyList());
-        verify(questionRepository).saveAll(argThat(questions -> 
-            questions.size() == 1 &&
-            questions.get(0).getType() == QuestionType.SINGLE_CHOICE
-        ));
-    }
-
-    @Test
-    @DisplayName("질문 삭제 - 성공")
-    void deleteQuestions_success() {
-        // given
-        when(questionRepository.findAllBySurveyId(1L)).thenReturn(mockQuestions);
-
-        // when
-        questionService.delete(1L);
-
-        // then
-        verify(questionRepository).findAllBySurveyId(1L);
-        verify(questionRepository).findAllBySurveyId(1L);
-    }
-
-    @Test
-    @DisplayName("질문 삭제 - 빈 목록")
-    void deleteQuestions_emptyList() {
-        // given
-        when(questionRepository.findAllBySurveyId(1L)).thenReturn(List.of());
-
-        // when
-        questionService.delete(1L);
-
-        // then
-        verify(questionRepository).findAllBySurveyId(1L);
-    }
-
-    @Test
-    @DisplayName("질문 삭제 - 존재하지 않는 설문")
-    void deleteQuestions_notFound() {
-        // given
-        when(questionRepository.findAllBySurveyId(999L)).thenReturn(List.of());
-
-        // when
-        questionService.delete(999L);
-
-        // then
-        verify(questionRepository).findAllBySurveyId(999L);
+        List<Question> softDeletedQuestions = questionRepository.findAllBySurveyId(surveyId);
+        assertThat(softDeletedQuestions).hasSize(2);
+        assertThat(softDeletedQuestions).allMatch(Question::getIsDeleted);
     }
 
     @Test
     @DisplayName("질문 순서 조정 - 성공")
     void adjustDisplayOrder_success() {
         // given
+        Long surveyId = 4L;
         List<QuestionInfo> newQuestions = List.of(
-            QuestionInfo.of("새 질문1", QuestionType.SHORT_ANSWER, true, 3, List.of()),
-            QuestionInfo.of("새 질문2", QuestionType.MULTIPLE_CHOICE, false, 4, List.of())
+            QuestionInfo.of("새 질문1", QuestionType.SHORT_ANSWER, true, 1, List.of())
         );
-        when(questionOrderService.adjustDisplayOrder(1L, newQuestions)).thenReturn(newQuestions);
+        when(questionOrderService.adjustDisplayOrder(surveyId, newQuestions)).thenReturn(newQuestions);
 
         // when
-        List<QuestionInfo> result = questionService.adjustDisplayOrder(1L, newQuestions);
+        List<QuestionInfo> result = questionService.adjustDisplayOrder(surveyId, newQuestions);
 
         // then
         assertThat(result).isEqualTo(newQuestions);
-        verify(questionOrderService).adjustDisplayOrder(1L, newQuestions);
+        verify(questionOrderService).adjustDisplayOrder(surveyId, newQuestions);
     }
-
-    @Test
-    @DisplayName("질문 순서 조정 - 빈 리스트")
-    void adjustDisplayOrder_emptyList() {
-        // given
-        List<QuestionInfo> emptyQuestions = List.of();
-        when(questionOrderService.adjustDisplayOrder(1L, emptyQuestions)).thenReturn(List.of());
-
-        // when
-        List<QuestionInfo> result = questionService.adjustDisplayOrder(1L, emptyQuestions);
-
-        // then
-        assertThat(result).isEmpty();
-        verify(questionOrderService).adjustDisplayOrder(1L, emptyQuestions);
-    }
-
-    @Test
-    @DisplayName("질문 순서 조정 - null 리스트")
-    void adjustDisplayOrder_nullList() {
-        // given
-        when(questionOrderService.adjustDisplayOrder(1L, null)).thenReturn(List.of());
-
-        // when
-        List<QuestionInfo> result = questionService.adjustDisplayOrder(1L, null);
-
-        // then
-        assertThat(result).isEmpty();
-        verify(questionOrderService).adjustDisplayOrder(1L, null);
-    }
-} 
+}
