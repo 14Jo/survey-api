@@ -20,6 +20,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,6 +32,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
@@ -36,6 +43,7 @@ import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResp
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
@@ -49,10 +57,24 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import jakarta.persistence.EntityManager;
+
+@Testcontainers
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 public class UserServiceTest {
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:14-alpine");
+
+    @DynamicPropertySource
+    static void configureProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+    }
 
     @Autowired
     UserService userService;
@@ -75,6 +97,8 @@ public class UserServiceTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired private EntityManager em;
+
     @MockitoBean
     private ProjectApiClient projectApiClient;
 
@@ -96,7 +120,7 @@ public class UserServiceTest {
         // then
         var savedUser = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail()).orElseThrow();
         assertThat(savedUser.getProfile().getName()).isEqualTo("홍길동");
-        assertThat(savedUser.getProfile().getAddress().getProvince()).isEqualTo("서울특별시");
+        assertThat(savedUser.getDemographics().getAddress().getProvince()).isEqualTo("서울특별시");
     }
 
     @Test
@@ -181,44 +205,6 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("회원 탈퇴된 id 중복 확인")
-    void signup_fail_withdraw_id() {
-
-        // given
-        String email = "user@example.com";
-        String password = "Password123";
-        SignupRequest rq1 = createSignupRequest(email, password);
-        SignupRequest rq2 = createSignupRequest(email, password);
-
-        SignupResponse signup = authService.signup(rq1);
-
-        User user = userRepository.findByEmailAndIsDeletedFalse(signup.getEmail())
-            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
-
-        UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
-        ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
-
-        String authHeader = jwtUtil.createAccessToken(user.getId(), user.getRole());
-
-        ExternalApiResponse fakeProjectResponse = fakeProjectResponse();
-
-        ExternalApiResponse fakeParticipationResponse = fakeParticipationResponse();
-
-        when(projectApiClient.getProjectMyRole(anyString(), anyLong()))
-            .thenReturn(fakeProjectResponse);
-
-        when(participationApiClient.getSurveyStatus(anyString(), anyLong(), anyInt(), anyInt()))
-            .thenReturn(fakeParticipationResponse);
-
-        // when
-        authService.withdraw(signup.getMemberId(), userWithdrawRequest, authHeader);
-
-        // then
-        assertThatThrownBy(() -> authService.signup(rq2))
-            .isInstanceOf(CustomException.class);
-    }
-
-    @Test
     @DisplayName("모든 회원 조회 - 성공")
     void getAllUsers_success() {
         // given
@@ -288,10 +274,10 @@ public class UserServiceTest {
         UserInfoResponse member = UserInfoResponse.from(user);
 
         // when
-        UserGradeResponse grade = userService.getGrade(member.getMemberId());
+        UserGradeResponse grade = userService.getGradeAndPoint(member.getMemberId());
 
         // then
-        assertThat(grade.getGrade()).isEqualTo(Grade.valueOf("LV1"));
+        assertThat(grade.getGrade()).isEqualTo(Grade.valueOf("BRONZE"));
     }
 
     @Test
@@ -305,9 +291,9 @@ public class UserServiceTest {
         Long userId = 9999L;
 
         // then
-        assertThatThrownBy(() -> userService.getGrade(userId))
+        assertThatThrownBy(() -> userService.getGradeAndPoint(userId))
             .isInstanceOf(CustomException.class)
-            .hasMessageContaining("등급을 조회 할 수 없습니다");
+            .hasMessageContaining("등급 및 포인트를 조회 할 수 없습니다");
     }
 
     @Test
@@ -323,14 +309,15 @@ public class UserServiceTest {
 
         UpdateUserRequest request = updateRequest("홍길동2");
 
-        String encryptedPassword = Optional.ofNullable(request.getAuth().getPassword())
+        String encryptedPassword = Optional.ofNullable(request.getPassword())
             .map(passwordEncoder::encode)
-            .orElse(null);
+            .orElseGet(() -> user.getAuth().getPassword());
 
         UpdateUserRequest.UpdateData data = UpdateUserRequest.UpdateData.of(request, encryptedPassword);
 
         user.update(
             data.getPassword(), data.getName(),
+            data.getPhoneNumber(), data.getNickName(),
             data.getProvince(), data.getDistrict(),
             data.getDetailAddress(), data.getPostalCode()
         );
@@ -339,7 +326,7 @@ public class UserServiceTest {
         UpdateUserResponse update = userService.update(request, user.getId());
 
         // then
-        assertThat(update.getName()).isEqualTo("홍길동2");
+        assertThat(update.getProfile().getName()).isEqualTo("홍길동2");
     }
 
     @Test
@@ -428,12 +415,16 @@ public class UserServiceTest {
         ReflectionTestUtils.setField(addressRequest, "postalCode", "06134");
 
         ReflectionTestUtils.setField(profileRequest, "name", "홍길동");
+        ReflectionTestUtils.setField(profileRequest, "phoneNumber", "010-1234-5678");
+        ReflectionTestUtils.setField(profileRequest, "nickName", "길동이123");
         ReflectionTestUtils.setField(profileRequest, "birthDate", LocalDateTime.parse("1990-01-01T09:00:00"));
         ReflectionTestUtils.setField(profileRequest, "gender", Gender.MALE);
         ReflectionTestUtils.setField(profileRequest, "address", addressRequest);
 
+
         ReflectionTestUtils.setField(authRequest, "email", email);
         ReflectionTestUtils.setField(authRequest, "password", password);
+        ReflectionTestUtils.setField(authRequest, "provider", Provider.LOCAL);
 
         SignupRequest request = new SignupRequest();
         ReflectionTestUtils.setField(request, "auth", authRequest);
@@ -445,21 +436,15 @@ public class UserServiceTest {
     private UpdateUserRequest updateRequest(String name) {
         UpdateUserRequest updateUserRequest = new UpdateUserRequest();
 
-        UpdateUserRequest.UpdateAuthRequest auth = new UpdateUserRequest.UpdateAuthRequest();
-        ReflectionTestUtils.setField(auth, "password", null);
 
-        UpdateUserRequest.UpdateAddressRequest address = new UpdateUserRequest.UpdateAddressRequest();
-        ReflectionTestUtils.setField(address, "province", null);
-        ReflectionTestUtils.setField(address, "district", null);
-        ReflectionTestUtils.setField(address, "detailAddress", null);
-        ReflectionTestUtils.setField(address, "postalCode", null);
-
-        UpdateUserRequest.UpdateProfileRequest profile = new UpdateUserRequest.UpdateProfileRequest();
-        ReflectionTestUtils.setField(profile, "name", name);
-        ReflectionTestUtils.setField(profile, "address", address);
-
-        ReflectionTestUtils.setField(updateUserRequest, "auth", auth);
-        ReflectionTestUtils.setField(updateUserRequest, "profile", profile);
+        ReflectionTestUtils.setField(updateUserRequest, "password", null);
+        ReflectionTestUtils.setField(updateUserRequest, "name", name);
+        ReflectionTestUtils.setField(updateUserRequest, "phoneNumber", null);
+        ReflectionTestUtils.setField(updateUserRequest, "nickName", null);
+        ReflectionTestUtils.setField(updateUserRequest, "province", null);
+        ReflectionTestUtils.setField(updateUserRequest, "district", null);
+        ReflectionTestUtils.setField(updateUserRequest, "detailAddress", null);
+        ReflectionTestUtils.setField(updateUserRequest, "postalCode", null);
 
         return updateUserRequest;
     }

@@ -1,16 +1,17 @@
 package com.example.surveyapi.domain.user.domain.user.vo;
 
+import com.example.surveyapi.global.util.MaskingUtils;
+
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+
 
 @Embeddable
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-@Setter
 public class Address {
 
     private String province;
@@ -18,12 +19,43 @@ public class Address {
     private String detailAddress;
     private String postalCode;
 
-    public static Address of(
+    public static Address create(
         String province, String district,
         String detailAddress, String postalCode
     ) {
-        return new Address(
-            province, district,
-            detailAddress, postalCode);
+        Address address = new Address();
+        address.province = province;
+        address.district = district;
+        address.detailAddress = detailAddress;
+        address.postalCode = postalCode;
+
+        return address;
+    }
+
+    public void updateAddress(
+        String province, String district,
+        String detailAddress, String postalCode
+    ){
+        if (province != null) {
+            this.province = province;
+        }
+
+        if (district != null) {
+            this.district = district;
+        }
+
+        if (detailAddress != null) {
+            this.detailAddress = detailAddress;
+        }
+
+        if (postalCode != null) {
+            this.postalCode = postalCode;
+        }
+    }
+
+    public void masking(){
+        this.district = MaskingUtils.maskDistrict(district);
+        this.detailAddress = MaskingUtils.maskDetailAddress(detailAddress);
+        this.postalCode = MaskingUtils.maskPostalCode(postalCode);
     }
 }

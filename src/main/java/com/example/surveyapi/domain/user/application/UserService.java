@@ -4,19 +4,15 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.user.application.client.ParticipationPort;
-import com.example.surveyapi.domain.user.application.client.ProjectPort;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserSnapShotResponse;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
-import com.example.surveyapi.global.config.jwt.JwtUtil;
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
@@ -52,12 +48,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserGradeResponse getGrade(Long userId) {
+    public UserGradeResponse getGradeAndPoint(Long userId) {
 
-        Grade grade = userRepository.findByGrade(userId)
-            .orElseThrow(() -> new CustomException(CustomErrorCode.GRADE_NOT_FOUND));
+        UserGradePoint userGradePoint = userRepository.findByGradeAndPoint(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.GRADE_POINT_NOT_FOUND));
 
-        return UserGradeResponse.from(grade);
+        return UserGradeResponse.from(userGradePoint);
     }
 
     @Transactional
@@ -66,16 +62,19 @@ public class UserService {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        String encryptedPassword = Optional.ofNullable(request.getAuth().getPassword())
+
+        String encryptedPassword = Optional.ofNullable(request.getPassword())
             .map(passwordEncoder::encode)
-            .orElse(null);
+            .orElseGet(() -> user.getAuth().getPassword());
 
         UpdateUserRequest.UpdateData data = UpdateUserRequest.UpdateData.of(request, encryptedPassword);
 
         user.update(
             data.getPassword(), data.getName(),
+            data.getPhoneNumber(), data.getNickName(),
             data.getProvince(), data.getDistrict(),
-            data.getDetailAddress(), data.getPostalCode());
+            data.getDetailAddress(), data.getPostalCode()
+        );
 
         return UpdateUserResponse.from(user);
     }

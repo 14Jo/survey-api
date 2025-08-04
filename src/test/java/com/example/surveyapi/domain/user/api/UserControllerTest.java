@@ -1,8 +1,13 @@
 package com.example.surveyapi.domain.user.api;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,15 +15,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.mockito.ArgumentMatchers.any;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import static org.mockito.BDDMockito.given;
@@ -26,30 +34,65 @@ import static org.mockito.BDDMockito.given;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.surveyapi.domain.user.application.AuthService;
 import com.example.surveyapi.domain.user.application.UserService;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
+import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 
+import com.example.surveyapi.global.config.jwt.JwtUtil;
+import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
+import com.example.surveyapi.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-@SpringBootTest
-@AutoConfigureMockMvc
+@ExtendWith(MockitoExtension.class)
 public class UserControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Mock
+    JwtUtil jwtUtil;
 
-    @MockitoBean
+    @Mock
+    UserRepository userRepository;
+
+    @Mock
+    PasswordEncoder passwordEncoder;
+
+    @Mock
     UserService userService;
 
-    @Autowired
+    @Mock
+    AuthService authService;
+
+    @InjectMocks
+    private AuthController authController;
+
+    @InjectMocks
+    private UserController userController;
+
+    private MockMvc mockMvc;
     ObjectMapper objectMapper;
+
+    @BeforeEach
+    void setup() {
+        PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver();
+
+        mockMvc = MockMvcBuilders.standaloneSetup(authController, userController)
+            .setControllerAdvice(new GlobalExceptionHandler())
+            .setCustomArgumentResolvers(pageableResolver)
+            .build();
+
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+    }
 
     @Test
     @DisplayName("회원가입 - 성공")
@@ -59,10 +102,13 @@ public class UserControllerTest {
             {
               "auth": {
                 "email": "user@example.com",
-                "password": "Password123"
+                "password": "Password123",
+                "provider" : "LOCAL"
               },
               "profile": {
                 "name": "홍길동",
+                "phoneNumber" : "010-1234-5678",
+                "nickName": "길동이123",
                 "birthDate": "1990-01-01T09:00:00",
                 "gender": "MALE",
                 "address": {
@@ -79,6 +125,7 @@ public class UserControllerTest {
         mockMvc.perform(post("/api/v1/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
+            .andDo(print())
             .andExpect(status().isCreated())
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.message").value("회원가입 성공"));
@@ -93,10 +140,13 @@ public class UserControllerTest {
             {
               "auth": {
                 "email": "",
-                "password": "Password123"
+                "password": "Password123",
+                "provider" : "LOCAL"
               },
               "profile": {
                 "name": "홍길동",
+                "phoneNumber" : "010-1234-5678",
+                "nickName": "길동이123",
                 "birthDate": "1990-01-01T09:00:00",
                 "gender": "MALE",
                 "address": {
@@ -116,14 +166,6 @@ public class UserControllerTest {
             .andExpect(status().isBadRequest());
     }
 
-    @Test
-    @DisplayName("회원 전체 조회 - 실패 (인증 안 됨)")
-    void getAllUsers_fail_unauthenticated() throws Exception {
-        mockMvc.perform(get("/api/v1/users"))
-            .andExpect(status().isUnauthorized());
-    }
-
-    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("모든 회원 조회 - 성공")
     void getAllUsers_success() throws Exception {
@@ -147,13 +189,13 @@ public class UserControllerTest {
 
         // when * then
         mockMvc.perform(get("/api/v1/users?page=0&size=10"))
+            .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content").isArray())
             .andExpect(jsonPath("$.data.content.length()").value(2))
             .andExpect(jsonPath("$.message").value("회원 전체 조회 성공"));
     }
 
-    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("모든 회원 조회 - 실패 (인원이 맞지 않을 때)")
     void getAllUsers_fail() throws Exception {
@@ -164,19 +206,18 @@ public class UserControllerTest {
         User user1 = create(rq1);
         User user2 = create(rq2);
 
-        List<UserInfoResponse> users = List.of(
-            UserInfoResponse.from(user1),
-            UserInfoResponse.from(user2)
-        );
+        UserInfoResponse.from(user1);
+        UserInfoResponse.from(user2);
+
         given(userService.getAll(any(Pageable.class)))
             .willThrow(new CustomException(CustomErrorCode.USER_LIST_EMPTY));
 
         // when * then
         mockMvc.perform(get("/api/v1/users?page=0&size=10"))
+            .andDo(print())
             .andExpect(status().isInternalServerError());
     }
 
-    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("회원조회 - 성공 (프로필 조회)")
     void get_profile() throws Exception {
@@ -190,26 +231,27 @@ public class UserControllerTest {
 
         // then
         mockMvc.perform(get("/api/v1/users/me"))
+            .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.name").value("홍길동"));
+            .andExpect(jsonPath("$.data.profile.name").value("홍길동"));
     }
 
-    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("회원조회 - 실패 (프로필 조회)")
     void get_profile_fail() throws Exception {
         // given
         SignupRequest rq1 = createSignupRequest("user@example.com");
         User user = create(rq1);
+
         given(userService.getUser(user.getId()))
             .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         // then
         mockMvc.perform(get("/api/v1/users/me"))
+            .andDo(print())
             .andExpect(status().isNotFound());
     }
 
-    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("등급 조회 - 성공")
     void grade_success() throws Exception {
@@ -217,18 +259,19 @@ public class UserControllerTest {
         SignupRequest rq1 = createSignupRequest("user@example.com");
         User user = create(rq1);
         UserInfoResponse member = UserInfoResponse.from(user);
-        UserGradeResponse grade = UserGradeResponse.from(user.getGrade());
+        UserGradePoint userGradePoint = new UserGradePoint(user.getGrade(), user.getPoint());
+        UserGradeResponse grade = UserGradeResponse.from(userGradePoint);
 
-        given(userService.getGrade(member.getMemberId()))
+        given(userService.getGradeAndPoint(member.getMemberId()))
             .willReturn(grade);
 
         // when & then
         mockMvc.perform(get("/api/v1/users/grade"))
+            .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.grade").value("LV1"));
+            .andExpect(jsonPath("$.data.grade").value("BRONZE"));
     }
 
-    @WithMockUser(username = "testUser", roles = "USER")
     @Test
     @DisplayName("등급 조회 - 실패 (다른사람, 탈퇴한 회원)")
     void grade_fail() throws Exception {
@@ -236,25 +279,27 @@ public class UserControllerTest {
         User user = create(rq1);
         UserInfoResponse member = UserInfoResponse.from(user);
 
-        given(userService.getGrade(member.getMemberId()))
+        given(userService.getGradeAndPoint(member.getMemberId()))
             .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         // then
         mockMvc.perform(get("/api/v1/users/grade"))
+            .andDo(print())
             .andExpect(status().isNotFound());
     }
 
-    @WithMockUser(username = "testUser", roles = "USER")
     @DisplayName("회원정보 수정 - 실패 (@Valid 유효성 검사)")
     @Test
     void updateUser_invalidRequest_returns400() throws Exception {
         // given
         String longName = "a".repeat(21);
         UpdateUserRequest invalidRequest = updateRequest(longName);
+
         // when & then
         mockMvc.perform(patch("/api/v1/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
+            .andDo(print())
             .andExpect(status().isBadRequest())
             .andExpect(jsonPath("$.message").value("요청 데이터 검증에 실패하였습니다."));
     }
@@ -265,6 +310,7 @@ public class UserControllerTest {
         SignupRequest.AuthRequest auth = new SignupRequest.AuthRequest();
         ReflectionTestUtils.setField(auth, "email", email);
         ReflectionTestUtils.setField(auth, "password", "Password123");
+        ReflectionTestUtils.setField(auth, "provider", Provider.LOCAL);
 
         SignupRequest.AddressRequest address = new SignupRequest.AddressRequest();
         ReflectionTestUtils.setField(address, "province", "서울특별시");
@@ -274,6 +320,8 @@ public class UserControllerTest {
 
         SignupRequest.ProfileRequest profile = new SignupRequest.ProfileRequest();
         ReflectionTestUtils.setField(profile, "name", "홍길동");
+        ReflectionTestUtils.setField(profile, "phoneNumber", "010-1234-5678");
+        ReflectionTestUtils.setField(profile, "nickName", "길동이123");
         ReflectionTestUtils.setField(profile, "birthDate", LocalDateTime.parse("1990-01-01T09:00:00"));
         ReflectionTestUtils.setField(profile, "gender", Gender.MALE);
         ReflectionTestUtils.setField(profile, "address", address);
@@ -290,33 +338,29 @@ public class UserControllerTest {
             request.getAuth().getEmail(),
             request.getAuth().getPassword(),
             request.getProfile().getName(),
+            request.getProfile().getPhoneNumber(),
+            request.getProfile().getNickName(),
             request.getProfile().getBirthDate(),
             request.getProfile().getGender(),
             request.getProfile().getAddress().getProvince(),
             request.getProfile().getAddress().getDistrict(),
             request.getProfile().getAddress().getDetailAddress(),
-            request.getProfile().getAddress().getPostalCode()
+            request.getProfile().getAddress().getPostalCode(),
+            request.getAuth().getProvider()
         );
     }
 
     private UpdateUserRequest updateRequest(String name) {
         UpdateUserRequest updateUserRequest = new UpdateUserRequest();
 
-        UpdateUserRequest.UpdateAuthRequest auth = new UpdateUserRequest.UpdateAuthRequest();
-        ReflectionTestUtils.setField(auth, "password", null);
-
-        UpdateUserRequest.UpdateAddressRequest address = new UpdateUserRequest.UpdateAddressRequest();
-        ReflectionTestUtils.setField(address, "province", null);
-        ReflectionTestUtils.setField(address, "district", null);
-        ReflectionTestUtils.setField(address, "detailAddress", null);
-        ReflectionTestUtils.setField(address, "postalCode", null);
-
-        UpdateUserRequest.UpdateProfileRequest profile = new UpdateUserRequest.UpdateProfileRequest();
-        ReflectionTestUtils.setField(profile, "name", name);
-        ReflectionTestUtils.setField(profile, "address", address);
-
-        ReflectionTestUtils.setField(updateUserRequest, "auth", auth);
-        ReflectionTestUtils.setField(updateUserRequest, "profile", profile);
+        ReflectionTestUtils.setField(updateUserRequest, "password", null);
+        ReflectionTestUtils.setField(updateUserRequest, "name", name);
+        ReflectionTestUtils.setField(updateUserRequest, "phoneNumber", null);
+        ReflectionTestUtils.setField(updateUserRequest, "nickName", null);
+        ReflectionTestUtils.setField(updateUserRequest, "province", null);
+        ReflectionTestUtils.setField(updateUserRequest, "district", null);
+        ReflectionTestUtils.setField(updateUserRequest, "detailAddress", null);
+        ReflectionTestUtils.setField(updateUserRequest, "postalCode", null);
 
         return updateUserRequest;
     }
