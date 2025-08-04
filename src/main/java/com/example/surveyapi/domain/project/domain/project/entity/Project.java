@@ -225,6 +225,12 @@ public class Project extends BaseEntity {
 		projectManager.delete();
 	}
 
+	public void removeManager(Long currentUserId) {
+		checkNotClosedState();
+		ProjectManager manager = findManagerByUserId(currentUserId);
+		manager.delete();
+	}
+
 	// List<ProjectManager> 조회 메소드
 	public ProjectManager findManagerByUserId(Long userId) {
 		return this.projectManagers.stream()
@@ -240,7 +246,7 @@ public class Project extends BaseEntity {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
-	// TODO: 동시성 문제 해결, stream N+1 생각해보기
+	// TODO: 동시성 문제 해결
 	public void addMember(Long currentUserId) {
 		checkNotClosedState();
 		// 중복 가입 체크
