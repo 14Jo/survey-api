@@ -7,7 +7,7 @@ import com.example.surveyapi.global.config.client.share.ShareApiClient;
 
 import lombok.RequiredArgsConstructor;
 
-@Component
+@Component("participationShareAdapter")
 @RequiredArgsConstructor
 public class ShareServiceAdapter implements ShareServicePort {
 
