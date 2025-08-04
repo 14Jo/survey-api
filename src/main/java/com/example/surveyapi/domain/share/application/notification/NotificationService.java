@@ -2,11 +2,13 @@ package com.example.surveyapi.domain.share.application.notification;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.share.application.client.ShareServicePort;
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
+import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.notification.repository.NotificationRepository;
 import com.example.surveyapi.domain.share.domain.notification.repository.query.NotificationQueryRepository;
@@ -33,8 +35,9 @@ public class NotificationService {
 		notificationRepository.saveAll(notifications);
 	}
 
-	public NotificationPageResponse gets(Long shareId, Long requesterId, int page, int size) {
-		return notificationQueryRepository.findPageByShareId(shareId, requesterId, page, size);
+	public Page<NotificationResponse> gets(Long shareId, Long requesterId, Pageable pageable) {
+		Page<NotificationResponse> notifications = notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable);
+		return notifications;
 	}
 
 	private boolean isAdmin(Long userId) {
