@@ -12,6 +12,8 @@ public interface SurveyRepository {
 	void stateUpdate(Survey survey);
 
 	Optional<Survey> findBySurveyIdAndCreatorId(Long surveyId, Long creatorId);
-	
+
 	Optional<Survey> findBySurveyIdAndCreatorIdAndIsDeletedFalse(Long surveyId, Long creatorId);
+
+	Optional<Survey> findById(Long surveyId);
 }

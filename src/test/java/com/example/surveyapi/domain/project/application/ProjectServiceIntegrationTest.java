@@ -201,7 +201,7 @@ class ProjectServiceIntegrationTest {
 		projectService.joinProjectMember(projectId, 3L);
 
 		// when
-		projectService.leaveProject(projectId, 2L);
+		projectService.leaveProjectMember(projectId, 2L);
 
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();

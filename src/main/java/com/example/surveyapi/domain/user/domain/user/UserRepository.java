@@ -5,7 +5,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 
 public interface UserRepository {
 
@@ -21,7 +21,7 @@ public interface UserRepository {
 
     Optional<User> findById(Long userId);
 
-    Optional<Grade> findByGrade(Long userId);
+    Optional<UserGradePoint> findByGradeAndPoint(Long userId);
 
     Optional<User> findByAuthProviderIdAndIsDeletedFalse(String providerId);
 }

@@ -171,9 +171,7 @@ public class AuthService {
     }
 
     @Transactional
-    public LoginResponse kakaoLogin(
-       String code, SignupRequest request
-    ){
+    public LoginResponse kakaoLogin(String code, SignupRequest request){
         log.info("카카오 로그인 실행");
         // 인가 코드 → 액세스 토큰
         KakaoAccessResponse kakaoAccessToken = getKakaoAccessToken(code);
@@ -189,10 +187,13 @@ public class AuthService {
         User user = userRepository.findByAuthProviderIdAndIsDeletedFalse(providerId)
             .orElseGet(() ->  {
                     User newUser = createAndSaveUser(request);
+                    newUser.getAuth().updateProviderId(providerId);
                     log.info("회원가입 완료");
                     return newUser;
                 });
 
+
+        
         return createAccessAndSaveRefresh(user);
     }
 
@@ -207,6 +208,8 @@ public class AuthService {
             request.getAuth().getEmail(),
             encryptedPassword,
             request.getProfile().getName(),
+            request.getProfile().getPhoneNumber(),
+            request.getProfile().getNickName(),
             request.getProfile().getBirthDate(),
             request.getProfile().getGender(),
             request.getProfile().getAddress().getProvince(),
@@ -217,8 +220,6 @@ public class AuthService {
         );
 
         User createUser = userRepository.save(user);
-
-        user.getAuth().updateProviderId(createUser.getId().toString());
 
         return createUser;
     }
