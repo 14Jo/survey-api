@@ -8,7 +8,6 @@ import org.springframework.data.repository.query.Param;
 
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 
 public interface UserJpaRepository extends JpaRepository<User, Long> {
 

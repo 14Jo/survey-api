@@ -6,7 +6,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 
 public interface UserRepository {
 
