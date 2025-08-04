@@ -79,7 +79,7 @@ class SurveyQueryControllerTest {
         when(surveyQueryService.findSurveyDetailById(anyString(), anyLong())).thenReturn(surveyDetailResponse);
 
         // when & then
-        mockMvc.perform(get("/api/v1/survey/1/detail")
+        mockMvc.perform(get("/api/v1/surveys/1")
                 .header("Authorization", "Bearer token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -95,7 +95,7 @@ class SurveyQueryControllerTest {
                 .thenThrow(new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
         // when & then
-        mockMvc.perform(get("/api/v1/survey/1/detail")
+        mockMvc.perform(get("/api/v1/surveys/1")
                 .header("Authorization", "Bearer token"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.success").value(false))
@@ -106,7 +106,7 @@ class SurveyQueryControllerTest {
     @DisplayName("설문 상세 조회 - 인증 헤더 없음 실패")
     void getSurveyDetail_fail_no_auth_header() throws Exception {
         // when & then
-        mockMvc.perform(get("/api/v1/survey/1/detail"))
+        mockMvc.perform(get("/api/v1/surveys/1"))
                 .andExpect(status().isBadRequest());
     }
 
@@ -118,7 +118,7 @@ class SurveyQueryControllerTest {
                 .thenReturn(List.of(surveyTitleResponse));
 
         // when & then
-        mockMvc.perform(get("/api/v1/survey/1/survey-list")
+        mockMvc.perform(get("/api/v1/projects/1/surveys")
                 .header("Authorization", "Bearer token"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
@@ -130,7 +130,7 @@ class SurveyQueryControllerTest {
     @DisplayName("프로젝트 설문 목록 조회 - 인증 헤더 없음 실패")
     void getSurveyList_fail_no_auth_header() throws Exception {
         // when & then
-        mockMvc.perform(get("/api/v1/survey/1/survey-list"))
+        mockMvc.perform(get("/api/v1/projects/1/surveys"))
                 .andExpect(status().isBadRequest());
     }
 
