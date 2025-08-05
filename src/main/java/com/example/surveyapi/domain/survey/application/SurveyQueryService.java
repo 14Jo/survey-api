@@ -47,13 +47,29 @@ public class SurveyQueryService {
 	public List<SearchSurveyTitleResponse> findSurveyByProjectId(String authHeader, Long projectId, Long lastSurveyId) {
 		List<SurveyTitle> surveyTitles = surveyQueryRepository.getSurveyTitles(projectId, lastSurveyId);
 		List<Long> surveyIds = surveyTitles.stream().map(SurveyTitle::getSurveyId).collect(Collectors.toList());
-		Map<String, Integer> partCounts = port.getParticipationCounts(authHeader, surveyIds).getSurveyPartCounts();
+		log.debug("=== 외부 API 호출 시작 - surveyIds: {} ===", surveyIds);
+		long externalApiStartTime = System.currentTimeMillis();
 
-		return surveyTitles
-			.stream()
-			.map(
-				response -> SearchSurveyTitleResponse.from(response, partCounts.get(response.getSurveyId().toString())))
-			.toList();
+		try {
+			Map<String, Integer> partCounts = port.getParticipationCounts(authHeader, surveyIds).getSurveyPartCounts();
+
+			long externalApiEndTime = System.currentTimeMillis();
+			long externalApiDuration = externalApiEndTime - externalApiStartTime;
+			log.debug("=== 외부 API 호출 완료 - 실행시간: {}ms, 조회된 참여 수: {} ===", externalApiDuration, partCounts.size());
+
+			return surveyTitles
+				.stream()
+				.map(
+					response -> SearchSurveyTitleResponse.from(response,
+						partCounts.get(response.getSurveyId().toString())))
+				.toList();
+
+		} catch (Exception e) {
+			long externalApiEndTime = System.currentTimeMillis();
+			long externalApiDuration = externalApiEndTime - externalApiStartTime;
+			log.error("=== 외부 API 호출 실패 - 실행시간: {}ms, 에러: {} ===", externalApiDuration, e.getMessage());
+			throw e;
+		}
 	}
 
 	@Transactional(readOnly = true)

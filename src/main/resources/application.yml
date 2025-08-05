@@ -35,11 +35,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
-      minimum-idle: 5
-      maximum-pool-size: 15
-      connection-timeout: 30000
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      minimum-idle: 2        
+      maximum-pool-size: 5   
+      connection-timeout: 30000 
+      idle-timeout: 600000     
+      max-lifetime: 1800000   
       
   jpa:
     properties:
@@ -50,18 +50,20 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
-# 로그 설정
+# 로그 설정 - 외부 API 관련 로그만 DEBUG로 설정
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
     com.example.surveyapi: INFO
-    # 성능 측정 로그 레벨 설정
-    com.example.surveyapi.domain.survey: INFO
+    # 외부 API 관련 로그만 DEBUG로 설정
+    com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
+    com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
+    com.example.surveyapi.domain.survey.api.SurveyQueryController: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: logs/application.log
+    name: logs/external_api_debug.log
     max-size: 10MB
     max-history: 30
 
@@ -109,11 +111,15 @@ logging:
   level:
     org.springframework.security: INFO
     com.example.surveyapi: INFO
+    # 외부 API 관련 로그만 DEBUG로 설정
+    com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
+    com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
+    com.example.surveyapi.domain.survey.api.SurveyQueryController: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
   file:
-    name: logs/application.log
+    name: logs/external_api_debug.log
     max-size: 100MB
     max-history: 30
 
