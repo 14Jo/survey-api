@@ -1,10 +1,11 @@
 package com.example.surveyapi.domain.participation.application;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -12,6 +13,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
+import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
+import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
+import com.example.surveyapi.domain.participation.application.client.UserServicePort;
+import com.example.surveyapi.domain.participation.application.client.UserSnapshotDto;
+import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
+import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.AnswerGroupResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
@@ -23,55 +31,58 @@ import com.example.surveyapi.domain.participation.domain.participation.Participa
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
 import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
-import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ParticipationService {
 
 	private final ParticipationRepository participationRepository;
+	private final SurveyServicePort surveyPort;
+	private final UserServicePort userPort;
 
 	@Transactional
-	public Long create(Long surveyId, Long memberId, CreateParticipationRequest request) {
-		// TODO: 설문의 중복 참여 검증
-		// TODO: 설문 유효성 검증 요청
-		// TODO: memberId가 설문의 대상이 맞는지 공유에 검증 요청
-		List<ResponseData> responseDataList = request.getResponseDataList();
+	public Long create(String authHeader, Long surveyId, Long memberId, CreateParticipationRequest request) {
+		validateParticipationDuplicated(surveyId, memberId);
 
-		// TODO: 멤버의 participantInfo 스냅샷 설정을 위해 Member에 요청, REST 통신으로 받아온 json 데이터를 dto로 받을지 고려하고
-		// TODO: participantInfo를 도메인 create 에서 생성하도록 수정
-		ParticipantInfo participantInfo = new ParticipantInfo();
+		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, surveyId);
+
+		validateSurveyActive(surveyDetail);
+
+		List<ResponseData> responseDataList = request.getResponseDataList();
+		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
+
+		// 문항과 답변 유효성 검증
+		validateQuestionsAndAnswers(responseDataList, questions);
+
+		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, memberId);
+
 		Participation participation = Participation.create(memberId, surveyId, participantInfo, responseDataList);
 
 		Participation savedParticipation = participationRepository.save(participation);
-		//TODO: 설문의 중복 참여는 어디서 검증해야하는지 확인
 
 		return savedParticipation.getId();
 	}
 
 	@Transactional(readOnly = true)
-	public Page<ParticipationInfoResponse> gets(Long memberId, Pageable pageable) {
-		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationsInfo(memberId,
+	public Page<ParticipationInfoResponse> gets(String authHeader, Long memberId, Pageable pageable) {
+		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationInfos(memberId,
 			pageable);
 
 		List<Long> surveyIds = participationInfos.getContent().stream()
 			.map(ParticipationInfo::getSurveyId)
 			.toList();
 
-		// TODO: List<Long> surveyIds를 매개변수로 id, 설문 제목, 설문 기한, 설문 상태(진행중인지 종료인지), 수정이 가능한 설문인지 요청
-		List<ParticipationInfoResponse.SurveyInfoOfParticipation> surveyInfoOfParticipations = new ArrayList<>();
+		List<SurveyInfoDto> surveyInfoList = surveyPort.getSurveyInfoList(authHeader, surveyIds);
 
-		// 임시 더미데이터 생성
-		for (Long surveyId : surveyIds) {
-			surveyInfoOfParticipations.add(
-				ParticipationInfoResponse.SurveyInfoOfParticipation.of(surveyId, "설문 제목" + surveyId, "진행 중",
-					LocalDate.now().plusWeeks(1),
-					true));
-		}
+		List<ParticipationInfoResponse.SurveyInfoOfParticipation> surveyInfoOfParticipations = surveyInfoList.stream()
+			.map(ParticipationInfoResponse.SurveyInfoOfParticipation::from)
+			.toList();
 
 		Map<Long, ParticipationInfoResponse.SurveyInfoOfParticipation> surveyInfoMap = surveyInfoOfParticipations.stream()
 			.collect(Collectors.toMap(
@@ -113,32 +124,39 @@ public class ParticipationService {
 
 			result.add(ParticipationGroupResponse.of(surveyId, participationDtos));
 		}
-
 		return result;
 	}
 
 	@Transactional(readOnly = true)
 	public ParticipationDetailResponse get(Long loginMemberId, Long participationId) {
-		Participation participation = participationRepository.findById(participationId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+		Participation participation = getParticipationOrThrow(participationId);
 
 		participation.validateOwner(loginMemberId);
+
+		// TODO: 상세 조회에서 수정가능한지 확인하기 위해 Response에 surveyStatus, endDate, allowResponseUpdate을 추가해야하는가 고려
 
 		return ParticipationDetailResponse.from(participation);
 	}
 
 	@Transactional
-	public void update(Long loginMemberId, Long participationId, CreateParticipationRequest request) {
-		Participation participation = participationRepository.findById(participationId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+	public void update(String authHeader, Long memberId, Long participationId,
+		CreateParticipationRequest request) {
+		Participation participation = getParticipationOrThrow(participationId);
 
-		participation.validateOwner(loginMemberId);
+		participation.validateOwner(memberId);
 
-		List<Response> responses = request.getResponseDataList().stream()
-			.map(responseData -> Response.create(responseData.getQuestionId(), responseData.getAnswer()))
-			.toList();
+		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, participation.getSurveyId());
 
-		participation.update(responses);
+		validateSurveyActive(surveyDetail);
+		validateAllowUpdate(surveyDetail);
+
+		List<ResponseData> responseDataList = request.getResponseDataList();
+		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
+
+		// 문항과 답변 유효성 검사
+		validateQuestionsAndAnswers(responseDataList, questions);
+
+		participation.update(responseDataList);
 	}
 
 	@Transactional(readOnly = true)
@@ -162,5 +180,130 @@ public class ParticipationService {
 				return AnswerGroupResponse.of(questionId, answers);
 			})
 			.toList();
+	}
+
+	/*
+	private 메소드 정의
+	 */
+	private void validateParticipationDuplicated(Long surveyId, Long memberId) {
+		if (participationRepository.exists(surveyId, memberId)) {
+			throw new CustomException(CustomErrorCode.SURVEY_ALREADY_PARTICIPATED);
+		}
+	}
+
+	private void validateSurveyActive(SurveyDetailDto surveyDetail) {
+		if (!(surveyDetail.getStatus().equals(SurveyApiStatus.IN_PROGRESS)
+			&& surveyDetail.getDuration().getEndDate().isAfter(LocalDateTime.now()))) {
+
+			throw new CustomException(CustomErrorCode.SURVEY_NOT_ACTIVE);
+		}
+	}
+
+	private Participation getParticipationOrThrow(Long participationId) {
+		return participationRepository.findById(participationId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
+	}
+
+	private void validateAllowUpdate(SurveyDetailDto surveyDetail) {
+		if (!surveyDetail.getOption().isAllowResponseUpdate()) {
+			throw new CustomException(CustomErrorCode.CANNOT_UPDATE_RESPONSE);
+		}
+	}
+
+	private void validateQuestionsAndAnswers(
+		List<ResponseData> responseDataList,
+		List<SurveyDetailDto.QuestionValidationInfo> questions
+	) {
+		// 응답한 questionIds와 설문의 questionIds가 일치하는지 검증, answer = null 이여도 questionId는 존재해야 한다.
+		validateQuestionIds(responseDataList, questions);
+
+		Map<Long, SurveyDetailDto.QuestionValidationInfo> questionMap = questions.stream()
+			.collect(Collectors.toMap(SurveyDetailDto.QuestionValidationInfo::getQuestionId, q -> q));
+
+		for (ResponseData response : responseDataList) {
+			Long questionId = response.getQuestionId();
+			SurveyDetailDto.QuestionValidationInfo question = questionMap.get(questionId);
+			Map<String, Object> answer = response.getAnswer();
+
+			boolean validatedAnswerValue = validateAnswerValue(answer, question.getQuestionType());
+			log.info("is_required: {}", question.isRequired());
+
+			if (!validatedAnswerValue && !isEmpty(answer)) {
+				log.info("INVALID_ANSWER_TYPE questionId : {}", questionId);
+				throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+			}
+
+			if (question.isRequired() && (isEmpty(answer))) {
+				log.info("REQUIRED_QUESTION_NOT_ANSWERED questionId : {}", questionId);
+				throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
+			}
+
+			// TODO: choice도 유효성 검사
+		}
+	}
+
+	private void validateQuestionIds(
+		List<ResponseData> responseDataList,
+		List<SurveyDetailDto.QuestionValidationInfo> questions
+	) {
+		Set<Long> surveyQuestionIds = questions.stream()
+			.map(SurveyDetailDto.QuestionValidationInfo::getQuestionId)
+			.collect(Collectors.toSet());
+
+		Set<Long> responseQuestionIds = responseDataList.stream()
+			.map(ResponseData::getQuestionId)
+			.collect(Collectors.toSet());
+
+		if (!surveyQuestionIds.equals(responseQuestionIds)) {
+			throw new CustomException(CustomErrorCode.INVALID_SURVEY_QUESTION);
+		}
+	}
+
+	private boolean validateAnswerValue(Map<String, Object> answer, SurveyApiQuestionType questionType) {
+		if (answer == null || answer.isEmpty()) {
+			return true;
+		}
+
+		Object value = answer.values().iterator().next();
+		if (value == null) {
+			return true;
+		}
+
+		return switch (questionType) {
+			case SINGLE_CHOICE -> answer.containsKey("choice") && value instanceof List;
+			case MULTIPLE_CHOICE -> answer.containsKey("choices") && value instanceof List;
+			case SHORT_ANSWER, LONG_ANSWER -> answer.containsKey("textAnswer") && value instanceof String;
+			default -> false;
+		};
+	}
+
+	private boolean isEmpty(Map<String, Object> answer) {
+		if (answer == null || answer.isEmpty()) {
+			return true;
+		}
+		Object value = answer.values().iterator().next();
+
+		if (value == null) {
+			return true;
+		}
+		if (value instanceof String) {
+			return ((String)value).isBlank();
+		}
+		if (value instanceof List) {
+			return ((List<?>)value).isEmpty();
+		}
+
+		return false;
+	}
+
+	private ParticipantInfo getParticipantInfoByUser(String authHeader, Long memberId) {
+		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, memberId);
+
+		return ParticipantInfo.of(
+			userSnapshot.getBirth(),
+			userSnapshot.getGender(),
+			userSnapshot.getRegion().getProvince(),
+			userSnapshot.getRegion().getDistrict()
+		);
 	}
 }
