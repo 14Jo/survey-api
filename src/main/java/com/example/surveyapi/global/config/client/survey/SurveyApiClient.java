@@ -13,11 +13,17 @@ import com.example.surveyapi.global.config.client.ExternalApiResponse;
 @HttpExchange
 public interface SurveyApiClient {
 
-	@GetExchange("/api/v1/survey/{surveyId}/detail")
+	@GetExchange("/api/v1/surveys/{surveyId}")
 	ExternalApiResponse getSurveyDetail(
 		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long surveyId
 	);
+
+	// @GetExchange("/api/v1/survey/{surveyId}/detail")
+	// ExternalApiResponse getSurveyDetail(
+	// 	@RequestHeader("Authorization") String authHeader,
+	// 	@PathVariable Long surveyId
+	// );
 
 	@GetExchange("/api/v2/survey/find-surveys")
 	ExternalApiResponse getSurveyInfoList(
