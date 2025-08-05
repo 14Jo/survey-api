@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.surveyapi.domain.project.application.ProjectQueryService;
 import com.example.surveyapi.domain.project.application.ProjectService;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
@@ -41,6 +42,7 @@ import lombok.RequiredArgsConstructor;
 public class ProjectController {
 
 	private final ProjectService projectService;
+	private final ProjectQueryService projectQueryService;
 
 	@PostMapping
 	public ResponseEntity<ApiResponse<CreateProjectResponse>> createProject(
@@ -58,7 +60,7 @@ public class ProjectController {
 		@RequestParam(required = false) String keyword,
 		Pageable pageable
 	) {
-		Page<ProjectSearchInfoResponse> response = projectService.searchProjects(keyword, pageable);
+		Page<ProjectSearchInfoResponse> response = projectQueryService.searchProjects(keyword, pageable);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 검색 성공", response));
@@ -68,7 +70,7 @@ public class ProjectController {
 	public ResponseEntity<ApiResponse<ProjectInfoResponse>> getProject(
 		@PathVariable Long projectId
 	) {
-		ProjectInfoResponse response = projectService.getProject(projectId);
+		ProjectInfoResponse response = projectQueryService.getProject(projectId);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 상세정보 조회", response));
@@ -124,7 +126,7 @@ public class ProjectController {
 	public ResponseEntity<ApiResponse<List<ProjectManagerInfoResponse>>> getMyProjectsAsManager(
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		List<ProjectManagerInfoResponse> result = projectService.getMyProjectsAsManager(currentUserId);
+		List<ProjectManagerInfoResponse> result = projectQueryService.getMyProjectsAsManager(currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("담당자로 참여한 프로젝트 조회 성공", result));
@@ -138,7 +140,7 @@ public class ProjectController {
 		projectService.joinProjectManager(projectId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("담당자 추가 성공"));
+			.body(ApiResponse.success("담당자로 참여 성공"));
 	}
 
 	@PatchMapping("/{projectId}/managers/{managerId}/role")
@@ -174,7 +176,7 @@ public class ProjectController {
 		projectService.deleteManager(projectId, managerId, currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("담당자 참여 성공"));
+			.body(ApiResponse.success("담당자 삭제 성공"));
 	}
 
 	// ProjectMember
@@ -182,7 +184,7 @@ public class ProjectController {
 	public ResponseEntity<ApiResponse<List<ProjectMemberInfoResponse>>> getMyProjectsAsMember(
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		List<ProjectMemberInfoResponse> result = projectService.getMyProjectsAsMember(currentUserId);
+		List<ProjectMemberInfoResponse> result = projectQueryService.getMyProjectsAsMember(currentUserId);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("멤버로 참여한 프로젝트 조회 성공", result));
@@ -203,7 +205,7 @@ public class ProjectController {
 	public ResponseEntity<ApiResponse<ProjectMemberIdsResponse>> getProjectMemberIds(
 		@PathVariable Long projectId
 	) {
-		ProjectMemberIdsResponse response = projectService.getProjectMemberIds(projectId);
+		ProjectMemberIdsResponse response = projectQueryService.getProjectMemberIds(projectId);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 참여 인원 조회 성공", response));

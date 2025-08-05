@@ -117,9 +117,8 @@ public class ProjectQuerydslRepository {
 	}
 
 	public List<Project> findProjectsByMember(Long userId) {
-
-		return query.select(projectMember.project)
-			.from(projectMember)
+		return query.selectFrom(project)
+			.join(project.projectMembers, projectMember).fetchJoin()
 			.where(
 				isMemberUser(userId),
 				isMemberNotDeleted(),
@@ -129,9 +128,8 @@ public class ProjectQuerydslRepository {
 	}
 
 	public List<Project> findProjectsByManager(Long userId) {
-
-		return query.select(projectManager.project)
-			.from(projectManager)
+		return query.selectFrom(project)
+			.join(project.projectManagers, projectManager).fetchJoin()
 			.where(
 				isManagerUser(userId),
 				isManagerNotDeleted(),
@@ -157,25 +155,17 @@ public class ProjectQuerydslRepository {
 		return projectMember.isDeleted.eq(false);
 	}
 
-	/**
-	 * 특정 사용자가 매니저인 조건
-	 */
 	private BooleanExpression isManagerUser(Long userId) {
 
 		return userId != null ? projectManager.userId.eq(userId) : null;
 	}
 
-	/**
-	 * 특정 사용자가 멤버인 조건
-	 */
 	private BooleanExpression isMemberUser(Long userId) {
 
 		return userId != null ? projectMember.userId.eq(userId) : null;
 	}
 
-	/**
-	 * 키워드 검색 조건 생성
-	 */
+	// 키워드 조건 검색 생성
 	private BooleanBuilder createProjectSearchCondition(String keyword) {
 		BooleanBuilder builder = new BooleanBuilder();
 		builder.and(isProjectNotDeleted());
@@ -190,9 +180,6 @@ public class ProjectQuerydslRepository {
 		return builder;
 	}
 
-	/**
-	 * 프로젝트 매니저 수 카운트 서브쿼리
-	 */
 	private JPQLQuery<Integer> getManagerCountExpression() {
 
 		return JPAExpressions
@@ -204,9 +191,6 @@ public class ProjectQuerydslRepository {
 			);
 	}
 
-	/**
-	 * 프로젝트 멤버 수 카운트 서브쿼리
-	 */
 	private JPQLQuery<Integer> getMemberCountExpression() {
 
 		return JPAExpressions
