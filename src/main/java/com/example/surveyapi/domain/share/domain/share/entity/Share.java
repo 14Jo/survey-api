@@ -68,13 +68,17 @@ public class Share extends BaseEntity {
 	}
 
 	public boolean isOwner(Long currentUserId) {
-		if (!creatorId.equals(currentUserId)) {
+		if (creatorId.equals(currentUserId)) {
 			return true;
 		}
 		return false;
 	}
 
 	private void createNotifications(List<Long> recipientIds) {
+		if(this.shareMethod == ShareMethod.URL) {
+			return;
+		}
+
 		if(recipientIds == null || recipientIds.isEmpty()) {
 			notifications.add(Notification.createForShare(this, this.creatorId));
 			return;
