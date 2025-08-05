@@ -216,9 +216,7 @@ public class AuthService {
             request.getAuth().getProvider()
         );
 
-        User createUser = userRepository.save(user);
-
-        return createUser;
+        return userRepository.save(user);
     }
 
     private LoginResponse createAccessAndSaveRefresh(User user) {
