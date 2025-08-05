@@ -69,6 +69,9 @@ dependencies {
     // Prometheus
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
+    // Apache HttpClient 5
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+
 }
 
 tasks.named('test') {
