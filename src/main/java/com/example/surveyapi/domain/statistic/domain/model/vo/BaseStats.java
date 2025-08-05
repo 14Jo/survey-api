@@ -26,9 +26,13 @@ public class BaseStats {
 
 	public static BaseStats start(){
 		BaseStats baseStats = new BaseStats();
+		baseStats.totalResponses = 0;
 		baseStats.responseStart = LocalDateTime.now();
 		return baseStats;
 	}
 
+	public void addTotalResponses (int count) {
+		totalResponses += count;
+	}
 
 }
