@@ -9,7 +9,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
+        show_sql: false
 
 # =======================================================
 # == Actuator 공통 설정 추가
@@ -34,6 +34,13 @@ spring:
     url: jdbc:postgresql://localhost:5432/${DB_SCHEME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 15
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
   jpa:
     properties:
       hibernate:
@@ -43,9 +50,20 @@ spring:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
 
+# 로그 설정
 logging:
   level:
     org.springframework.security: DEBUG
+    com.example.surveyapi: INFO
+    # 성능 측정 로그 레벨 설정
+    com.example.surveyapi.domain.survey: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/application.log
+    max-size: 10MB
+    max-history: 30
 
 # JWT Secret Key
 jwt:
@@ -67,21 +85,46 @@ spring:
       on-profile: prod
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DB_URL}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_SCHEME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 30
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
   jpa:
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
-# =======================================================
-# == 운영(prod) 환경을 위한 Actuator 보안 설정
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health, info, prometheus"
-# =======================================================
+# 로그 설정
+logging:
+  level:
+    org.springframework.security: INFO
+    com.example.surveyapi: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/application.log
+    max-size: 100MB
+    max-history: 30
+
+# JWT Secret Key
+jwt:
+  secret:
+    key: ${SECRET_KEY}
+
+oauth:
+  kakao:
+    client-id: ${CLIENT_ID}
+    redirect-uri: ${REDIRECT_URL}
+    token-uri: https://kauth.kakao.com/oauth/token
+    user-info-uri: https://kapi.kakao.com/v2/user/me
