@@ -35,7 +35,10 @@ public class ShareService {
 		LocalDateTime notifyAt) {
 		//TODO : 설문 존재 여부 검증
 
-		Share share = shareDomainService.createShare(sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
+		Share share = shareDomainService.createShare(
+			sourceType, sourceId,
+			creatorId, shareMethod,
+			expirationDate, recipientIds, notifyAt);
 		Share saved = shareRepository.save(share);
 
 		notificationService.create(saved, creatorId, notifyAt);
