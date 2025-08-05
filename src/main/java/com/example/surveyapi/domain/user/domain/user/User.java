@@ -8,7 +8,7 @@ import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
-import com.example.surveyapi.domain.user.domain.user.event.UserWithdrawEvent;
+import com.example.surveyapi.global.event.UserWithdrawEvent;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import com.example.surveyapi.global.enums.CustomErrorCode;
