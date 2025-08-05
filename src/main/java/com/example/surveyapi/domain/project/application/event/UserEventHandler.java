@@ -8,7 +8,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
-import com.example.surveyapi.domain.user.domain.user.event.UserWithdrawEvent;
+import com.example.surveyapi.global.event.UserWithdrawEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
