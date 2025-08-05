@@ -46,12 +46,19 @@ public enum CustomErrorCode {
     CANNOT_TRANSFER_TO_SELF(HttpStatus.BAD_REQUEST, "자기 자신에게 소유권 이전 불가합니다."),
 
     // 통계 에러
-    STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계"),
+    STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계입니다."),
+    STATISTICS_NOT_FOUND(HttpStatus.NOT_FOUND, "통계를 찾을 수 없습니다."),
+    ANSWER_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "올바르지 않은 응답 타입입니다."),
 
     // 참여 에러
     NOT_FOUND_PARTICIPATION(HttpStatus.NOT_FOUND, "참여 응답이 존재하지 않습니다."),
     ACCESS_DENIED_PARTICIPATION_VIEW(HttpStatus.FORBIDDEN, "본인의 참여 기록만 조회할 수 있습니다."),
 	SURVEY_ALREADY_PARTICIPATED(HttpStatus.CONFLICT, "이미 참여한 설문입니다."),
+	SURVEY_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "해당 설문은 현재 참여할 수 없습니다."),
+	CANNOT_UPDATE_RESPONSE(HttpStatus.BAD_REQUEST, "해당 설문의 응답은 수정할 수 없습니다."),
+	REQUIRED_QUESTION_NOT_ANSWERED(HttpStatus.BAD_REQUEST, "필수 질문에 대해 답변하지 않았습니다."),
+	INVALID_SURVEY_QUESTION(HttpStatus.BAD_REQUEST, "설문의 질문들과 응답한 질문들이 일치하지 않습니다."),
+	INVALID_ANSWER_TYPE(HttpStatus.BAD_REQUEST, "질문과 답변의 형식이 일치하지 않습니다."),
 
     // 서버 에러
     USER_LIST_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "회원 목록이 비어 있습니다. 데이터 상태를 확인하세요."),
