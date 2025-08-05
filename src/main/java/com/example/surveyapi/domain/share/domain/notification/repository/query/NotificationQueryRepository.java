@@ -1,7 +1,10 @@
 package com.example.surveyapi.domain.share.domain.notification.repository.query;
 
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 
 public interface NotificationQueryRepository {
-	NotificationPageResponse findPageByShareId(Long shareId, Long requesterId, int page, int size);
+	Page<NotificationResponse> findPageByShareId(Long shareId, Long requesterId, Pageable pageable);
 }

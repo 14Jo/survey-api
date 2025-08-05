@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.user.application.dto.response;
 
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 
 import lombok.AccessLevel;
@@ -11,13 +12,15 @@ import lombok.NoArgsConstructor;
 public class UserGradeResponse {
 
     private Grade grade;
+    private int point;
 
     public static UserGradeResponse from(
-        Grade grade
+        UserGradePoint userGradePoint
     ) {
         UserGradeResponse dto = new UserGradeResponse();
 
-        dto.grade = grade;
+        dto.grade = userGradePoint.getGrade();
+        dto.point = userGradePoint.getPoint();
 
         return dto;
     }

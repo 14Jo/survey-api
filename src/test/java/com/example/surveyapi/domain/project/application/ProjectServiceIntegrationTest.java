@@ -32,6 +32,8 @@ class ProjectServiceIntegrationTest {
 
 	@Autowired
 	private ProjectService projectService;
+	@Autowired
+	private ProjectQueryService projectQueryService;
 
 	@Autowired
 	private ProjectJpaRepository projectRepository;
@@ -185,7 +187,7 @@ class ProjectServiceIntegrationTest {
 		projectService.joinProjectMember(projectId, 4L);
 
 		// when
-		ProjectMemberIdsResponse response = projectService.getProjectMemberIds(projectId);
+		ProjectMemberIdsResponse response = projectQueryService.getProjectMemberIds(projectId);
 
 		// then
 		assertThat(response.getCurrentMemberCount()).isEqualTo(3);

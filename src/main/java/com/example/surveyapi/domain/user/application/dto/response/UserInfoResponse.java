@@ -18,7 +18,6 @@ public class UserInfoResponse {
 
     private Long memberId;
     private String email;
-    private String name;
     private Role role;
     private Grade grade;
     private LocalDateTime createdAt;
@@ -34,21 +33,24 @@ public class UserInfoResponse {
 
         dto.memberId = user.getId();
         dto.email = user.getAuth().getEmail();
-        dto.name = user.getProfile().getName();
         dto.role = user.getRole();
         dto.grade = user.getGrade();
         dto.createdAt = user.getCreatedAt();
         dto.updatedAt = user.getUpdatedAt();
         dto.profile = profileDto;
 
-        profileDto.birthDate = user.getProfile().getBirthDate();
-        profileDto.gender = user.getProfile().getGender();
+
+        profileDto.name = user.getProfile().getName();
+        profileDto.phoneNumber = user.getProfile().getPhoneNumber();
+        profileDto.nickName = user.getProfile().getNickName();
+        profileDto.birthDate = user.getDemographics().getBirthDate();
+        profileDto.gender = user.getDemographics().getGender();
         profileDto.address = addressDto;
 
-        addressDto.province = user.getProfile().getAddress().getProvince();
-        addressDto.district = user.getProfile().getAddress().getDistrict();
-        addressDto.detailAddress = user.getProfile().getAddress().getDetailAddress();
-        addressDto.postalCode = user.getProfile().getAddress().getPostalCode();
+        addressDto.province = user.getDemographics().getAddress().getProvince();
+        addressDto.district = user.getDemographics().getAddress().getDistrict();
+        addressDto.detailAddress = user.getDemographics().getAddress().getDetailAddress();
+        addressDto.postalCode = user.getDemographics().getAddress().getPostalCode();
 
         return dto;
     }
@@ -57,6 +59,9 @@ public class UserInfoResponse {
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
     public static class ProfileResponse {
 
+        private String name;
+        private String phoneNumber;
+        private String nickName;
         private LocalDateTime birthDate;
         private Gender gender;
         private AddressResponse address;
