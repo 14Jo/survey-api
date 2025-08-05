@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.share.application.client.ShareValidationResponse;
+import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
@@ -26,13 +27,18 @@ public class ShareService {
 	private final ShareRepository shareRepository;
 	private final ShareQueryRepository shareQueryRepository;
 	private final ShareDomainService shareDomainService;
+	private final NotificationService notificationService;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, ShareMethod shareMethod, LocalDateTime expirationDate, List<Long> recipientIds) {
+		Long creatorId, ShareMethod shareMethod,
+		LocalDateTime expirationDate, List<Long> recipientIds,
+		LocalDateTime notifyAt) {
 		//TODO : 설문 존재 여부 검증
 
 		Share share = shareDomainService.createShare(sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
 		Share saved = shareRepository.save(share);
+
+		notificationService.create(saved, creatorId, notifyAt);
 
 		return ShareResponse.from(saved);
 	}
