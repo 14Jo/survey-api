@@ -3,7 +3,6 @@ package com.example.surveyapi.domain.user.application;
 import java.time.Duration;
 import java.util.List;
 
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +20,7 @@ import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawReq
 import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.domain.user.User;
+import com.example.surveyapi.domain.user.domain.user.UserRedisRepository;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
@@ -38,16 +38,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AuthService {
 
-
-
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RedisTemplate<String, String> redisTemplate;
     private final ProjectPort projectPort;
     private final ParticipationPort participationPort;
     private final KakaoOauthPort kakaoOauthPort;
     private final KakaoOauthProperties kakaoOauthProperties;
+    private final UserRedisRepository userRedisRepository;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -82,7 +80,7 @@ public class AuthService {
         }
 
         List<MyProjectRoleResponse> myRoleList = projectPort.getProjectMyRole(authHeader, userId);
-        log.info("프로젝트 조회 성공 : {}", myRoleList.size() );
+        log.info("프로젝트 조회 성공 : {}", myRoleList.size());
 
         for (MyProjectRoleResponse myRole : myRoleList) {
             log.info("권한 : {}", myRole.getMyRole());
@@ -113,8 +111,7 @@ public class AuthService {
 
         addBlackLists(accessToken);
 
-        String redisKey = "refreshToken" + userId;
-        redisTemplate.delete(redisKey);
+        userRedisRepository.delete(userId);
     }
 
     @Transactional
@@ -126,8 +123,7 @@ public class AuthService {
 
         addBlackLists(accessToken);
 
-        String redisKey = "refreshToken" + userId;
-        redisTemplate.delete(redisKey);
+        userRedisRepository.delete(userId);
     }
 
     @Transactional
@@ -140,7 +136,10 @@ public class AuthService {
         validateTokenType(accessToken, "access");
         validateTokenType(refreshToken, "refresh");
 
-        if (redisTemplate.opsForValue().get("blackListToken" + accessToken) != null) {
+        String blackListKey = "blackListToken" + accessToken;
+        String saveBlackListKey = userRedisRepository.getRedisKey(blackListKey);
+
+        if (saveBlackListKey != null) {
             throw new CustomException(CustomErrorCode.BLACKLISTED_TOKEN);
         }
 
@@ -155,7 +154,7 @@ public class AuthService {
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         String redisKey = "refreshToken" + userId;
-        String storedBearerRefreshToken = redisTemplate.opsForValue().get(redisKey);
+        String storedBearerRefreshToken = userRedisRepository.getRedisKey(redisKey);
 
         if (storedBearerRefreshToken == null) {
             throw new CustomException(CustomErrorCode.NOT_FOUND_REFRESH_TOKEN);
@@ -165,13 +164,13 @@ public class AuthService {
             throw new CustomException(CustomErrorCode.MISMATCH_REFRESH_TOKEN);
         }
 
-        redisTemplate.delete(redisKey);
+        userRedisRepository.delete(userId);
 
         return createAccessAndSaveRefresh(user);
     }
 
     @Transactional
-    public LoginResponse kakaoLogin(String code, SignupRequest request){
+    public LoginResponse kakaoLogin(String code, SignupRequest request) {
         log.info("카카오 로그인 실행");
         // 인가 코드 → 액세스 토큰
         KakaoAccessResponse kakaoAccessToken = getKakaoAccessToken(code);
@@ -185,15 +184,13 @@ public class AuthService {
 
         // 회원가입 유저인지 확인
         User user = userRepository.findByAuthProviderIdAndIsDeletedFalse(providerId)
-            .orElseGet(() ->  {
-                    User newUser = createAndSaveUser(request);
-                    newUser.getAuth().updateProviderId(providerId);
-                    log.info("회원가입 완료");
-                    return newUser;
-                });
+            .orElseGet(() -> {
+                User newUser = createAndSaveUser(request);
+                newUser.getAuth().updateProviderId(providerId);
+                log.info("회원가입 완료");
+                return newUser;
+            });
 
-
-        
         return createAccessAndSaveRefresh(user);
     }
 
@@ -230,7 +227,7 @@ public class AuthService {
         String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getRole());
 
         String redisKey = "refreshToken" + user.getId();
-        redisTemplate.opsForValue().set(redisKey, newRefreshToken, Duration.ofDays(7));
+        userRedisRepository.saveRedisKey(redisKey, newRefreshToken, Duration.ofDays(7));
 
         return LoginResponse.of(newAccessToken, newRefreshToken, user);
     }
@@ -240,7 +237,7 @@ public class AuthService {
         Long remainingTime = jwtUtil.getExpiration(accessToken);
         String blackListTokenKey = "blackListToken" + accessToken;
 
-        redisTemplate.opsForValue().set(blackListTokenKey, "logout", Duration.ofMillis(remainingTime));
+        userRedisRepository.saveRedisKey(blackListTokenKey, "logout", Duration.ofMillis(remainingTime));
     }
 
     private void validateTokenType(String token, String expectedType) {
@@ -250,7 +247,7 @@ public class AuthService {
         }
     }
 
-    private KakaoAccessResponse getKakaoAccessToken(String code){
+    private KakaoAccessResponse getKakaoAccessToken(String code) {
 
         try {
             KakaoOauthRequest request = KakaoOauthRequest.of(
@@ -265,11 +262,11 @@ public class AuthService {
         }
     }
 
-    private KakaoUserInfoResponse getKakaoUserInfo(String accessToken){
+    private KakaoUserInfoResponse getKakaoUserInfo(String accessToken) {
         try {
             return kakaoOauthPort.getKakaoUserInfo("Bearer " + accessToken);
         } catch (Exception e) {
-            log.error("카카오 사용자 정보 요청 실패 : " , e);
+            log.error("카카오 사용자 정보 요청 실패 : ", e);
             throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
         }
     }
