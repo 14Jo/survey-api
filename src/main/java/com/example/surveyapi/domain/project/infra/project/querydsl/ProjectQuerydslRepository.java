@@ -19,6 +19,7 @@ import com.example.surveyapi.domain.project.domain.dto.QProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
@@ -122,7 +123,7 @@ public class ProjectQuerydslRepository {
 			.where(
 				isMemberUser(userId),
 				isMemberNotDeleted(),
-				isProjectNotDeleted()
+				isProjectActive()
 			)
 			.fetch();
 	}
@@ -133,12 +134,18 @@ public class ProjectQuerydslRepository {
 			.where(
 				isManagerUser(userId),
 				isManagerNotDeleted(),
-				isProjectNotDeleted()
+				isProjectActive()
 			)
 			.fetch();
 	}
 
 	// 내부 메소드
+
+	private BooleanExpression isProjectActive() {
+
+		return project.isDeleted.eq(false)
+			.and(project.state.ne(ProjectState.CLOSED));
+	}
 
 	private BooleanExpression isProjectNotDeleted() {
 

@@ -9,9 +9,10 @@ import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager
 import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.domain.project.domain.project.event.DomainEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedEvent;
+import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
+import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
+import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
+import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -75,7 +76,7 @@ public class Project extends BaseEntity {
 	private List<ProjectMember> projectMembers = new ArrayList<>();
 
 	@Transient
-	private final List<DomainEvent> domainEvents = new ArrayList<>();
+	private final List<Object> domainEvents = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, int maxMembers,
 		LocalDateTime periodStart, LocalDateTime periodEnd) {
@@ -129,14 +130,14 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
-		registerEvent(new ProjectStateChangedEvent(this.id, newState));
+		registerEvent(new ProjectStateChangedEvent(this.id, newState.toString()));
 	}
 
 	public void autoUpdateState(ProjectState newState) {
 		checkNotClosedState();
 		this.state = newState;
 
-		registerEvent(new ProjectStateChangedEvent(this.id, newState));
+		registerEvent(new ProjectStateChangedEvent(this.id, newState.toString()));
 	}
 
 	public boolean shouldStart(LocalDateTime currentTime) {
@@ -196,6 +197,8 @@ public class Project extends BaseEntity {
 
 		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
+
+		registerEvent(new ProjectManagerAddedEvent(currentUserId, this.period.getPeriodEnd()));
 	}
 
 	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
@@ -226,7 +229,6 @@ public class Project extends BaseEntity {
 	}
 
 	public void removeManager(Long currentUserId) {
-		checkNotClosedState();
 		ProjectManager manager = findManagerByUserId(currentUserId);
 		manager.delete();
 	}
@@ -264,12 +266,13 @@ public class Project extends BaseEntity {
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
 		this.currentMemberCount++;
+
+		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd()));
 	}
 
 	public void removeMember(Long currentUserId) {
-		checkNotClosedState();
 		ProjectMember member = this.projectMembers.stream()
-			.filter(projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted())
+			.filter(projectMember -> projectMember.getUserId().equals(currentUserId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
 
@@ -286,16 +289,17 @@ public class Project extends BaseEntity {
 	}
 
 	// 이벤트 등록/ 관리
-	public List<DomainEvent> pullDomainEvents() {
-		List<DomainEvent> events = new ArrayList<>(domainEvents);
+	public List<Object> pullDomainEvents() {
+		List<Object> events = new ArrayList<>(domainEvents);
 		domainEvents.clear();
 		return events;
 	}
 
-	private void registerEvent(DomainEvent event) {
+	private void registerEvent(Object event) {
 		this.domainEvents.add(event);
 	}
 
+	// TODO 삭제한부분 쿼리에 NOtSTATE where절에 추가
 	private void checkNotClosedState() {
 		if (this.state == ProjectState.CLOSED) {
 			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
