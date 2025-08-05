@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.share.application.notification;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
@@ -23,16 +24,29 @@ public class NotificationService {
 	private final NotificationQueryRepository notificationQueryRepository;
 	private final NotificationRepository notificationRepository;
 	private final ShareServicePort shareServicePort;
+	private final NotificationSendService notificationSendService;
 
 	@Transactional
-	public void create(Share share, Long creatorId) {
+	public void create(Share share, Long creatorId, LocalDateTime notifyAt) {
 		List<Long> recipientIds = shareServicePort.getRecipientIds(share.getId(), creatorId);
 
 		List<Notification> notifications = recipientIds.stream()
-			.map(recipientId -> Notification.createForShare(share, recipientId))
+			.map(recipientId -> Notification.createForShare(share, recipientId, notifyAt))
 			.toList();
 
 		notificationRepository.saveAll(notifications);
+	}
+
+	@Transactional
+	public void send(Notification notification) {
+		try {
+			notificationSendService.send(notification);
+			notification.setSent();
+		} catch (Exception e) {
+			notification.setFailed(e.getMessage());
+		}
+
+		notificationRepository.save(notification);
 	}
 
 	public Page<NotificationResponse> gets(Long shareId, Long requesterId, Pageable pageable) {
