@@ -40,22 +40,36 @@ public class Notification extends BaseEntity {
 	private LocalDateTime sentAt;
 	@Column(name = "failed_reason")
 	private String failedReason;
+	@Column(name = "notify_at")
+	private LocalDateTime notifyAt;
 
 	public Notification(
 		Share share,
 		Long recipientId,
 		Status status,
 		LocalDateTime sentAt,
-		String failedReason
+		String failedReason,
+		LocalDateTime notifyAt
 	) {
 		this.share = share;
 		this.recipientId = recipientId;
 		this.status = status;
 		this.sentAt = sentAt;
 		this.failedReason = failedReason;
+		this.notifyAt = notifyAt;
 	}
 
-	public static Notification createForShare(Share share, Long recipientId) {
-		return new Notification(share, recipientId, Status.SENT, null, null);
+	public static Notification createForShare(Share share, Long recipientId, LocalDateTime notifyAt) {
+		return new Notification(share, recipientId, Status.SENT, null, null, notifyAt);
+	}
+
+	public void setSent() {
+		this.status = Status.SENT;
+		this.sentAt = LocalDateTime.now();
+	}
+
+	public void setFailed(String failedReason) {
+		this.status = Status.FAILED;
+		this.failedReason = failedReason;
 	}
 }
