@@ -26,7 +26,7 @@ public class ParticipationInternalController {
 
 	@GetMapping("/v1/surveys/participations")
 	public ResponseEntity<ApiResponse<List<ParticipationGroupResponse>>> getAllBySurveyIds(
-		@RequestParam List<Long> surveyIds
+		@RequestParam(required = true) List<Long> surveyIds
 	) {
 		List<ParticipationGroupResponse> result = participationService.getAllBySurveyIds(surveyIds);
 
