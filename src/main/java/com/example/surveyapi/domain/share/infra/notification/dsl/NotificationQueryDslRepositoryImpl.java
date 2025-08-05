@@ -2,15 +2,14 @@ package com.example.surveyapi.domain.share.infra.notification.dsl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
+import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.notification.entity.QNotification;
 import com.example.surveyapi.domain.share.domain.share.entity.QShare;
@@ -27,7 +26,7 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public NotificationPageResponse findByShareId(Long shareId, Long requesterId, int page, int size) {
+	public Page<NotificationResponse> findByShareId(Long shareId, Long requesterId, Pageable pageable) {
 		QNotification notification = QNotification.notification;
 		QShare share = QShare.share;
 
@@ -44,8 +43,6 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED_SHARE);
 		}
 
-		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "sentAt"));
-
 		List<Notification> content = queryFactory
 			.selectFrom(notification)
 			.where(notification.share.id.eq(shareId))
@@ -60,8 +57,12 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 			.where(notification.share.id.eq(shareId))
 			.fetchOne();
 
-		Page<Notification> pageResult = new PageImpl<>(content, pageable, Optional.ofNullable(total).orElse(0L));
+		List<NotificationResponse> responses = content.stream()
+			.map(NotificationResponse::from)
+			.collect(Collectors.toList());
 
-		return NotificationPageResponse.from(pageResult);
+		Page<NotificationResponse> pageResult = new PageImpl<>(responses, pageable, Optional.ofNullable(total).orElse(0L));
+
+		return pageResult;
 	}
 }

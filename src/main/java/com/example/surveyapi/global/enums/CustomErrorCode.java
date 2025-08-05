@@ -9,7 +9,7 @@ public enum CustomErrorCode {
 
     EMAIL_DUPLICATED(HttpStatus.CONFLICT,"사용중인 이메일입니다."),
     WRONG_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 틀렸습니다"),
-    GRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "등급을 조회 할 수 없습니다"),
+    GRADE_POINT_NOT_FOUND(HttpStatus.NOT_FOUND, "등급 및 포인트를 조회 할 수 없습니다"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일을 찾을 수 없습니다."),
     ROLE_INVALID_FORMAT(HttpStatus.BAD_REQUEST, "유효하지 않은 UserRole"),
     NOT_FOUND_TOKEN(HttpStatus.NOT_FOUND,"토큰이 유효하지 않습니다."),
@@ -54,6 +54,11 @@ public enum CustomErrorCode {
     NOT_FOUND_PARTICIPATION(HttpStatus.NOT_FOUND, "참여 응답이 존재하지 않습니다."),
     ACCESS_DENIED_PARTICIPATION_VIEW(HttpStatus.FORBIDDEN, "본인의 참여 기록만 조회할 수 있습니다."),
 	SURVEY_ALREADY_PARTICIPATED(HttpStatus.CONFLICT, "이미 참여한 설문입니다."),
+	SURVEY_NOT_ACTIVE(HttpStatus.BAD_REQUEST, "해당 설문은 현재 참여할 수 없습니다."),
+	CANNOT_UPDATE_RESPONSE(HttpStatus.BAD_REQUEST, "해당 설문의 응답은 수정할 수 없습니다."),
+	REQUIRED_QUESTION_NOT_ANSWERED(HttpStatus.BAD_REQUEST, "필수 질문에 대해 답변하지 않았습니다."),
+	INVALID_SURVEY_QUESTION(HttpStatus.BAD_REQUEST, "설문의 질문들과 응답한 질문들이 일치하지 않습니다."),
+	INVALID_ANSWER_TYPE(HttpStatus.BAD_REQUEST, "질문과 답변의 형식이 일치하지 않습니다."),
 
     // 서버 에러
     USER_LIST_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "회원 목록이 비어 있습니다. 데이터 상태를 확인하세요."),
@@ -62,7 +67,9 @@ public enum CustomErrorCode {
     // 공유 에러
     NOT_FOUND_SHARE(HttpStatus.NOT_FOUND, "공유 작업이 존재하지 않습니다."),
     ACCESS_DENIED_SHARE(HttpStatus.FORBIDDEN, "본인의 공유 작업 내역만 조회할 수 있습니다."),
-    UNSUPPORTED_SHARE_METHOD(HttpStatus.BAD_REQUEST, "지원하지 않는 공유 방법 입니다.");
+    UNSUPPORTED_SHARE_METHOD(HttpStatus.BAD_REQUEST, "지원하지 않는 공유 방법 입니다."),
+    SHARE_EXPIRED(HttpStatus.BAD_REQUEST, "유효하지 않은 공유 링크 입니다."),
+    INVALID_SHARE_TYPE(HttpStatus.BAD_REQUEST, "공유 타입이 일치하지 않습니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
