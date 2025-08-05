@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.domain.user.event;
+package com.example.surveyapi.global.event;
 
 import lombok.Getter;
 
