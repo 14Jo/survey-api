@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,16 +26,15 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.util.PageInfo;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(ShareController.class)
@@ -44,41 +46,49 @@ class ShareControllerTest {
 	@MockBean
 	private NotificationService notificationService;
 
-	private final String URI = "/api/v1/share-tasks";
+	private final String URI = "/api/v2/share-tasks";
+
+	private final Long sourceId = 1L;
+	private final Long creatorId = 1L;
+	private final List<Long> recipientIds = List.of(2L, 3L, 4L);
 
 	@BeforeEach
 	void setUp() {
 		TestingAuthenticationToken auth =
-			new TestingAuthenticationToken(1L, null, "ROLE_USER");
+			new TestingAuthenticationToken(creatorId, null, "ROLE_USER");
 		auth.setAuthenticated(true);
 		SecurityContextHolder.getContext().setAuthentication(auth);
 	}
 
 	@Test
-	@DisplayName("공유 생성 api - url 정상 요청, 201 return")
+	@DisplayName("공유 생성 api - PROJECT 정상 요청, 201 return")
 	void createShare_success_url() throws Exception {
 		//given
-		Long surveyId = 1L;
-		Long creatorId = 1L;
+		String token = "token-123";
+		ShareSourceType sourceType = ShareSourceType.PROJECT_MANAGER;
 		ShareMethod shareMethod = ShareMethod.URL;
 		String shareLink = "https://example.com/share/12345";
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		String requestJson = """
 			{
-				\"surveyId\": 1,
-				\"creatorId\": 1,
-				\"shareMethod\": \"URL\"
+				\"sourceType\": \"PROJECT_MANAGER\",
+				\"sourceId\": 1,
+				\"shareMethod\": \"URL\",
+				\"expirationDate\": \"2025-12-31T23:59:59\"
 			}
 			""";
-		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink, recipientIds);
+
+		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod), eq(recipientIds))).willReturn(mockResponse);
+		given(shareService.createShare(eq(sourceType), eq(sourceId),
+			eq(creatorId), eq(shareMethod),
+			eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -86,7 +96,8 @@ class ShareControllerTest {
 			.content(requestJson))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data.surveyId").value(1))
+			.andExpect(jsonPath("$.data.sourceType").value("PROJECT"))
+			.andExpect(jsonPath("$.data.sourceId").value(1))
 			.andExpect(jsonPath("$.data.creatorId").value(1))
 			.andExpect(jsonPath("$.data.shareMethod").value("URL"))
 			.andExpect(jsonPath("$.data.shareLink").value("https://example.com/share/12345"))
@@ -95,30 +106,34 @@ class ShareControllerTest {
 	}
 
 	@Test
-	@DisplayName("공유 생성 api - email 정상 요청, 201 return")
+	@DisplayName("공유 생성 api - SURVEY 정상 요청, 201 return")
 	void createShare_success_email() throws Exception {
 		//given
-		Long surveyId = 1L;
-		Long creatorId = 1L;
-		ShareMethod shareMethod = ShareMethod.EMAIL;
-		String shareLink = "email://12345";
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		String token = "token-123";
+		ShareSourceType sourceType = ShareSourceType.SURVEY;
+		String shareLink = "https://example.com/share/12345";
+		ShareMethod shareMethod = ShareMethod.URL;
+		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
 
 		String requestJson = """
 			{
-				\"surveyId\": 1,
-				\"creatorId\": 1,
-				\"shareMethod\": \"EMAIL\"
+				"sourceType": "SURVEY",
+				"sourceId": 1,
+				"shareMethod": "URL",
+				"expirationDate": "2025-12-31T23:59:59"
 			}
 			""";
-		Share shareMock = new Share(surveyId, creatorId, shareMethod, shareLink, recipientIds);
+
+		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(shareMock, "updatedAt", LocalDateTime.now());
 
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
-		given(shareService.createShare(eq(surveyId), eq(creatorId), eq(shareMethod), eq(recipientIds))).willReturn(mockResponse);
+		given(shareService.createShare(eq(sourceType), eq(sourceId),
+			eq(creatorId), eq(shareMethod),
+			eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -126,10 +141,11 @@ class ShareControllerTest {
 				.content(requestJson))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data.surveyId").value(1))
+			.andExpect(jsonPath("$.data.sourceType").value("SURVEY"))
+			.andExpect(jsonPath("$.data.sourceId").value(1))
 			.andExpect(jsonPath("$.data.creatorId").value(1))
-			.andExpect(jsonPath("$.data.shareMethod").value("EMAIL"))
-			.andExpect(jsonPath("$.data.shareLink").value("email://12345"))
+			.andExpect(jsonPath("$.data.shareMethod").value("URL"))
+			.andExpect(jsonPath("$.data.shareLink").value("https://example.com/share/12345"))
 			.andExpect(jsonPath("$.data.createdAt").exists())
 			.andExpect(jsonPath("$.data.updatedAt").exists());
 	}
@@ -159,10 +175,10 @@ class ShareControllerTest {
 		NotificationResponse mockNotification = new NotificationResponse(
 			1L, currentUserId, Status.SENT, LocalDateTime.now(), null
 		);
-		PageInfo pageInfo = new PageInfo(size, page, 1, 1);
-		NotificationPageResponse response = new NotificationPageResponse(List.of(mockNotification), pageInfo);
+		List<NotificationResponse> content = List.of(mockNotification);
+		Page<NotificationResponse> responses = new PageImpl<>(content, PageRequest.of(page, size), content.size());
 
-		given(notificationService.gets(eq(shareId), eq(currentUserId), eq(page), eq(size))).willReturn(response);
+		given(notificationService.gets(eq(shareId), eq(currentUserId), eq(PageRequest.of(page, size)))).willReturn(responses);
 
 		//when, then
 		mockMvc.perform(get("/api/v1/share-tasks/{shareId}/notifications", shareId)
@@ -186,13 +202,7 @@ class ShareControllerTest {
 		int page = 0;
 		int size = 0;
 
-		NotificationResponse mockNotification = new NotificationResponse(
-			1L, currentUserId, Status.SENT, LocalDateTime.now(), null
-		);
-		PageInfo pageInfo = new PageInfo(size, page, 1, 1);
-		NotificationPageResponse response = new NotificationPageResponse(List.of(mockNotification), pageInfo);
-
-		given(notificationService.gets(eq(invalidShareId), eq(currentUserId), eq(page), eq(size)))
+		given(notificationService.gets(eq(invalidShareId), eq(currentUserId), eq(PageRequest.of(page, size))))
 			.willThrow(new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
 		//when, then
