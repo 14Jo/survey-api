@@ -3,8 +3,6 @@ package com.example.surveyapi.domain.project.application;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,11 +13,6 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectSearchInfoResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
@@ -38,7 +31,6 @@ public class ProjectService {
 	private final ProjectRepository projectRepository;
 	private final ProjectEventPublisher projectEventPublisher;
 
-	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
 		validateDuplicateName(request.getName());
 
@@ -53,38 +45,6 @@ public class ProjectService {
 		projectRepository.save(project);
 
 		return CreateProjectResponse.of(project.getId(), project.getMaxMembers());
-	}
-
-	@Transactional(readOnly = true)
-	public List<ProjectManagerInfoResponse> getMyProjectsAsManager(Long currentUserId) {
-
-		return projectRepository.findMyProjectsAsManager(currentUserId)
-			.stream()
-			.map(ProjectManagerInfoResponse::from)
-			.toList();
-	}
-
-	@Transactional(readOnly = true)
-	public List<ProjectMemberInfoResponse> getMyProjectsAsMember(Long currentUserId) {
-
-		return projectRepository.findMyProjectsAsMember(currentUserId)
-			.stream()
-			.map(ProjectMemberInfoResponse::from)
-			.toList();
-	}
-
-	@Transactional(readOnly = true)
-	public Page<ProjectSearchInfoResponse> searchProjects(String keyword, Pageable pageable) {
-
-		return projectRepository.searchProjects(keyword, pageable)
-			.map(ProjectSearchInfoResponse::from);
-	}
-
-	@Transactional(readOnly = true)
-	public ProjectInfoResponse getProject(Long projectId) {
-		Project project = findByIdOrElseThrow(projectId);
-
-		return ProjectInfoResponse.from(project);
 	}
 
 	@Transactional
@@ -138,12 +98,6 @@ public class ProjectService {
 	public void joinProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addMember(currentUserId);
-	}
-
-	@Transactional(readOnly = true)
-	public ProjectMemberIdsResponse getProjectMemberIds(Long projectId) {
-		Project project = findByIdOrElseThrow(projectId);
-		return ProjectMemberIdsResponse.from(project);
 	}
 
 	@Transactional
@@ -205,7 +159,6 @@ public class ProjectService {
 		}
 	}
 
-	// TODO: LIST별 fetchJoin 생각
 	private Project findByIdOrElseThrow(Long projectId) {
 
 		return projectRepository.findByIdAndIsDeletedFalse(projectId)
