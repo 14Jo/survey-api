@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -31,11 +32,12 @@ public class ParticipationController {
 
 	@PostMapping("/surveys/{surveyId}/participations")
 	public ResponseEntity<ApiResponse<Long>> create(
+		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long surveyId,
 		@Valid @RequestBody CreateParticipationRequest request,
 		@AuthenticationPrincipal Long memberId
 	) {
-		Long participationId = participationService.create(surveyId, memberId, request);
+		Long participationId = participationService.create(authHeader, surveyId, memberId, request);
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.success("설문 응답 제출이 완료되었습니다.", participationId));
@@ -43,10 +45,11 @@ public class ParticipationController {
 
 	@GetMapping("/members/me/participations")
 	public ResponseEntity<ApiResponse<Page<ParticipationInfoResponse>>> getAll(
+		@RequestHeader("Authorization") String authHeader,
 		@AuthenticationPrincipal Long memberId,
 		Pageable pageable
 	) {
-		Page<ParticipationInfoResponse> result = participationService.gets(memberId, pageable);
+		Page<ParticipationInfoResponse> result = participationService.gets(authHeader, memberId, pageable);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("나의 참여 목록 조회에 성공하였습니다.", result));
@@ -65,11 +68,12 @@ public class ParticipationController {
 
 	@PutMapping("/participations/{participationId}")
 	public ResponseEntity<ApiResponse<Void>> update(
+		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long participationId,
 		@Valid @RequestBody CreateParticipationRequest request,
 		@AuthenticationPrincipal Long memberId
 	) {
-		participationService.update(memberId, participationId, request);
+		participationService.update(authHeader, memberId, participationId, request);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("참여 응답 수정이 완료되었습니다.", null));
