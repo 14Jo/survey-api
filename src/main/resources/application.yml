@@ -40,9 +40,9 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
-      minimum-idle: 10
+      minimum-idle: 5
       maximum-pool-size: 10
-      connection-timeout: 30000
+      connection-timeout: 5000
       idle-timeout: 600000
       max-lifetime: 1800000
   jpa:
@@ -57,8 +57,8 @@ spring:
 server:
   tomcat:
     threads:
-      max: 25 # 최대 스레드 수를 25개
-      min-spare: 5 # 최소 유휴 스레드
+      max: 20 # 최대 스레드 수를 25개
+      min-spare: 10 # 최소 유휴 스레드
 
 # 로그 설정 - 외부 API 관련 로그만 DEBUG로 설정
 logging:
@@ -101,9 +101,9 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
-      minimum-idle: 10
-      maximum-pool-size: 30
-      connection-timeout: 30000
+      minimum-idle: 5
+      maximum-pool-size: 10
+      connection-timeout: 5000
       idle-timeout: 600000
       max-lifetime: 1800000
       
@@ -115,7 +115,11 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-
+server:
+  tomcat:
+    threads:
+      max: 20
+      min-spare: 10
 # 로그 설정
 logging:
   level:
