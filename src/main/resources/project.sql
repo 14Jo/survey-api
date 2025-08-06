@@ -16,17 +16,13 @@ CREATE TABLE IF NOT EXISTS projects
 );
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
-CREATE INDEX IF NOT EXISTS idx_projects_name_trigram
-    ON projects USING gin (lower(name) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_projects_name_trigram ON projects USING gin (lower(name) gin_trgm_ops);
 
-CREATE INDEX IF NOT EXISTS idx_projects_description_trigram
-    ON projects USING gin (lower(description) gin_trgm_ops);
+CREATE INDEX IF NOT EXISTS idx_projects_description_trigram ON projects USING gin (lower(description) gin_trgm_ops);
 
--- CREATE INDEX IF NOT EXISTS idx_projects_name_prefix
---     ON projects ( lower(name) text_pattern_ops );
+CREATE INDEX IF NOT EXISTS idx_projects_state_deleted_start ON projects (state, is_deleted, period_start);
 
--- CREATE INDEX IF NOT EXISTS idx_projects_description_prefix
---     ON projects ( lower(description) text_pattern_ops );
+CREATE INDEX IF NOT EXISTS idx_projects_state_deleted_end ON projects (state, is_deleted, period_end);
 
 -- project_managers 테이블
 CREATE TABLE IF NOT EXISTS project_members
