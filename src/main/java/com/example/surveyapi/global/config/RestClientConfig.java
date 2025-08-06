@@ -30,9 +30,9 @@ public class RestClientConfig {
 	@Bean
 	public CloseableHttpClient httpClient(PoolingHttpClientConnectionManager poolingHttpClientConnectionManager) {
 		RequestConfig requestConfig = RequestConfig.custom()
-			.setConnectionRequestTimeout(Timeout.ofSeconds(5))
+			.setConnectionRequestTimeout(Timeout.ofSeconds(3))
 			.setConnectTimeout(Timeout.ofSeconds(5))
-			.setResponseTimeout(Timeout.ofSeconds(30))
+			.setResponseTimeout(Timeout.ofSeconds(10))
 			.build();
 
 		return HttpClients.custom()
@@ -44,8 +44,8 @@ public class RestClientConfig {
 	@Bean
 	public PoolingHttpClientConnectionManager poolingHttpClientConnectionManager() {
 		PoolingHttpClientConnectionManager connectionManager = new PoolingHttpClientConnectionManager();
-		connectionManager.setMaxTotal(10);
-		connectionManager.setDefaultMaxPerRoute(3);
+		connectionManager.setMaxTotal(20);
+		connectionManager.setDefaultMaxPerRoute(20);
 		return connectionManager;
 	}
 }
