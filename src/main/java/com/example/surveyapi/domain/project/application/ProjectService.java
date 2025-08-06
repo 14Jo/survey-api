@@ -124,41 +124,28 @@ public class ProjectService {
 	@Scheduled(cron = "0 0 0 * * *") // 매일 00시 실행
 	@Transactional
 	public void updateProjectStates() {
-		updatePendingProjects(LocalDateTime.now());
-		updateInProgressProjects(LocalDateTime.now());
+		LocalDateTime now = LocalDateTime.now();
+		updatePendingProjects(now);
+		updateInProgressProjects(now);
 	}
 
 	private void updatePendingProjects(LocalDateTime now) {
-		List<Project> pendingProjects = projectRepository.findByStateAndIsDeletedFalse(ProjectState.PENDING);
+		List<Project> pendingProjects = projectRepository.findPendingProjectsToStart(now);
 
 		for (Project project : pendingProjects) {
-			try {
-				if (project.shouldStart(now)) {
-					project.autoUpdateState(ProjectState.IN_PROGRESS);
-					publishProjectEvents(project);
-
-					log.debug("프로젝트 상태 변경: {} - PENDING -> IN_PROGRESS", project.getId());
-				}
-			} catch (Exception e) {
-				log.error("프로젝트 상태 변경 실패 - Project ID: {}, Error: {}", project.getId(), e.getMessage());
-			}
+			// TODO : Batch Update
+			project.autoUpdateState(ProjectState.IN_PROGRESS);
+			publishProjectEvents(project);
 		}
 	}
 
 	private void updateInProgressProjects(LocalDateTime now) {
-		List<Project> inProgressProjects = projectRepository.findByStateAndIsDeletedFalse(ProjectState.IN_PROGRESS);
+		List<Project> inProgressProjects = projectRepository.findInProgressProjectsToClose(now);
 
 		for (Project project : inProgressProjects) {
-			try {
-				if (project.shouldEnd(now)) {
-					project.autoUpdateState(ProjectState.CLOSED);
-					publishProjectEvents(project);
-
-					log.debug("프로젝트 상태 변경: {} - IN_PROGRESS -> CLOSED", project.getId());
-				}
-			} catch (Exception e) {
-				log.error("프로젝트 상태 변경 실패 - Project ID: {}, Error: {}", project.getId(), e.getMessage());
-			}
+			// TODO : Batch Update
+			project.autoUpdateState(ProjectState.CLOSED);
+			publishProjectEvents(project);
 		}
 	}
 
@@ -173,6 +160,7 @@ public class ProjectService {
 	}
 
 	private Project findByIdOrElseThrow(Long projectId) {
+
 		return projectRepository.findByIdAndIsDeletedFalse(projectId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
 	}

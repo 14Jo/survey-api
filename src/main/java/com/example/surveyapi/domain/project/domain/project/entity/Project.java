@@ -93,8 +93,6 @@ public class Project extends BaseEntity {
 
 	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,
 		LocalDateTime newPeriodEnd) {
-		checkNotClosedState();
-
 		if (newPeriodStart != null || newPeriodEnd != null) {
 			LocalDateTime start = Objects.requireNonNullElse(newPeriodStart, this.period.getPeriodStart());
 			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
@@ -109,8 +107,6 @@ public class Project extends BaseEntity {
 	}
 
 	public void updateState(ProjectState newState) {
-		checkNotClosedState();
-
 		// PENDING -> IN_PROGRESS만 허용 periodStart를 now로 세팅
 		if (this.state == ProjectState.PENDING) {
 			if (newState != ProjectState.IN_PROGRESS) {
@@ -131,25 +127,11 @@ public class Project extends BaseEntity {
 	}
 
 	public void autoUpdateState(ProjectState newState) {
-		checkNotClosedState();
 		this.state = newState;
-
 		registerEvent(new ProjectStateChangedEvent(this.id, newState.toString()));
 	}
 
-	public boolean shouldStart(LocalDateTime currentTime) {
-		return this.state == ProjectState.PENDING &&
-			this.period.getPeriodStart().isBefore(currentTime);
-	}
-
-	public boolean shouldEnd(LocalDateTime currentTime) {
-		return this.state == ProjectState.IN_PROGRESS &&
-			this.period.getPeriodEnd() != null &&
-			this.period.getPeriodEnd().isBefore(currentTime);
-	}
-
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
-		checkNotClosedState();
 		checkOwner(currentUserId);
 
 		ProjectManager previousOwner = findManagerByUserId(this.ownerId);
@@ -183,8 +165,6 @@ public class Project extends BaseEntity {
 	}
 
 	public void addManager(Long currentUserId) {
-		checkNotClosedState();
-
 		// 중복 가입 체크
 		boolean exists = this.projectManagers.stream()
 			.anyMatch(manager -> manager.isSameUser(currentUserId) && !manager.getIsDeleted());
@@ -253,7 +233,6 @@ public class Project extends BaseEntity {
 	}
 
 	public void addMember(Long currentUserId) {
-		checkNotClosedState();
 		// 중복 가입 체크
 		boolean exists = this.projectMembers.stream()
 			.anyMatch(
@@ -285,6 +264,13 @@ public class Project extends BaseEntity {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
 	}
 
+	public int getCurrentMemberCount() {
+
+		return (int) this.projectMembers.stream()
+			.filter(member -> !member.getIsDeleted())
+			.count();
+	}
+
 	// 권한 검증 헬퍼 메소드
 	private void checkOwner(Long currentUserId) {
 		if (!this.ownerId.equals(currentUserId)) {
@@ -301,18 +287,5 @@ public class Project extends BaseEntity {
 
 	private void registerEvent(Object event) {
 		this.domainEvents.add(event);
-	}
-
-	public int getCurrentMemberCount() {
-
-		return (int) this.projectMembers.stream()
-			.filter(member -> !member.getIsDeleted())
-			.count();
-	}
-
-	private void checkNotClosedState() {
-		if (this.state == ProjectState.CLOSED) {
-			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
-		}
 	}
 }
