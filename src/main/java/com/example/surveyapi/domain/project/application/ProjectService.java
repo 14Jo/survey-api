@@ -31,6 +31,7 @@ public class ProjectService {
 	private final ProjectRepository projectRepository;
 	private final ProjectEventPublisher projectEventPublisher;
 
+	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
 		validateDuplicateName(request.getName());
 
@@ -79,6 +80,7 @@ public class ProjectService {
 	public void joinProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addManager(currentUserId);
+		project.pullDomainEvents().forEach(projectEventPublisher::publish);
 	}
 
 	@Transactional
@@ -98,6 +100,7 @@ public class ProjectService {
 	public void joinProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addMember(currentUserId);
+		project.pullDomainEvents().forEach(projectEventPublisher::publish);
 	}
 
 	@Transactional
