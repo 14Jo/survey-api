@@ -51,13 +51,22 @@ public class ShareService {
 		Share share = shareRepository.findById(shareId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
-		// TODO : 권한 검증 - 관리자(admin)의 경우 추후 추가 예정
-
-		if (share.isOwner(currentUserId)) {
+		if (!share.isOwner(currentUserId)) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 
 		return ShareResponse.from(share);
+	}
+
+	@Transactional(readOnly = true)
+	public List<Share> getShareBySource(Long sourceId) {
+		List<Share> shares = shareRepository.findBySource(sourceId);
+
+		if (shares.isEmpty()) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return shares;
 	}
 
 	@Transactional(readOnly = true)
@@ -70,7 +79,7 @@ public class ShareService {
 		Share share = shareRepository.findById(shareId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
-		if (share.isOwner(currentUserId)) {
+		if (!share.isOwner(currentUserId)) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 		shareRepository.delete(share);
