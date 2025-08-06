@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.project.infra.project;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,7 +12,6 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
-import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
 import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
@@ -52,12 +52,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 
 	@Override
 	public Optional<Project> findByIdAndIsDeletedFalse(Long projectId) {
-		return projectJpaRepository.findByIdAndIsDeletedFalse(projectId);
-	}
-
-	@Override
-	public List<Project> findByStateAndIsDeletedFalse(ProjectState projectState) {
-		return projectJpaRepository.findByStateAndIsDeletedFalse(projectState);
+		return projectQuerydslRepository.findByIdAndIsDeletedFalse(projectId);
 	}
 
 	@Override
@@ -68,5 +63,15 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	@Override
 	public List<Project> findProjectsByManager(Long userId) {
 		return projectQuerydslRepository.findProjectsByManager(userId);
+	}
+
+	@Override
+	public List<Project> findPendingProjectsToStart(LocalDateTime now) {
+		return projectQuerydslRepository.findPendingProjectsToStart(now);
+	}
+
+	@Override
+	public List<Project> findInProgressProjectsToClose(LocalDateTime now) {
+		return projectQuerydslRepository.findInProgressProjectsToClose(now);
 	}
 }
