@@ -1,11 +1,13 @@
 package com.example.surveyapi.domain.share.infra.share;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.domain.share.infra.share.jpa.ShareJpaRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -38,5 +40,10 @@ public class ShareRepositoryImpl implements ShareRepository {
 	@Override
 	public void delete(Share share) {
 		shareJpaRepository.delete(share);
+	}
+
+	@Override
+	public List<Share> findBySource(Long sourceId) {
+		return shareJpaRepository.findBySourceId(sourceId);
 	}
 }
