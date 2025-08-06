@@ -166,7 +166,7 @@ public class Project extends BaseEntity {
 		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
 
-		registerEvent(new ProjectManagerAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId));
+		registerEvent(new ProjectManagerAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
@@ -239,7 +239,7 @@ public class Project extends BaseEntity {
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
 
-		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId));
+		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void removeMember(Long currentUserId) {
