@@ -26,6 +26,15 @@ management:
 ---
 # 개발(dev) 프로필 - 로컬 PostgreSQL DB 설정
 spring:
+  cache:
+    cache-names:
+      - participationCountCache
+    caffeine:
+      spec: > 
+        initialCapacity=100,
+        maximumSize=500,
+        expireAfterWrite=10m
+        recordStats
   config:
     activate:
       on-profile: dev
@@ -36,7 +45,7 @@ spring:
     password: ${DB_PASSWORD}
     hikari:
       minimum-idle: 2        
-      maximum-pool-size: 5   
+      maximum-pool-size: 5   # 늘려보고 어디부터 감당 가능한지 찾아보기
       connection-timeout: 30000 
       idle-timeout: 600000     
       max-lifetime: 1800000   
