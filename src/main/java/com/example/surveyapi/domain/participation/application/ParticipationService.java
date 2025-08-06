@@ -74,6 +74,10 @@ public class ParticipationService {
 		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationInfos(memberId,
 			pageable);
 
+		if (participationInfos.isEmpty()) {
+			return Page.empty();
+		}
+
 		List<Long> surveyIds = participationInfos.getContent().stream()
 			.map(ParticipationInfo::getSurveyId)
 			.toList();
