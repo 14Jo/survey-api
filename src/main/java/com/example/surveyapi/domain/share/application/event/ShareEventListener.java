@@ -46,7 +46,7 @@ public class ShareEventListener {
 	public void handleProjectManagerEvent(ProjectManagerAddedEvent event) {
 		log.info("프로젝트 매니저 공유 작업 생성 시작: {}", event.getProjectId());
 
-		List<Long> recipientIds = Collections.emptyList();
+		List<Long> recipientIds = List.of(event.getUserId());
 
 		shareService.createShare(
 			ShareSourceType.PROJECT_MANAGER,
@@ -63,7 +63,7 @@ public class ShareEventListener {
 	public void handleProjectMemberEvent(ProjectMemberAddedEvent event) {
 		log.info("프로젝트 참여 인원 공유 작업 생성 시작: {}", event.getProjectId());
 
-		List<Long> recipientIds = Collections.emptyList();
+		List<Long> recipientIds = List.of(event.getUserId());
 
 		shareService.createShare(
 			ShareSourceType.PROJECT_MEMBER,
