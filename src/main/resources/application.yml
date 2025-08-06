@@ -10,9 +10,6 @@ spring:
       hibernate:
         format_sql: true
         show_sql: false
-
-# =======================================================
-# == Actuator 공통 설정 추가
 management:
   endpoints:
     web:
@@ -21,7 +18,6 @@ management:
   endpoint:
     health:
       show-details: always
-# =======================================================
 
 ---
 # 개발(dev) 프로필 - 로컬 PostgreSQL DB 설정
@@ -44,12 +40,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     hikari:
-      minimum-idle: 2        
-      maximum-pool-size: 5   # 늘려보고 어디부터 감당 가능한지 찾아보기
-      connection-timeout: 30000 
-      idle-timeout: 600000     
-      max-lifetime: 1800000   
-      
+      minimum-idle: 10
+      maximum-pool-size: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     properties:
       hibernate:
@@ -58,6 +53,12 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+
+server:
+  tomcat:
+    threads:
+      max: 25 # 최대 스레드 수를 25개
+      min-spare: 5 # 최소 유휴 스레드
 
 # 로그 설정 - 외부 API 관련 로그만 DEBUG로 설정
 logging:
