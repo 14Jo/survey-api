@@ -5,9 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager;
-import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
-import com.example.surveyapi.domain.project.domain.member.entity.ProjectMember;
+import com.example.surveyapi.domain.project.domain.participant.manager.entity.ProjectManager;
+import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.participant.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
@@ -65,9 +65,6 @@ public class Project extends BaseEntity {
 
 	@Column(nullable = false)
 	private int maxMembers;
-
-	@Column(nullable = false)
-	private int currentMemberCount;
 
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<ProjectManager> projectManagers = new ArrayList<>();
@@ -158,7 +155,7 @@ public class Project extends BaseEntity {
 		ProjectManager previousOwner = findManagerByUserId(this.ownerId);
 		ProjectManager newOwner = findManagerByUserId(newOwnerId);
 
-		if (previousOwner.getUserId().equals(newOwnerId)) {
+		if (previousOwner.isSameUser(newOwnerId)) {
 			throw new CustomException(CustomErrorCode.CANNOT_TRANSFER_TO_SELF);
 		}
 
@@ -190,7 +187,7 @@ public class Project extends BaseEntity {
 
 		// 중복 가입 체크
 		boolean exists = this.projectManagers.stream()
-			.anyMatch(manager -> manager.getUserId().equals(currentUserId) && !manager.getIsDeleted());
+			.anyMatch(manager -> manager.isSameUser(currentUserId) && !manager.getIsDeleted());
 		if (exists) {
 			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MANAGER);
 		}
@@ -206,11 +203,16 @@ public class Project extends BaseEntity {
 		ProjectManager projectManager = findManagerById(managerId);
 
 		// 본인 OWNER 권한 변경 불가
-		if (Objects.equals(currentUserId, projectManager.getUserId())) {
+		if (projectManager.isSameUser(currentUserId)) {
 			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
 		}
 
 		if (newRole == ManagerRole.OWNER) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+
+		// 현재 소유자인 경우 권한 변경 불가
+		if (projectManager.isOwner()) {
 			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
 		}
 
@@ -221,7 +223,7 @@ public class Project extends BaseEntity {
 		checkOwner(currentUserId);
 		ProjectManager projectManager = findManagerById(managerId);
 
-		if (Objects.equals(projectManager.getUserId(), currentUserId)) {
+		if (projectManager.isSameUser(currentUserId)) {
 			throw new CustomException(CustomErrorCode.CANNOT_DELETE_SELF_OWNER);
 		}
 
@@ -233,55 +235,57 @@ public class Project extends BaseEntity {
 		manager.delete();
 	}
 
-	// List<ProjectManager> 조회 메소드
+	// Manager 조회 헬퍼 메소드
 	public ProjectManager findManagerByUserId(Long userId) {
+
 		return this.projectManagers.stream()
-			.filter(projectManager -> projectManager.getUserId().equals(userId) && !projectManager.getIsDeleted())
+			.filter(manager -> manager.isSameUser(userId) && !manager.getIsDeleted())
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
 	public ProjectManager findManagerById(Long managerId) {
+
 		return this.projectManagers.stream()
-			.filter(projectManager -> Objects.equals(projectManager.getId(), managerId))
+			.filter(manager -> Objects.equals(manager.getId(), managerId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
-	// TODO: 동시성 문제 해결
 	public void addMember(Long currentUserId) {
 		checkNotClosedState();
 		// 중복 가입 체크
 		boolean exists = this.projectMembers.stream()
 			.anyMatch(
-				projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted());
+				member -> member.isSameUser(currentUserId) && !member.getIsDeleted());
 		if (exists) {
 			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MEMBER);
 		}
 
 		// 최대 인원수 체크
-		if (this.currentMemberCount >= this.maxMembers) {
+		if (getCurrentMemberCount() >= this.maxMembers) {
 			throw new CustomException(CustomErrorCode.PROJECT_MEMBER_LIMIT_EXCEEDED);
 		}
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
-		this.currentMemberCount++;
 
 		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd()));
 	}
 
 	public void removeMember(Long currentUserId) {
-		ProjectMember member = this.projectMembers.stream()
-			.filter(projectMember -> projectMember.getUserId().equals(currentUserId))
-			.findFirst()
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
-
+		ProjectMember member = findMemberByUserId(currentUserId);
 		member.delete();
-
-		this.currentMemberCount--;
 	}
 
-	// 소유자 권한 확인
+	// Member 조회 헬퍼 메소드
+	private ProjectMember findMemberByUserId(Long userId) {
+		return this.projectMembers.stream()
+			.filter(member -> member.isSameUser(userId))
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
+	}
+
+	// 권한 검증 헬퍼 메소드
 	private void checkOwner(Long currentUserId) {
 		if (!this.ownerId.equals(currentUserId)) {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
@@ -299,7 +303,13 @@ public class Project extends BaseEntity {
 		this.domainEvents.add(event);
 	}
 
-	// TODO 삭제한부분 쿼리에 NOtSTATE where절에 추가
+	public int getCurrentMemberCount() {
+
+		return (int) this.projectMembers.stream()
+			.filter(member -> !member.getIsDeleted())
+			.count();
+	}
+
 	private void checkNotClosedState() {
 		if (this.state == ProjectState.CLOSED) {
 			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
