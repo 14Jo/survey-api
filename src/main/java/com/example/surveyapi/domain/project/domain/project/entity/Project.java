@@ -43,37 +43,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseEntity {
 
+	@Transient
+	private final List<Object> domainEvents = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
 	@Column(nullable = false, unique = true)
 	private String name;
-
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String description;
-
 	@Column(nullable = false)
 	private Long ownerId;
-
 	@Embedded
 	private ProjectPeriod period;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
-
 	@Column(nullable = false)
 	private int maxMembers;
-
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<ProjectManager> projectManagers = new ArrayList<>();
-
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<ProjectMember> projectMembers = new ArrayList<>();
-
-	@Transient
-	private final List<Object> domainEvents = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, int maxMembers,
 		LocalDateTime periodStart, LocalDateTime periodEnd) {
@@ -161,7 +152,7 @@ public class Project extends BaseEntity {
 		}
 
 		this.delete();
-		registerEvent(new ProjectDeletedEvent(this.id, this.name));
+		registerEvent(new ProjectDeletedEvent(this.id, this.name, currentUserId));
 	}
 
 	public void addManager(Long currentUserId) {
@@ -175,7 +166,7 @@ public class Project extends BaseEntity {
 		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
 
-		registerEvent(new ProjectManagerAddedEvent(currentUserId, this.period.getPeriodEnd()));
+		registerEvent(new ProjectManagerAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId));
 	}
 
 	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
@@ -248,7 +239,7 @@ public class Project extends BaseEntity {
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
 
-		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd()));
+		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId));
 	}
 
 	public void removeMember(Long currentUserId) {
@@ -266,7 +257,7 @@ public class Project extends BaseEntity {
 
 	public int getCurrentMemberCount() {
 
-		return (int) this.projectMembers.stream()
+		return (int)this.projectMembers.stream()
 			.filter(member -> !member.getIsDeleted())
 			.count();
 	}
