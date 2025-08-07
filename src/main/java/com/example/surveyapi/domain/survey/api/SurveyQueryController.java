@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.surveyapi.domain.survey.application.QueryService.SurveyReadService;
 import com.example.surveyapi.domain.survey.application.SurveyQueryService;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
@@ -25,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class SurveyQueryController {
 
 	private final SurveyQueryService surveyQueryService;
+	private final SurveyReadService surveyReadService;
 
 	@GetMapping("/v1/surveys/{surveyId}")
 	public ResponseEntity<ApiResponse<SearchSurveyDetailResponse>> getSurveyDetail(
@@ -39,11 +41,9 @@ public class SurveyQueryController {
 	@GetMapping("/v1/projects/{projectId}/surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@PathVariable Long projectId,
-		@RequestParam(required = false) Long lastSurveyId,
-		@RequestHeader("Authorization") String authHeader
+		@RequestParam(required = false) Long lastSurveyId
 	) {
-		List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(authHeader,
-			projectId, lastSurveyId);
+		List<SearchSurveyTitleResponse> surveyByProjectId = surveyReadService.findSurveyByProjectId(projectId, lastSurveyId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
 	}
