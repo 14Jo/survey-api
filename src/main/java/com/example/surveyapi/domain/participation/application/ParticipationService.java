@@ -28,6 +28,7 @@ import com.example.surveyapi.domain.participation.application.dto.response.Parti
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
+import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
 import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
@@ -48,9 +49,24 @@ public class ParticipationService {
 
 	@Transactional
 	public Long create(String authHeader, Long surveyId, Long memberId, CreateParticipationRequest request) {
-		validateParticipationDuplicated(surveyId, memberId);
+		// validateParticipationDuplicated(surveyId, memberId);
 
-		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, surveyId);
+		// SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, surveyId);
+
+		// rest api 통신대신 넣을 더미데이터
+		List<SurveyDetailDto.QuestionValidationInfo> questionValidationInfos = List.of(
+			new SurveyDetailDto.QuestionValidationInfo(5L, true, SurveyApiQuestionType.SINGLE_CHOICE),
+			new SurveyDetailDto.QuestionValidationInfo(6L, true, SurveyApiQuestionType.LONG_ANSWER),
+			new SurveyDetailDto.QuestionValidationInfo(7L, true, SurveyApiQuestionType.MULTIPLE_CHOICE),
+			new SurveyDetailDto.QuestionValidationInfo(8L, true, SurveyApiQuestionType.SHORT_ANSWER),
+			new SurveyDetailDto.QuestionValidationInfo(9L, true, SurveyApiQuestionType.SINGLE_CHOICE),
+			new SurveyDetailDto.QuestionValidationInfo(10L, true, SurveyApiQuestionType.LONG_ANSWER),
+			new SurveyDetailDto.QuestionValidationInfo(11L, true, SurveyApiQuestionType.MULTIPLE_CHOICE),
+			new SurveyDetailDto.QuestionValidationInfo(12L, true, SurveyApiQuestionType.SHORT_ANSWER)
+		);
+		SurveyDetailDto surveyDetail = new SurveyDetailDto(2L, SurveyApiStatus.IN_PROGRESS,
+			new SurveyDetailDto.Duration(LocalDateTime.now().plusWeeks(1)), new SurveyDetailDto.Option(true),
+			questionValidationInfos);
 
 		validateSurveyActive(surveyDetail);
 
@@ -60,7 +76,10 @@ public class ParticipationService {
 		// 문항과 답변 유효성 검증
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, memberId);
+		// ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, memberId);
+		// rest api 통신대신 넣을 더미데이터
+		ParticipantInfo participantInfo = ParticipantInfo.of(String.valueOf(LocalDateTime.now()), Gender.MALE, "서울",
+			"어딘가");
 
 		Participation participation = Participation.create(memberId, surveyId, participantInfo, responseDataList);
 
