@@ -1,7 +1,9 @@
 package com.example.surveyapi.domain.statistic.domain.model.enums;
 
 import java.util.Arrays;
-import java.util.Optional;
+
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,9 +17,10 @@ public enum AnswerType {
 
 	private final String key;
 
-	public static Optional<AnswerType> findByKey(String key) {
+	public static AnswerType findByKey(String key) {
 		return Arrays.stream(values())
 			.filter(type -> type.key.equals(key))
-			.findFirst();
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.ANSWER_TYPE_NOT_FOUND));
 	}
 }
