@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.QueryService.dto;
+package com.example.surveyapi.domain.survey.application.qeury.dto;
 
 import java.util.List;
 

@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.surveyapi.domain.survey.application.QueryService.SurveyReadService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;

@@ -95,4 +95,29 @@ public class SurveyReadRepositoryImpl implements SurveyReadRepository {
 
 		bulkOps.execute();
 	}
+
+	@Override
+	public void deleteBySurveyId(Long surveyId) {
+		Query query = new Query(Criteria.where("surveyId").is(surveyId));
+		mongoTemplate.remove(query, SurveyReadEntity.class);
+	}
+
+	@Override
+	public void updateStatusBySurveyId(Long surveyId, String status) {
+		Query query = new Query(Criteria.where("surveyId").is(surveyId));
+		Update update = new Update().set("status", status);
+		mongoTemplate.updateFirst(query, update, SurveyReadEntity.class);
+	}
+
+	@Override
+	public void updateBySurveyId(SurveyReadEntity surveyRead) {
+		Query query = new Query(Criteria.where("surveyId").is(surveyRead.getSurveyId()));
+		Update update = new Update()
+			.set("title", surveyRead.getTitle())
+			.set("description", surveyRead.getDescription())
+			.set("status", surveyRead.getStatus())
+			.set("options", surveyRead.getOptions())
+			.set("questions", surveyRead.getQuestions());
+		mongoTemplate.updateFirst(query, update, SurveyReadEntity.class);
+	}
 }

@@ -21,7 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import com.example.surveyapi.domain.survey.application.QueryService.SurveyReadService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
