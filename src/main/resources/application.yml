@@ -13,12 +13,12 @@ spring:
 
   data:
     mongodb:
-      host: localhost
-      port: 27017
-      database: survey_read_db
-      username: survey_user
-      password: survey_password
-      authentication-database: admin
+      host: ${MONGODB_HOST:localhost}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE:survey_read_db}
+      username: ${MONGODB_USERNAME:survey_user}
+      password: ${MONGODB_PASSWORD:survey_password}
+      authentication-database: ${MONGODB_AUTHDB:admin}
 
 management:
   endpoints:
@@ -28,6 +28,12 @@ management:
   endpoint:
     health:
       show-details: always
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
 
 ---
 # 개발(dev) 프로필 - 로컬 PostgreSQL DB 설정
