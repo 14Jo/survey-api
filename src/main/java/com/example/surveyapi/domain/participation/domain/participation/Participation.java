@@ -39,7 +39,7 @@ public class Participation extends BaseEntity {
 	private Long id;
 
 	@Column(nullable = false)
-	private Long memberId;
+	private Long userId;
 
 	@Column(nullable = false)
 	private Long surveyId;
@@ -51,10 +51,10 @@ public class Participation extends BaseEntity {
 	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "participation")
 	private List<Response> responses = new ArrayList<>();
 
-	public static Participation create(Long memberId, Long surveyId, ParticipantInfo participantInfo,
+	public static Participation create(Long userId, Long surveyId, ParticipantInfo participantInfo,
 		List<ResponseData> responseDataList) {
 		Participation participation = new Participation();
-		participation.memberId = memberId;
+		participation.userId = userId;
 		participation.surveyId = surveyId;
 		participation.participantInfo = participantInfo;
 		participation.addResponse(responseDataList);
@@ -72,8 +72,8 @@ public class Participation extends BaseEntity {
 		}
 	}
 
-	public void validateOwner(Long memberId) {
-		if (!this.memberId.equals(memberId)) {
+	public void validateOwner(Long userId) {
+		if (!this.userId.equals(userId)) {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW);
 		}
 	}

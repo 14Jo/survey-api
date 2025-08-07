@@ -24,16 +24,16 @@ class ParticipationTest {
 	@DisplayName("참여 생성")
 	void createParticipation() {
 		// given
-		Long memberId = 1L;
+		Long userId = 1L;
 		Long surveyId = 1L;
 		ParticipantInfo participantInfo = ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구");
 
 		// when
-		Participation participation = Participation.create(memberId, surveyId, participantInfo,
+		Participation participation = Participation.create(userId, surveyId, participantInfo,
 			Collections.emptyList());
 
 		// then
-		assertThat(participation.getMemberId()).isEqualTo(memberId);
+		assertThat(participation.getUserId()).isEqualTo(userId);
 		assertThat(participation.getSurveyId()).isEqualTo(surveyId);
 		assertThat(participation.getParticipantInfo()).isEqualTo(participantInfo);
 	}
@@ -42,7 +42,7 @@ class ParticipationTest {
 	@DisplayName("응답이 추가된 참여 생성")
 	void addResponse() {
 		// given
-		Long memberId = 1L;
+		Long userId = 1L;
 		Long surveyId = 1L;
 
 		ResponseData responseData1 = new ResponseData();
@@ -56,13 +56,13 @@ class ParticipationTest {
 		List<ResponseData> responseDataList = List.of(responseData1, responseData2);
 
 		// when
-		Participation participation = Participation.create(memberId, surveyId,
+		Participation participation = Participation.create(userId, surveyId,
 			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"), responseDataList);
 
 		// then
 		assertThat(participation).isNotNull();
 		assertThat(participation.getSurveyId()).isEqualTo(surveyId);
-		assertThat(participation.getMemberId()).isEqualTo(memberId);
+		assertThat(participation.getUserId()).isEqualTo(userId);
 		assertThat(participation.getParticipantInfo()).isEqualTo(
 			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"));
 
@@ -110,7 +110,7 @@ class ParticipationTest {
 	@DisplayName("참여 기록 수정")
 	void updateParticipation() {
 		// given
-		Long memberId = 1L;
+		Long userId = 1L;
 		Long surveyId = 1L;
 		ParticipantInfo participantInfo = ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구");
 
@@ -123,7 +123,7 @@ class ParticipationTest {
 		ReflectionTestUtils.setField(ResponseData2, "answer", Map.of("choice", 3));
 
 		List<ResponseData> initialResponseDataList = List.of(ResponseData1, ResponseData2);
-		Participation participation = Participation.create(memberId, surveyId, participantInfo,
+		Participation participation = Participation.create(userId, surveyId, participantInfo,
 			initialResponseDataList);
 
 		ResponseData newResponseData1 = new ResponseData();
