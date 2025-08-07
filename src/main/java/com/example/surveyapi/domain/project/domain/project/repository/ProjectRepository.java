@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.project.domain.project.repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,7 +11,6 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
-import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 
 public interface ProjectRepository {
 
@@ -26,9 +26,11 @@ public interface ProjectRepository {
 
 	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
 
-	List<Project> findByStateAndIsDeletedFalse(ProjectState projectState);
-
 	List<Project> findProjectsByMember(Long userId);
 
 	List<Project> findProjectsByManager(Long userId);
+
+	List<Project> findPendingProjectsToStart(LocalDateTime now);
+
+	List<Project> findInProgressProjectsToClose(LocalDateTime now);
 }

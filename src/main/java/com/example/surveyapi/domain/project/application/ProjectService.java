@@ -54,33 +54,35 @@ public class ProjectService {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
 			request.getPeriodEnd());
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
-		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void updateOwner(Long projectId, UpdateProjectOwnerRequest request, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateOwner(currentUserId, request.getNewOwnerId());
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void deleteProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.softDelete(currentUserId);
-		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void joinProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addManager(currentUserId);
-		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+		publishProjectEvents(project);
 	}
 
 	@Transactional
@@ -88,71 +90,62 @@ public class ProjectService {
 		Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void deleteManager(Long projectId, Long managerId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.deleteManager(currentUserId, managerId);
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void joinProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addMember(currentUserId);
-		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void leaveProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeManager(currentUserId);
+		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void leaveProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
+		publishProjectEvents(project);
 	}
 
 	@Scheduled(cron = "0 0 0 * * *") // 매일 00시 실행
 	@Transactional
 	public void updateProjectStates() {
-		updatePendingProjects(LocalDateTime.now());
-		updateInProgressProjects(LocalDateTime.now());
+		LocalDateTime now = LocalDateTime.now();
+		updatePendingProjects(now);
+		updateInProgressProjects(now);
 	}
 
 	private void updatePendingProjects(LocalDateTime now) {
-		List<Project> pendingProjects = projectRepository.findByStateAndIsDeletedFalse(ProjectState.PENDING);
+		List<Project> pendingProjects = projectRepository.findPendingProjectsToStart(now);
 
 		for (Project project : pendingProjects) {
-			try {
-				if (project.shouldStart(now)) {
-					project.autoUpdateState(ProjectState.IN_PROGRESS);
-					project.pullDomainEvents().forEach(projectEventPublisher::publish);
-
-					log.debug("프로젝트 상태 변경: {} - PENDING -> IN_PROGRESS", project.getId());
-				}
-			} catch (Exception e) {
-				log.error("프로젝트 상태 변경 실패 - Project ID: {}, Error: {}", project.getId(), e.getMessage());
-			}
+			// TODO : Batch Update
+			project.autoUpdateState(ProjectState.IN_PROGRESS);
+			publishProjectEvents(project);
 		}
 	}
 
 	private void updateInProgressProjects(LocalDateTime now) {
-		List<Project> inProgressProjects = projectRepository.findByStateAndIsDeletedFalse(ProjectState.IN_PROGRESS);
+		List<Project> inProgressProjects = projectRepository.findInProgressProjectsToClose(now);
 
 		for (Project project : inProgressProjects) {
-			try {
-				if (project.shouldEnd(now)) {
-					project.autoUpdateState(ProjectState.CLOSED);
-					project.pullDomainEvents().forEach(projectEventPublisher::publish);
-
-					log.debug("프로젝트 상태 변경: {} - IN_PROGRESS -> CLOSED", project.getId());
-				}
-			} catch (Exception e) {
-				log.error("프로젝트 상태 변경 실패 - Project ID: {}, Error: {}", project.getId(), e.getMessage());
-			}
+			// TODO : Batch Update
+			project.autoUpdateState(ProjectState.CLOSED);
+			publishProjectEvents(project);
 		}
 	}
 
@@ -160,6 +153,10 @@ public class ProjectService {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
 		}
+	}
+
+	private void publishProjectEvents(Project project) {
+		project.pullDomainEvents().forEach(projectEventPublisher::publish);
 	}
 
 	private Project findByIdOrElseThrow(Long projectId) {
