@@ -10,6 +10,16 @@ spring:
       hibernate:
         format_sql: true
         show_sql: false
+
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: survey_read_db
+      username: survey_user
+      password: survey_password
+      authentication-database: admin
+
 management:
   endpoints:
     web:
