@@ -9,5 +9,6 @@ public class ProjectDeletedEvent {
 
 	private final Long projectId;
 	private final String projectName;
+	private final Long deleterId;
 
 }

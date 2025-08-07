@@ -11,5 +11,7 @@ public class ProjectMemberAddedEvent {
 
 	private final Long userId;
 	private final LocalDateTime periodEnd;
+	private final Long projectOwnerId;
+	private final Long projectId;
 
 }
