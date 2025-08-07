@@ -28,7 +28,7 @@ public class SurveyReadRepositoryImpl implements SurveyReadRepository {
 	@Override
 	public List<SurveyReadEntity> findByProjectIdOrderByCreatedAtDesc(Long projectId, Pageable pageable) {
 		Query query = new Query(Criteria.where("projectId").is(projectId));
-		query.with(by(DESC, "createdAt"));
+		query.with(by(DESC, "surveyId"));
 		query.limit(pageable.getPageSize());
 		return mongoTemplate.find(query, SurveyReadEntity.class);
 	}
@@ -39,7 +39,7 @@ public class SurveyReadRepositoryImpl implements SurveyReadRepository {
 	) {
 		Query query = new Query(Criteria.where("projectId").is(projectId));
 		query.addCriteria(Criteria.where("surveyId").gt(lastSurveyId));
-		query.with(by(DESC, "createdAt"));
+		query.with(by(DESC, "surveyId"));
 		query.limit(pageable.getPageSize());
 		return mongoTemplate.find(query, SurveyReadEntity.class);
 	}

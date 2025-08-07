@@ -62,14 +62,18 @@ public class SurveyReadService {
 
 	@Transactional(readOnly = true)
 	public SearchSurveyStatusResponse findBySurveyStatus(String surveyStatus) {
-		SurveyStatus status = SurveyStatus.valueOf(surveyStatus);
-		List<SurveyReadEntity> surveyReadEntities = surveyReadRepository.findByStatus(status.name());
+		try {
+			SurveyStatus status = SurveyStatus.valueOf(surveyStatus);
+			List<SurveyReadEntity> surveyReadEntities = surveyReadRepository.findByStatus(status.name());
 
-		List<Long> surveyIds = surveyReadEntities.stream()
-			.map(SurveyReadEntity::getSurveyId)
-			.collect(Collectors.toList());
+			List<Long> surveyIds = surveyReadEntities.stream()
+				.map(SurveyReadEntity::getSurveyId)
+				.collect(Collectors.toList());
 
-		return SearchSurveyStatusResponse.from(surveyIds);
+			return SearchSurveyStatusResponse.from(surveyIds);
+		} catch (IllegalArgumentException e) {
+			throw new CustomException(CustomErrorCode.STATUS_INVALID_FORMAT);
+		}
 	}
 
 	private SearchSurveyTitleResponse convertToSearchSurveyTitleResponse(SurveyReadEntity entity) {

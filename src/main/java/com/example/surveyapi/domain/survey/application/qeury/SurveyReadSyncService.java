@@ -80,20 +80,25 @@ public class SurveyReadSyncService {
 	public void questionReadSync(Long surveyId, List<QuestionSyncDto> dtos) {
 		log.debug("설문 조회 테이블 질문 동기화 시작");
 
-		SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+		try {
+			SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
+				.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
-		surveyRead.setQuestions(dtos.stream().map(dto -> {
-			return new SurveyReadEntity.QuestionSummary(
-				dto.getQuestionId(), dto.getContent(), dto.getType(),
-				dto.isRequired(), dto.getDisplayOrder(),
-				dto.getChoices()
-					.stream()
-					.map(choiceDto -> Choice.of(choiceDto.getContent(), choiceDto.getDisplayOrder()))
-					.toList()
-			);
-		}).toList());
-		surveyReadRepository.save(surveyRead);
+			surveyRead.setQuestions(dtos.stream().map(dto -> {
+				return new SurveyReadEntity.QuestionSummary(
+					dto.getQuestionId(), dto.getContent(), dto.getType(),
+					dto.isRequired(), dto.getDisplayOrder(),
+					dto.getChoices()
+						.stream()
+						.map(choiceDto -> Choice.of(choiceDto.getContent(), choiceDto.getDisplayOrder()))
+						.toList()
+				);
+			}).toList());
+			surveyReadRepository.save(surveyRead);
+			log.debug("설문 조회 테이블 질문 동기화 종료");
+		} catch (Exception e) {
+			log.error("설문 조회 테이블 질문 동기화 실패: surveyId={}, error={}", surveyId, e.getMessage());
+		}
 	}
 
 	@Async
@@ -112,6 +117,12 @@ public class SurveyReadSyncService {
 	public void batchParticipationCountSync() {
 		log.debug("참여자 수 조회 시작");
 		List<SurveyReadEntity> surveys = surveyReadRepository.findAll();
+
+		if (surveys.isEmpty()) {
+			log.debug("동기화할 설문이 없습니다.");
+			return;
+		}
+
 		List<Long> surveyIds = surveys.stream().map(SurveyReadEntity::getSurveyId).toList();
 
 		Map<String, Integer> surveyPartCounts = partPort.getParticipationCounts(surveyIds).getSurveyPartCounts();

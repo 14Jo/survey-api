@@ -20,10 +20,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Document(collection = "survey_summaries")
-@CompoundIndex(name = "project_status_count",
-	def = "{'projectId': 1, 'status': 1, 'participationCount': -1}")
-@CompoundIndex(name = "project_created",
-	def = "{'projectId': 1, 'createdAt': -1}")
 @Getter
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

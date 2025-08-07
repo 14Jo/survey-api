@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.survey.application;
 
 import com.example.surveyapi.domain.survey.application.command.QuestionService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionOrderService;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
@@ -18,6 +19,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -38,11 +40,17 @@ class QuestionServiceTest {
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
+    @Container
+    static MongoDBContainer mongo = new MongoDBContainer("mongo:7");
+
     @DynamicPropertySource
     static void configureProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgres::getJdbcUrl);
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
+        
+        registry.add("spring.data.mongodb.uri", mongo::getReplicaSetUrl);
+        registry.add("spring.data.mongodb.database", () -> "test_survey_read_db");
     }
 
     @Autowired
@@ -53,6 +61,9 @@ class QuestionServiceTest {
 
     @MockitoBean
     private QuestionOrderService questionOrderService;
+
+    @MockitoBean
+    private SurveyReadSyncService surveyReadSyncService;
 
     private List<QuestionInfo> questionInfos;
 
@@ -79,6 +90,8 @@ class QuestionServiceTest {
         List<Question> savedQuestions = questionRepository.findAllBySurveyId(surveyId);
         assertThat(savedQuestions).hasSize(2);
         assertThat(savedQuestions.get(0).getContent()).isEqualTo("질문1");
+        assertThat(savedQuestions.get(1).getContent()).isEqualTo("질문2");
+        assertThat(savedQuestions.get(1).getType()).isEqualTo(QuestionType.MULTIPLE_CHOICE);
     }
 
     @Test

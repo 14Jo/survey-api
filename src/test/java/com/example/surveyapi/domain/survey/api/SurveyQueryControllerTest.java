@@ -25,15 +25,13 @@ import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
-import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
-import com.example.surveyapi.domain.survey.domain.query.dto.SurveyStatusList;
-import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
+import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 
 @ExtendWith(MockitoExtension.class)
 class SurveyQueryControllerTest {
@@ -55,16 +53,14 @@ class SurveyQueryControllerTest {
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
-        SurveyDetail surveyDetail = SurveyDetail.of(1L, "title", "description", SurveyStatus.PREPARING,
-            SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)),
-            SurveyOption.of(true, true), List.of());
-        surveyDetailResponse = SearchSurveyDetailResponse.from(surveyDetail, 3);
+        // 설문 상세 응답 생성
+        surveyDetailResponse = createSurveyDetailResponse();
 
-        SurveyTitle surveyTitle = SurveyTitle.of(1L, "title", SurveyOption.of(true, true), SurveyStatus.PREPARING,
-            SurveyDuration.of(LocalDateTime.now(), LocalDateTime.now().plusDays(1)));
-        surveyTitleResponse = SearchSurveyTitleResponse.from(surveyTitle, 3);
+        // 설문 목록 응답 생성
+        surveyTitleResponse = createSurveyTitleResponse();
 
-        surveyStatusResponse = SearchSurveyStatusResponse.from(new SurveyStatusList(List.of(1L, 2L, 3L)));
+        // 설문 상태 응답 생성
+        surveyStatusResponse = SearchSurveyStatusResponse.from(List.of(1L, 2L, 3L));
     }
 
     @Test
@@ -111,6 +107,22 @@ class SurveyQueryControllerTest {
     }
 
     @Test
+    @DisplayName("프로젝트 설문 목록 조회 - 커서 기반 페이징 성공")
+    void getSurveyList_with_cursor_success() throws Exception {
+        // given
+        when(surveyReadService.findSurveyByProjectId(anyLong(), any()))
+                .thenReturn(List.of(surveyTitleResponse));
+
+        // when & then
+        mockMvc.perform(get("/api/v1/projects/1/surveys")
+                .param("lastSurveyId", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("조회 성공"))
+                .andExpect(jsonPath("$.data").isArray());
+    }
+
+    @Test
     @DisplayName("설문 목록 조회 (v2) - 성공")
     void getSurveyList_v2_success() throws Exception {
         // given
@@ -133,10 +145,52 @@ class SurveyQueryControllerTest {
 
         // when & then
         mockMvc.perform(get("/api/v2/survey/find-status")
-                .param("surveyStatus", "ACTIVE"))
+                .param("surveyStatus", "PREPARING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("조회 성공"))
                 .andExpect(jsonPath("$.data").exists());
+    }
+
+    @Test
+    @DisplayName("설문 상태 조회 - 잘못된 상태값 실패")
+    void getSurveyStatus_fail_invalid_status() throws Exception {
+        // given
+        when(surveyReadService.findBySurveyStatus(anyString()))
+                .thenThrow(new CustomException(CustomErrorCode.STATUS_INVALID_FORMAT));
+
+        // when & then
+        mockMvc.perform(get("/api/v2/survey/find-status")
+                .param("surveyStatus", "INVALID_STATUS"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    private SearchSurveyDetailResponse createSurveyDetailResponse() {
+        // SurveyReadEntity를 사용하여 테스트 데이터 생성
+        SurveyReadEntity.SurveyOptions options = new SurveyReadEntity.SurveyOptions(
+            true, true, LocalDateTime.now(), LocalDateTime.now().plusDays(7)
+        );
+        
+        SurveyReadEntity entity = SurveyReadEntity.create(
+            1L, 1L, "테스트 설문", "테스트 설문 설명", 
+            SurveyStatus.PREPARING.name(), 5, options
+        );
+        
+        return SearchSurveyDetailResponse.from(entity, 5);
+    }
+
+    private SearchSurveyTitleResponse createSurveyTitleResponse() {
+        // SurveyReadEntity를 사용하여 테스트 데이터 생성
+        SurveyReadEntity.SurveyOptions options = new SurveyReadEntity.SurveyOptions(
+            true, true, LocalDateTime.now(), LocalDateTime.now().plusDays(7)
+        );
+        
+        SurveyReadEntity entity = SurveyReadEntity.create(
+            1L, 1L, "테스트 설문", "테스트 설문 설명", 
+            SurveyStatus.PREPARING.name(), 5, options
+        );
+        
+        return SearchSurveyTitleResponse.from(entity);
     }
 } 

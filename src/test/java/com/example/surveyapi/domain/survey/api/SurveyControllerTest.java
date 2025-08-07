@@ -23,9 +23,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(MockitoExtension.class)
 class SurveyControllerTest {
 
-    @Mock
-    private SurveyService surveyService;
-
     @InjectMocks
     private SurveyController surveyController;
 
