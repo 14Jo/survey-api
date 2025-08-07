@@ -56,6 +56,18 @@ public class SurveyReadRepositoryImpl implements SurveyReadRepository {
 	}
 
 	@Override
+	public List<SurveyReadEntity> findBySurveyIdIn(List<Long> surveyIds) {
+		Query query = new Query(Criteria.where("surveyId").in(surveyIds));
+		return mongoTemplate.find(query, SurveyReadEntity.class);
+	}
+
+	@Override
+	public List<SurveyReadEntity> findByStatus(String status) {
+		Query query = new Query(Criteria.where("status").is(status));
+		return mongoTemplate.find(query, SurveyReadEntity.class);
+	}
+
+	@Override
 	public SurveyReadEntity save(SurveyReadEntity surveyRead) {
 		return mongoTemplate.save(surveyRead);
 	}

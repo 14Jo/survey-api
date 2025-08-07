@@ -35,8 +35,12 @@ public class SearchSurveyTitleResponse {
 		response.surveyId = entity.getSurveyId();
 		response.title = entity.getTitle();
 		response.status = entity.getStatus();
-		response.option = Option.from(entity.getOptions().isAnonymous(), entity.getOptions().isAllowResponseUpdate());
-		response.duration = Duration.from(entity.getOptions().getStartDate(), entity.getOptions().getEndDate());
+		
+		if (entity.getOptions() != null) {
+			response.option = Option.from(entity.getOptions().isAnonymous(), entity.getOptions().isAllowResponseUpdate());
+			response.duration = Duration.from(entity.getOptions().getStartDate(), entity.getOptions().getEndDate());
+		}
+		
 		response.participationCount = entity.getParticipationCount();
 		return response;
 	}
