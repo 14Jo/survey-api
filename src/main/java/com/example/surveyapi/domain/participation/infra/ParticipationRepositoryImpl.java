@@ -40,13 +40,13 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 	}
 
 	@Override
-	public boolean exists(Long surveyId, Long memberId) {
-		return jpaParticipationRepository.existsBySurveyIdAndMemberIdAndIsDeletedFalse(surveyId, memberId);
+	public boolean exists(Long surveyId, Long userId) {
+		return jpaParticipationRepository.existsBySurveyIdAndUserIdAndIsDeletedFalse(surveyId, userId);
 	}
 
 	@Override
-	public Page<ParticipationInfo> findParticipationInfos(Long memberId, Pageable pageable) {
-		return participationQueryRepository.findParticipationInfos(memberId, pageable);
+	public Page<ParticipationInfo> findParticipationInfos(Long userId, Pageable pageable) {
+		return participationQueryRepository.findParticipationInfos(userId, pageable);
 	}
 
 	@Override
