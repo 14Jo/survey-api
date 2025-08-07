@@ -56,9 +56,9 @@ class ShareServiceTest {
 
 		ProjectMemberAddedEvent event = new ProjectMemberAddedEvent(
 			sourceId,
-			creatorId,
+			expirationDate,
 			2L,
-			expirationDate
+			creatorId
 		);
 
 		//when

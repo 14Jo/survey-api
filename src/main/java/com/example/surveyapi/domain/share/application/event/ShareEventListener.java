@@ -51,7 +51,7 @@ public class ShareEventListener {
 		shareService.createShare(
 			ShareSourceType.PROJECT_MANAGER,
 			event.getProjectId(),
-			event.getCreatorId(),
+			event.getProjectOwnerId(),
 			ShareMethod.URL, // TODO: 변경 방식은 추후 변경
 			event.getPeriodEnd(),
 			recipientIds,
@@ -68,7 +68,7 @@ public class ShareEventListener {
 		shareService.createShare(
 			ShareSourceType.PROJECT_MEMBER,
 			event.getProjectId(),
-			event.getCreatorId(),
+			event.getProjectOwnerId(),
 			ShareMethod.URL, // TODO : 변경 방식은 추후 변경
 			event.getPeriodEnd(),
 			recipientIds,
@@ -83,7 +83,7 @@ public class ShareEventListener {
 		List<Share> shares = shareService.getShareBySource(event.getProjectId());
 
 		for (Share share: shares) {
-			shareService.delete(share.getId(), event.getUserId());
+			shareService.delete(share.getId(), event.getDeleterId());
 		}
 		log.info("프로젝트 삭제 완료");
 	}
