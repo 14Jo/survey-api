@@ -1,16 +1,16 @@
 package com.example.surveyapi.domain.survey.application;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.QueryService.SurveyReadSyncService;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
+import com.example.surveyapi.domain.survey.application.QueryService.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
@@ -20,11 +20,14 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SurveyService {
 
+	private final SurveyReadSyncService surveyReadSyncService;
 	private final SurveyRepository surveyRepository;
 	private final ProjectPort projectPort;
 
@@ -52,6 +55,13 @@ public class SurveyService {
 			request.getQuestions().stream().map(CreateSurveyRequest.QuestionRequest::toQuestionInfo).toList()
 		);
 		Survey save = surveyRepository.save(survey);
+
+		try {
+			surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
+			log.info("설문 생성 후 MongoDB 동기화 요청 완료: surveyId={}", save.getSurveyId());
+		} catch (Exception e) {
+			log.error("설문 생성 후 MongoDB 동기화 요청 실패: surveyId={}, error={}", save.getSurveyId(), e.getMessage());
+		}
 
 		return save.getSurveyId();
 	}
