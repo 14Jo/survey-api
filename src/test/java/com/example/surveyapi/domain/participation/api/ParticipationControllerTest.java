@@ -61,10 +61,10 @@ class ParticipationControllerTest {
 		SecurityContextHolder.clearContext();
 	}
 
-	private void authenticateUser(Long memberId) {
+	private void authenticateUser(Long userId) {
 		SecurityContextHolder.getContext().setAuthentication(
 			new UsernamePasswordAuthenticationToken(
-				memberId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
+				userId, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"))
 			)
 		);
 	}
@@ -200,18 +200,18 @@ class ParticipationControllerTest {
 	void getParticipation() throws Exception {
 		// given
 		Long participationId = 1L;
-		Long memberId = 1L;
-		authenticateUser(memberId);
+		Long userId = 1L;
+		authenticateUser(userId);
 
 		List<ResponseData> responseDataList = List.of(createResponseData(1L, Map.of("text", "응답 상세 조회")));
 
 		ParticipationDetailResponse serviceResult = ParticipationDetailResponse.from(
-			Participation.create(memberId, 1L, ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
+			Participation.create(userId, 1L, ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
 				responseDataList)
 		);
 		ReflectionTestUtils.setField(serviceResult, "participationId", participationId);
 
-		when(participationService.get(eq(memberId), eq(participationId))).thenReturn(serviceResult);
+		when(participationService.get(eq(userId), eq(participationId))).thenReturn(serviceResult);
 
 		// when & then
 		mockMvc.perform(get("/api/v1/participations/{participationId}", participationId)
@@ -227,11 +227,11 @@ class ParticipationControllerTest {
 	void getParticipation_notFound() throws Exception {
 		// given
 		Long participationId = 999L;
-		Long memberId = 1L;
-		authenticateUser(memberId);
+		Long userId = 1L;
+		authenticateUser(userId);
 
 		doThrow(new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION))
-			.when(participationService).get(eq(memberId), eq(participationId));
+			.when(participationService).get(eq(userId), eq(participationId));
 
 		// when & then
 		mockMvc.perform(get("/api/v1/participations/{participationId}", participationId)
@@ -245,11 +245,11 @@ class ParticipationControllerTest {
 	void getParticipation_accessDenied() throws Exception {
 		// given
 		Long participationId = 1L;
-		Long memberId = 1L;
-		authenticateUser(memberId);
+		Long userId = 1L;
+		authenticateUser(userId);
 
 		doThrow(new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW))
-			.when(participationService).get(eq(memberId), eq(participationId));
+			.when(participationService).get(eq(userId), eq(participationId));
 
 		// when & then
 		mockMvc.perform(get("/api/v1/participations/{participationId}", participationId)
@@ -263,15 +263,15 @@ class ParticipationControllerTest {
 	void updateParticipation() throws Exception {
 		// given
 		Long participationId = 1L;
-		Long memberId = 1L;
-		authenticateUser(memberId);
+		Long userId = 1L;
+		authenticateUser(userId);
 
 		CreateParticipationRequest request = new CreateParticipationRequest();
 		ReflectionTestUtils.setField(request, "responseDataList",
 			List.of(createResponseData(1L, Map.of("textAnswer", "수정된 답변"))));
 
 		doNothing().when(participationService)
-			.update(anyString(), eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
+			.update(anyString(), eq(userId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
 		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
@@ -287,8 +287,8 @@ class ParticipationControllerTest {
 	void updateParticipation_notFound() throws Exception {
 		// given
 		Long participationId = 999L;
-		Long memberId = 1L;
-		authenticateUser(memberId);
+		Long userId = 1L;
+		authenticateUser(userId);
 
 		CreateParticipationRequest request = new CreateParticipationRequest();
 		ReflectionTestUtils.setField(request, "responseDataList",
@@ -296,7 +296,7 @@ class ParticipationControllerTest {
 
 		doThrow(new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION))
 			.when(participationService)
-			.update(anyString(), eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
+			.update(anyString(), eq(userId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
 		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
@@ -312,8 +312,8 @@ class ParticipationControllerTest {
 	void updateParticipation_accessDenied() throws Exception {
 		// given
 		Long participationId = 1L;
-		Long memberId = 1L;
-		authenticateUser(memberId);
+		Long userId = 1L;
+		authenticateUser(userId);
 
 		CreateParticipationRequest request = new CreateParticipationRequest();
 		ReflectionTestUtils.setField(request, "responseDataList",
@@ -321,7 +321,7 @@ class ParticipationControllerTest {
 
 		doThrow(new CustomException(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW))
 			.when(participationService)
-			.update(anyString(), eq(memberId), eq(participationId), any(CreateParticipationRequest.class));
+			.update(anyString(), eq(userId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
 		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
