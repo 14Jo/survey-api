@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.QueryService;
+package com.example.surveyapi.domain.survey.application.qeury;
 
 import java.util.List;
 import java.util.Map;
@@ -8,13 +8,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.application.QueryService.dto.QuestionSyncDto;
-import com.example.surveyapi.domain.survey.application.QueryService.dto.SurveySyncDto;
-import com.example.surveyapi.domain.survey.application.client.ParticipationCountDto;
+import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
+import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -54,29 +54,58 @@ public class SurveyReadSyncService {
 
 	@Async
 	@Transactional
-	public void questionReadSync(Long surveyId, List<QuestionSyncDto> dtos) {
+	public void updateSurveyRead(SurveySyncDto dto) {
 		try {
-			log.debug("설문 조회 테이블 질문 동기화 시작");
+			log.debug("설문 조회 테이블 업데이트 시작");
 
-			SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
-				.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+			SurveySyncDto.SurveyOptions options = dto.getOptions();
+			SurveyReadEntity.SurveyOptions surveyOptions = new SurveyReadEntity.SurveyOptions(options.isAnonymous(),
+				options.isAllowResponseUpdate(), options.getStartDate(), options.getEndDate());
 
-			surveyRead.setQuestions(dtos.stream().map(dto -> {
-				return new SurveyReadEntity.QuestionSummary(
-					dto.getQuestionId(), dto.getContent(), dto.getType(),
-					dto.isRequired(), dto.getDisplayOrder(),
-					dto.getChoices()
-						.stream()
-						.map(choiceDto -> Choice.of(choiceDto.getContent(), choiceDto.getDisplayOrder()))
-						.toList()
-				);
-			}).toList());
-			surveyReadRepository.save(surveyRead);
-			log.debug("설문 조회 테이블 질문 동기화 종료");
+			SurveyReadEntity surveyRead = SurveyReadEntity.create(
+				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
+				dto.getDescription(), dto.getStatus().name(), 0, surveyOptions
+			);
+
+			surveyReadRepository.updateBySurveyId(surveyRead);
+			log.debug("설문 조회 테이블 업데이트 종료");
 
 		} catch (Exception e) {
-			log.error("설문 조회 테이블 질문 동기화 실패 {}", e.getMessage());
+			log.error("설문 조회 테이블 업데이트 실패 {}", e.getMessage());
 		}
+	}
+
+	@Async
+	@Transactional
+	public void questionReadSync(Long surveyId, List<QuestionSyncDto> dtos) {
+		log.debug("설문 조회 테이블 질문 동기화 시작");
+
+		SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+
+		surveyRead.setQuestions(dtos.stream().map(dto -> {
+			return new SurveyReadEntity.QuestionSummary(
+				dto.getQuestionId(), dto.getContent(), dto.getType(),
+				dto.isRequired(), dto.getDisplayOrder(),
+				dto.getChoices()
+					.stream()
+					.map(choiceDto -> Choice.of(choiceDto.getContent(), choiceDto.getDisplayOrder()))
+					.toList()
+			);
+		}).toList());
+		surveyReadRepository.save(surveyRead);
+	}
+
+	@Async
+	@Transactional
+	public void deleteSurveyRead(Long surveyId) {
+		surveyReadRepository.deleteBySurveyId(surveyId);
+	}
+
+	@Async
+	@Transactional
+	public void updateSurveyStatus(Long surveyId, SurveyStatus status) {
+		surveyReadRepository.updateStatusBySurveyId(surveyId, status.name());
 	}
 
 	@Scheduled(fixedRate = 300000)

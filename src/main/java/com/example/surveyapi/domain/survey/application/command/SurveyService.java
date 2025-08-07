@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application;
+package com.example.surveyapi.domain.survey.application.command;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -6,11 +6,11 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.application.QueryService.SurveyReadSyncService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
-import com.example.surveyapi.domain.survey.application.QueryService.dto.SurveySyncDto;
+import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
@@ -55,18 +55,11 @@ public class SurveyService {
 			request.getQuestions().stream().map(CreateSurveyRequest.QuestionRequest::toQuestionInfo).toList()
 		);
 		Survey save = surveyRepository.save(survey);
-
-		try {
-			surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
-			log.info("설문 생성 후 MongoDB 동기화 요청 완료: surveyId={}", save.getSurveyId());
-		} catch (Exception e) {
-			log.error("설문 생성 후 MongoDB 동기화 요청 실패: surveyId={}, error={}", save.getSurveyId(), e.getMessage());
-		}
+		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
 
 		return save.getSurveyId();
 	}
 
-	//TODO 실제 업데이트 적용 컬럼 수 계산하는 쿼리 작성 필요
 	@Transactional
 	public Long update(String authHeader, Long surveyId, Long userId, UpdateSurveyRequest request) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
@@ -110,6 +103,7 @@ public class SurveyService {
 
 		survey.updateFields(updateFields);
 		surveyRepository.update(survey);
+		surveyReadSyncService.updateSurveyRead(SurveySyncDto.from(survey));
 
 		return survey.getSurveyId();
 	}
@@ -135,12 +129,13 @@ public class SurveyService {
 
 		survey.delete();
 		surveyRepository.delete(survey);
+		surveyReadSyncService.deleteSurveyRead(surveyId);
 
 		return survey.getSurveyId();
 	}
 
 	@Transactional
-	public Long open(String authHeader, Long surveyId, Long userId) {
+	public void open(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
@@ -155,12 +150,11 @@ public class SurveyService {
 
 		survey.open();
 		surveyRepository.stateUpdate(survey);
-
-		return survey.getSurveyId();
+		updateState(surveyId, survey.getStatus());
 	}
 
 	@Transactional
-	public Long close(String authHeader, Long surveyId, Long userId) {
+	public void close(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
@@ -175,7 +169,10 @@ public class SurveyService {
 
 		survey.close();
 		surveyRepository.stateUpdate(survey);
+		updateState(surveyId, survey.getStatus());
+	}
 
-		return survey.getSurveyId();
+	private void updateState(Long surveyId, SurveyStatus surveyStatus) {
+		surveyReadSyncService.updateSurveyStatus(surveyId, surveyStatus);
 	}
 }

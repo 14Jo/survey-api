@@ -1,6 +1,6 @@
 package com.example.surveyapi.domain.survey.api;
 
-import com.example.surveyapi.domain.survey.application.SurveyService;
+import com.example.surveyapi.domain.survey.application.command.SurveyService;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;

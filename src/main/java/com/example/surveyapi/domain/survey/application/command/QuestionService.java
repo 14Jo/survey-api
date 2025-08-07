@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application;
+package com.example.surveyapi.domain.survey.application.command;
 
 import java.util.List;
 
@@ -6,8 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.application.QueryService.SurveyReadSyncService;
-import com.example.surveyapi.domain.survey.application.QueryService.dto.QuestionSyncDto;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
+import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionOrderService;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;

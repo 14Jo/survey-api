@@ -24,4 +24,10 @@ public interface SurveyReadRepository {
 	SurveyReadEntity save(SurveyReadEntity surveyRead);
 
 	void saveAll(List<SurveyReadEntity> surveyReads);
+
+	void deleteBySurveyId(Long surveyId);
+
+	void updateStatusBySurveyId(Long surveyId, String status);
+
+	void updateBySurveyId(SurveyReadEntity surveyRead);
 }

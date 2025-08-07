@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.example.surveyapi.domain.survey.application.QuestionService;
+import com.example.surveyapi.domain.survey.application.command.QuestionService;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyDeletedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyUpdatedEvent;

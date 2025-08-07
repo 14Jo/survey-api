@@ -1,6 +1,6 @@
 package com.example.surveyapi.domain.survey.application;
 
-import com.example.surveyapi.domain.survey.application.QueryService.SurveyReadService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
