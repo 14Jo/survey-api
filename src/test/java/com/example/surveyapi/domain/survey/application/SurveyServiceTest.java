@@ -7,7 +7,10 @@ import com.example.surveyapi.domain.survey.application.command.SurveyService;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.SurveyRequest;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
+import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
+import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -19,12 +22,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -48,11 +53,17 @@ class SurveyServiceTest {
 	@Container
 	static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 
+	@Container
+	static MongoDBContainer mongo = new MongoDBContainer("mongo:7");
+
 	@DynamicPropertySource
 	static void configureProperties(DynamicPropertyRegistry registry) {
 		registry.add("spring.datasource.url", postgres::getJdbcUrl);
 		registry.add("spring.datasource.username", postgres::getUsername);
 		registry.add("spring.datasource.password", postgres::getPassword);
+		
+		registry.add("spring.data.mongodb.uri", mongo::getReplicaSetUrl);
+		registry.add("spring.data.mongodb.database", () -> "test_survey_read_db");
 	}
 
 	@Autowired
@@ -61,8 +72,17 @@ class SurveyServiceTest {
 	@Autowired
 	private SurveyRepository surveyRepository;
 
+	@Autowired
+	private SurveyReadRepository surveyReadRepository;
+
+	@Autowired
+	private MongoTemplate mongoTemplate;
+
 	@MockitoBean
 	private ProjectPort projectPort;
+
+	@MockitoBean
+	private SurveyReadSyncService surveyReadSyncService;
 
 	private CreateSurveyRequest createRequest;
 	private UpdateSurveyRequest updateRequest;
@@ -72,6 +92,9 @@ class SurveyServiceTest {
 
 	@BeforeEach
 	void setUp() {
+		// MongoDB 컬렉션 초기화
+		mongoTemplate.dropCollection(SurveyReadEntity.class);
+
 		ProjectValidDto validProject = ProjectValidDto.of(List.of(creatorId.intValue()), projectId);
 		ProjectStateDto openProjectState = ProjectStateDto.of("IN_PROGRESS");
 		when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(validProject);
@@ -103,7 +126,7 @@ class SurveyServiceTest {
 	@DisplayName("설문 생성 - 성공")
 	void createSurvey_success() {
 		// when
-		Long surveyId = surveyService.create(authHeader, creatorId, projectId, createRequest);
+		Long surveyId = surveyService.create(authHeader, projectId, creatorId, createRequest);
 
 		// then
 		Optional<Survey> foundSurvey = surveyRepository.findById(surveyId);
@@ -120,7 +143,7 @@ class SurveyServiceTest {
 		when(projectPort.getProjectMembers(anyString(), anyLong(), anyLong())).thenReturn(invalidProject);
 
 		// when & then
-		assertThatThrownBy(() -> surveyService.create(authHeader, creatorId, projectId, createRequest))
+		assertThatThrownBy(() -> surveyService.create(authHeader, projectId, creatorId, createRequest))
 			.isInstanceOf(CustomException.class)
 			.hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PERMISSION);
 	}
@@ -133,7 +156,7 @@ class SurveyServiceTest {
 		when(projectPort.getProjectState(anyString(), anyLong())).thenReturn(closedProjectState);
 
 		// when & then
-		assertThatThrownBy(() -> surveyService.create(authHeader, creatorId, projectId, createRequest))
+		assertThatThrownBy(() -> surveyService.create(authHeader, projectId, creatorId, createRequest))
 			.isInstanceOf(CustomException.class)
 			.hasFieldOrPropertyWithValue("errorCode", CustomErrorCode.INVALID_PROJECT_STATE);
 	}
@@ -146,10 +169,10 @@ class SurveyServiceTest {
 			createRequest.getSurveyDuration().toSurveyDuration(), createRequest.getSurveyOption().toSurveyOption(), List.of()));
 
 		// when
-		surveyService.update(authHeader, savedSurvey.getSurveyId(), creatorId, updateRequest);
+		Long updatedSurveyId = surveyService.update(authHeader, savedSurvey.getSurveyId(), creatorId, updateRequest);
 
 		// then
-		Survey updatedSurvey = surveyRepository.findById(savedSurvey.getSurveyId()).orElseThrow();
+		Survey updatedSurvey = surveyRepository.findById(updatedSurveyId).orElseThrow();
 		assertThat(updatedSurvey.getTitle()).isEqualTo("수정된 설문 제목");
 		assertThat(updatedSurvey.getDescription()).isEqualTo("수정된 설문 설명입니다.");
 	}
@@ -189,10 +212,10 @@ class SurveyServiceTest {
 			createRequest.getSurveyDuration().toSurveyDuration(), createRequest.getSurveyOption().toSurveyOption(), List.of()));
 
 		// when
-		surveyService.delete(authHeader, savedSurvey.getSurveyId(), creatorId);
+		Long deletedSurveyId = surveyService.delete(authHeader, savedSurvey.getSurveyId(), creatorId);
 
 		// then
-		Survey deletedSurvey = surveyRepository.findById(savedSurvey.getSurveyId()).orElseThrow();
+		Survey deletedSurvey = surveyRepository.findById(deletedSurveyId).orElseThrow();
 		assertThat(deletedSurvey.getIsDeleted()).isTrue();
 	}
 
