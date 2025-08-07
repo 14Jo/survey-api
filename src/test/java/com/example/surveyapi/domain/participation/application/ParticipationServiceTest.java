@@ -58,7 +58,7 @@ class ParticipationServiceTest {
 	private UserServicePort userServicePort;
 
 	private Long surveyId;
-	private Long memberId;
+	private Long userId;
 	private String authHeader;
 	private CreateParticipationRequest request;
 	private SurveyDetailDto surveyDetailDto;
@@ -67,7 +67,7 @@ class ParticipationServiceTest {
 	@BeforeEach
 	void setUp() {
 		surveyId = 1L;
-		memberId = 1L;
+		userId = 1L;
 		authHeader = "Bearer token";
 
 		List<ResponseData> responseDataList = List.of(
@@ -126,18 +126,18 @@ class ParticipationServiceTest {
 	@DisplayName("설문 응답 제출")
 	void createParticipation() {
 		// given
-		given(participationRepository.exists(surveyId, memberId)).willReturn(false);
+		given(participationRepository.exists(surveyId, userId)).willReturn(false);
 		given(surveyServicePort.getSurveyDetail(authHeader, surveyId)).willReturn(surveyDetailDto);
-		given(userServicePort.getParticipantInfo(authHeader, memberId)).willReturn(userSnapshotDto);
+		given(userServicePort.getParticipantInfo(authHeader, userId)).willReturn(userSnapshotDto);
 
-		Participation savedParticipation = Participation.create(memberId, surveyId,
+		Participation savedParticipation = Participation.create(userId, surveyId,
 			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
 			request.getResponseDataList());
 		ReflectionTestUtils.setField(savedParticipation, "id", 1L);
 		given(participationRepository.save(any(Participation.class))).willReturn(savedParticipation);
 
 		// when
-		Long participationId = participationService.create(authHeader, surveyId, memberId, request);
+		Long participationId = participationService.create(authHeader, surveyId, userId, request);
 
 		// then
 		assertThat(participationId).isEqualTo(1L);
@@ -148,10 +148,10 @@ class ParticipationServiceTest {
 	@DisplayName("설문 응답 제출 실패 - 이미 참여한 설문")
 	void createParticipation_alreadyParticipated() {
 		// given
-		given(participationRepository.exists(surveyId, memberId)).willReturn(true);
+		given(participationRepository.exists(surveyId, userId)).willReturn(true);
 
 		// when & then
-		assertThatThrownBy(() -> participationService.create(authHeader, surveyId, memberId, request))
+		assertThatThrownBy(() -> participationService.create(authHeader, surveyId, userId, request))
 			.isInstanceOf(CustomException.class)
 			.hasMessage(CustomErrorCode.SURVEY_ALREADY_PARTICIPATED.getMessage());
 	}
@@ -161,11 +161,11 @@ class ParticipationServiceTest {
 	void createParticipation_surveyNotActive() {
 		// given
 		ReflectionTestUtils.setField(surveyDetailDto, "status", SurveyApiStatus.CLOSED);
-		given(participationRepository.exists(surveyId, memberId)).willReturn(false);
+		given(participationRepository.exists(surveyId, userId)).willReturn(false);
 		given(surveyServicePort.getSurveyDetail(authHeader, surveyId)).willReturn(surveyDetailDto);
 
 		// when & then
-		assertThatThrownBy(() -> participationService.create(authHeader, surveyId, memberId, request))
+		assertThatThrownBy(() -> participationService.create(authHeader, surveyId, userId, request))
 			.isInstanceOf(CustomException.class)
 			.hasMessage(CustomErrorCode.SURVEY_NOT_ACTIVE.getMessage());
 	}
@@ -174,7 +174,7 @@ class ParticipationServiceTest {
 	@DisplayName("나의 전체 참여 목록 조회")
 	void getAllMyParticipation() {
 		// given
-		Long myMemberId = 1L;
+		Long myUserId = 1L;
 		Pageable pageable = PageRequest.of(0, 5);
 
 		List<ParticipationInfo> participationInfos = List.of(
@@ -182,7 +182,7 @@ class ParticipationServiceTest {
 			new ParticipationInfo(2L, 3L, LocalDateTime.now())
 		);
 		Page<ParticipationInfo> page = new PageImpl<>(participationInfos, pageable, 2);
-		given(participationRepository.findParticipationInfos(myMemberId, pageable)).willReturn(page);
+		given(participationRepository.findParticipationInfos(myUserId, pageable)).willReturn(page);
 
 		List<Long> surveyIds = List.of(1L, 3L);
 		List<SurveyInfoDto> surveyInfoDtos = List.of(
@@ -192,7 +192,7 @@ class ParticipationServiceTest {
 		given(surveyServicePort.getSurveyInfoList(authHeader, surveyIds)).willReturn(surveyInfoDtos);
 
 		// when
-		Page<ParticipationInfoResponse> result = participationService.gets(authHeader, myMemberId, pageable);
+		Page<ParticipationInfoResponse> result = participationService.gets(authHeader, myUserId, pageable);
 
 		// then
 		assertThat(result.getTotalElements()).isEqualTo(2);
@@ -220,13 +220,13 @@ class ParticipationServiceTest {
 	void getParticipation() {
 		// given
 		Long participationId = 1L;
-		Participation participation = Participation.create(memberId, surveyId,
+		Participation participation = Participation.create(userId, surveyId,
 			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
 			List.of(createResponseData(1L, Map.of("textAnswer", "상세 조회 답변"))));
 		given(participationRepository.findById(participationId)).willReturn(Optional.of(participation));
 
 		// when
-		ParticipationDetailResponse result = participationService.get(memberId, participationId);
+		ParticipationDetailResponse result = participationService.get(userId, participationId);
 
 		// then
 		assertThat(result).isNotNull();
@@ -246,14 +246,14 @@ class ParticipationServiceTest {
 		);
 		CreateParticipationRequest updateRequest = createParticipationRequest(updatedResponseDataList);
 
-		Participation participation = Participation.create(memberId, surveyId,
+		Participation participation = Participation.create(userId, surveyId,
 			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
 			request.getResponseDataList());
 		given(participationRepository.findById(participationId)).willReturn(Optional.of(participation));
 		given(surveyServicePort.getSurveyDetail(authHeader, surveyId)).willReturn(surveyDetailDto);
 
 		// when
-		participationService.update(authHeader, memberId, participationId, updateRequest);
+		participationService.update(authHeader, userId, participationId, updateRequest);
 
 		// then
 		assertThat(participation.getResponses()).hasSize(2);
@@ -266,7 +266,7 @@ class ParticipationServiceTest {
 		// given
 		Long participationId = 1L;
 		ReflectionTestUtils.setField(surveyDetailDto.getOption(), "allowResponseUpdate", false);
-		Participation participation = Participation.create(memberId, surveyId,
+		Participation participation = Participation.create(userId, surveyId,
 			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
 			request.getResponseDataList());
 
@@ -274,7 +274,7 @@ class ParticipationServiceTest {
 		given(surveyServicePort.getSurveyDetail(authHeader, surveyId)).willReturn(surveyDetailDto);
 
 		// when & then
-		assertThatThrownBy(() -> participationService.update(authHeader, memberId, participationId, request))
+		assertThatThrownBy(() -> participationService.update(authHeader, userId, participationId, request))
 			.isInstanceOf(CustomException.class)
 			.hasMessage(CustomErrorCode.CANNOT_UPDATE_RESPONSE.getMessage());
 	}
