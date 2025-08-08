@@ -131,22 +131,14 @@ public class ProjectService {
 
 	private void updatePendingProjects(LocalDateTime now) {
 		List<Project> pendingProjects = projectRepository.findPendingProjectsToStart(now);
-
-		for (Project project : pendingProjects) {
-			// TODO : Batch Update
-			project.autoUpdateState(ProjectState.IN_PROGRESS);
-			publishProjectEvents(project);
-		}
+		List<Long> projectIds = pendingProjects.stream().map(Project::getId).toList();
+		projectRepository.updateStateByIds(projectIds, ProjectState.IN_PROGRESS);
 	}
 
 	private void updateInProgressProjects(LocalDateTime now) {
 		List<Project> inProgressProjects = projectRepository.findInProgressProjectsToClose(now);
-
-		for (Project project : inProgressProjects) {
-			// TODO : Batch Update
-			project.autoUpdateState(ProjectState.CLOSED);
-			publishProjectEvents(project);
-		}
+		List<Long> projectIds = inProgressProjects.stream().map(Project::getId).toList();
+		projectRepository.updateStateByIds(projectIds, ProjectState.CLOSED);
 	}
 
 	private void validateDuplicateName(String name) {

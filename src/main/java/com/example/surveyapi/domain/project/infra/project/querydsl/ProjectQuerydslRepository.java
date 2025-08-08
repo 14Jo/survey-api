@@ -175,6 +175,39 @@ public class ProjectQuerydslRepository {
 			.fetch();
 	}
 
+	public long updateStateByIds(List<Long> projectIds, ProjectState newState) {
+		if (projectIds == null || projectIds.isEmpty()) {
+			return 0;
+		}
+		LocalDateTime now = LocalDateTime.now();
+
+		return query.update(project)
+			.set(project.state, newState)
+			.set(project.updatedAt, now)
+			.where(project.id.in(projectIds))
+			.execute();
+	}
+
+	public long removeMemberFromProjects(Long userId) {
+		LocalDateTime now = LocalDateTime.now();
+
+		return query.update(projectMember)
+			.set(projectMember.isDeleted, true)
+			.set(projectMember.updatedAt, now)
+			.where(projectMember.userId.eq(userId), projectMember.isDeleted.eq(false))
+			.execute();
+	}
+
+	public long removeManagerFromProjects(Long userId) {
+		LocalDateTime now = LocalDateTime.now();
+
+		return query.update(projectManager)
+			.set(projectManager.isDeleted, true)
+			.set(projectManager.updatedAt, now)
+			.where(projectManager.userId.eq(userId), projectManager.isDeleted.eq(false))
+			.execute();
+	}
+
 	// 내부 메소드
 
 	private BooleanExpression isProjectActive() {
