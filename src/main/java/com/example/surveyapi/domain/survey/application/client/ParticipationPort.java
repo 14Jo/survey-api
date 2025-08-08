@@ -4,5 +4,5 @@ import java.util.List;
 
 public interface ParticipationPort {
 
-	ParticipationCountDto getParticipationCounts(String authHeader, List<Long> surveyIds);
+	ParticipationCountDto getParticipationCounts(List<Long> surveyIds);
 }

@@ -40,8 +40,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/reissue").permitAll()
                 .requestMatchers("/auth/kakao/**").permitAll()
                 .requestMatchers("/api/v1/survey/**").permitAll()
+                .requestMatchers("/api/v1/surveys/**").permitAll()
+                .requestMatchers("/api/v1/projects/**").permitAll()
+                .requestMatchers("/api/v2/survey/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/api/v2/surveys/participations/count").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class);
 

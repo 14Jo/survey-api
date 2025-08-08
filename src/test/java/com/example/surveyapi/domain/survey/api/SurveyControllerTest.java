@@ -1,6 +1,6 @@
 package com.example.surveyapi.domain.survey.api;
 
-import com.example.surveyapi.domain.survey.application.SurveyService;
+import com.example.surveyapi.domain.survey.application.command.SurveyService;
 import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
@@ -22,9 +22,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class SurveyControllerTest {
-
-    @Mock
-    private SurveyService surveyService;
 
     @InjectMocks
     private SurveyController surveyController;

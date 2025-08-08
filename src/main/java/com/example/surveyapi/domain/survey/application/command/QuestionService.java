@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application;
+package com.example.surveyapi.domain.survey.application.command;
 
 import java.util.List;
 
@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
+import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.QuestionOrderService;
 import com.example.surveyapi.domain.survey.domain.question.QuestionRepository;
@@ -21,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class QuestionService {
 
+	private final SurveyReadSyncService surveyReadSyncService;
 	private final QuestionRepository questionRepository;
 	private final QuestionOrderService questionOrderService;
 
@@ -42,6 +45,17 @@ public class QuestionService {
 			)
 		).toList();
 		questionRepository.saveAll(questionList);
+
+		try {
+			surveyReadSyncService.questionReadSync(
+				surveyId,
+				questionList.stream().map(QuestionSyncDto::from).toList()
+			);
+			log.info("질문 생성 후 MongoDB 동기화 요청 완료");
+		} catch (Exception e) {
+			log.error("질문 생성 후 MongoDB 동기화 요청 실패 {} ", e.getMessage());
+		}
+
 		long endTime = System.currentTimeMillis();
 		log.info("질문 생성 시간 - 총 {} ms", endTime - startTime);
 	}

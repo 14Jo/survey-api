@@ -21,8 +21,8 @@ public class ParticipationAdapter implements ParticipationPort {
 	private final ParticipationApiClient participationApiClient;
 
 	@Override
-	public ParticipationCountDto getParticipationCounts(String authHeader, List<Long> surveyIds) {
-		ExternalApiResponse participationCounts = participationApiClient.getParticipationCounts(authHeader, surveyIds);
+	public ParticipationCountDto getParticipationCounts(List<Long> surveyIds) {
+		ExternalApiResponse participationCounts = participationApiClient.getParticipationCounts(surveyIds);
 
 		@SuppressWarnings("unchecked")
 		Map<String, Integer> rawData = (Map<String, Integer>)participationCounts.getData();

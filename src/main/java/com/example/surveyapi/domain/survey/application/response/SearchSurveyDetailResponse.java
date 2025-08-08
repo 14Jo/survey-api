@@ -10,6 +10,8 @@ import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
+import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
+import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -44,6 +46,28 @@ public class SearchSurveyDetailResponse {
 		return response;
 	}
 
+	public static SearchSurveyDetailResponse from(SurveyReadEntity entity, Integer participationCount) {
+		SearchSurveyDetailResponse response = new SearchSurveyDetailResponse();
+		response.surveyId = entity.getSurveyId();
+		response.title = entity.getTitle();
+		response.description = entity.getDescription();
+		response.status = SurveyStatus.valueOf(entity.getStatus());
+		response.participationCount = participationCount != null ? participationCount : entity.getParticipationCount();
+		
+		if (entity.getOptions() != null) {
+			response.option = Option.from(entity.getOptions().isAnonymous(), entity.getOptions().isAllowResponseUpdate());
+			response.duration = Duration.from(entity.getOptions().getStartDate(), entity.getOptions().getEndDate());
+		}
+		
+		if (entity.getQuestions() != null) {
+			response.questions = entity.getQuestions().stream()
+				.map(QuestionResponse::from)
+				.toList();
+		}
+		
+		return response;
+	}
+
 	@Getter
 	@NoArgsConstructor(access = AccessLevel.PRIVATE)
 	public static class Duration {
@@ -54,6 +78,13 @@ public class SearchSurveyDetailResponse {
 			Duration result = new Duration();
 			result.startDate = duration.getStartDate();
 			result.endDate = duration.getEndDate();
+			return result;
+		}
+
+		public static Duration from(LocalDateTime startDate, LocalDateTime endDate) {
+			Duration result = new Duration();
+			result.startDate = startDate;
+			result.endDate = endDate;
 			return result;
 		}
 	}
@@ -68,6 +99,13 @@ public class SearchSurveyDetailResponse {
 			Option result = new Option();
 			result.anonymous = option.isAnonymous();
 			result.allowResponseUpdate = option.isAllowResponseUpdate();
+			return result;
+		}
+
+		public static Option from(boolean anonymous, boolean allowResponseUpdate) {
+			Option result = new Option();
+			result.anonymous = anonymous;
+			result.allowResponseUpdate = allowResponseUpdate;
 			return result;
 		}
 	}
@@ -94,6 +132,19 @@ public class SearchSurveyDetailResponse {
 				.toList();
 			return result;
 		}
+
+		public static QuestionResponse from(SurveyReadEntity.QuestionSummary questionSummary) {
+			QuestionResponse result = new QuestionResponse();
+			result.questionId = questionSummary.getQuestionId();
+			result.content = questionSummary.getContent();
+			result.questionType = questionSummary.getQuestionType();
+			result.isRequired = questionSummary.isRequired();
+			result.displayOrder = questionSummary.getDisplayOrder();
+			result.choices = questionSummary.getChoices().stream()
+				.map(ChoiceResponse::from)
+				.toList();
+			return result;
+		}
 	}
 
 	@Getter
@@ -106,6 +157,13 @@ public class SearchSurveyDetailResponse {
 			ChoiceResponse result = new ChoiceResponse();
 			result.content = choiceInfo.getContent();
 			result.displayOrder = choiceInfo.getDisplayOrder();
+			return result;
+		}
+
+		public static ChoiceResponse from(Choice choice) {
+			ChoiceResponse result = new ChoiceResponse();
+			result.content = choice.getContent();
+			result.displayOrder = choice.getDisplayOrder();
 			return result;
 		}
 	}

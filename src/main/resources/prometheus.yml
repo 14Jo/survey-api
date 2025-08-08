@@ -9,20 +9,20 @@ scrape_configs:
     scrape_interval: 15s
     metrics_path: "/actuator/prometheus"
     static_configs:
-      - targets: ["host.docker.internal:8080"]
+      - targets: ["survey-app:8080"]
   # =======================================================
 
-# 도커로 프로메테우스 서버 실행 URL 부분은 본인 환경에 맞게 수정(/Users/ljy/IdeaProjects/survey-api/src/main/resources/prometheus.yml 이부분)
-# docker run -d -p 9090:9090 -v /Users/ljy/IdeaProjects/survey-api/src/main/resources/prometheus.yml:/etc/prometheus/prometheus.yml --name prometheus-server prom/prometheus
+# 도커 컴포즈로 프로메테우스 서버 실행
+# docker-compose up -d prometheus
 
 # 프로메테우스 서버 중지
-# docker stop prometheus-server
+# docker-compose stop prometheus
 
 # 프로메테우스 서버 재시작
-# docker start prometheus-server
+# docker-compose restart prometheus
 
 # 프로메테우스 서버 삭제
-# docker rm -f prometheus-server
+# docker-compose down prometheus
 
 # 그라파나 실행
-# docker run -d -p 3000:3000 --name grafana-server grafana/grafana
+# docker-compose up -d grafana

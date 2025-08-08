@@ -12,7 +12,7 @@ import com.example.surveyapi.global.config.client.ExternalApiResponse;
 @HttpExchange
 public interface ProjectApiClient {
 
-	@GetExchange("/api/v2/projects//me/managers")
+	@GetExchange("/api/v2/projects/me/managers")
 	ExternalApiResponse getProjectMembers(
 		@RequestHeader("Authorization") String authHeader
 	);
