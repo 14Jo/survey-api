@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.share.application;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,9 +19,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.example.surveyapi.domain.share.application.client.ShareServicePort;
+import com.example.surveyapi.domain.share.application.notification.NotificationSendService;
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
+import com.example.surveyapi.domain.share.domain.notification.repository.NotificationRepository;
 import com.example.surveyapi.domain.share.domain.notification.repository.query.NotificationQueryRepository;
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
@@ -33,7 +37,33 @@ class NotificationServiceTest {
 	private NotificationService notificationService;
 	@Mock
 	private NotificationQueryRepository notificationQueryRepository;
+	@Mock
+	private ShareServicePort shareServicePort;
+	@Mock
+	private NotificationRepository notificationRepository;
+	@Mock
+	private NotificationSendService notificationSendService;
 
+	@Test
+	@DisplayName("알림 생성 - 정상")
+	void create_success() {
+		//given
+		Long shareId = 1L;
+		Long creatorId = 1L;
+		LocalDateTime notifyAt = LocalDateTime.now();
+
+		Share share = mock(Share.class);
+		when(share.getId()).thenReturn(shareId);
+
+		List<Long> recipientIds = List.of(2L, 3L, 4L);
+		when(shareServicePort.getRecipientIds(shareId, creatorId)).thenReturn(recipientIds);
+
+		//when
+		notificationService.create(share, creatorId, notifyAt);
+
+		//then
+		verify(notificationRepository, times(1)).saveAll(anyList());
+	}
 	@Test
 	@DisplayName("알림 이력 조회 - 정상")
 	void gets_success() {
@@ -72,7 +102,7 @@ class NotificationServiceTest {
 
 	@Test
 	@DisplayName("알림 이력 조회 실패 - 존재하지 않는 공유 ID")
-	void gts_failed_invalidShareId() {
+	void gets_failed_invalidShareId() {
 		//given
 		Long shareId = 999L;
 		Long requesterId = 1L;
@@ -85,5 +115,40 @@ class NotificationServiceTest {
 		assertThatThrownBy(() -> notificationService.gets(shareId, requesterId, pageable))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_SHARE.getMessage());
+	}
+
+	@Test
+	@DisplayName("알림 전송 - 성공")
+	void send_success() {
+		//given
+		Notification notification = Notification.createForShare(
+			mock(Share.class), 1L, LocalDateTime.now()
+		);
+
+		//when
+		notificationService.send(notification);
+
+		//then
+		assertThat(notification.getStatus()).isEqualTo(Status.SENT);
+		verify(notificationRepository).save(notification);
+	}
+
+	@Test
+	@DisplayName("알림 전송 - 실패")
+	void send_failed() {
+		//given
+		Notification notification = Notification.createForShare(
+			mock(Share.class), 1L, LocalDateTime.now()
+		);
+
+		doThrow(new RuntimeException("전송 오류")).when(notificationSendService).send(notification);
+
+		//when
+		notificationService.send(notification);
+
+		//then
+		assertThat(notification.getStatus()).isEqualTo(Status.FAILED);
+		assertThat(notification.getFailedReason()).contains("전송 오류");
+		verify(notificationRepository).save(notification);
 	}
 }

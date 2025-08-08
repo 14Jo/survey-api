@@ -1,7 +1,5 @@
 package com.example.surveyapi.domain.share.api;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,11 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
-import com.example.surveyapi.domain.share.application.share.dto.CreateShareRequest;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -25,23 +21,6 @@ import lombok.RequiredArgsConstructor;
 public class ShareController {
 	private final ShareService shareService;
 	private final NotificationService notificationService;
-
-	@PostMapping("/v2/share-tasks")
-	public ResponseEntity<ApiResponse<ShareResponse>> createShare(
-		@Valid @RequestBody CreateShareRequest request,
-		@AuthenticationPrincipal Long creatorId
-	) {
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		// TODO : 이벤트 처리 적용(위 리스트는 더미)
-		ShareResponse response = shareService.createShare(
-			request.getSourceType(), request.getSourceId(),
-			creatorId, request.getShareMethod(),
-			request.getExpirationDate(), recipientIds);
-
-		return ResponseEntity
-			.status(HttpStatus.CREATED)
-			.body(ApiResponse.success("공유 캠페인 생성 완료", response));
-	}
 
 	@GetMapping("/v1/share-tasks/{shareId}")
 	public ResponseEntity<ApiResponse<ShareResponse>> get(

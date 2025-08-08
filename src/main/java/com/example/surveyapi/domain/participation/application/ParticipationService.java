@@ -47,8 +47,8 @@ public class ParticipationService {
 	private final UserServicePort userPort;
 
 	@Transactional
-	public Long create(String authHeader, Long surveyId, Long memberId, CreateParticipationRequest request) {
-		validateParticipationDuplicated(surveyId, memberId);
+	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
+		validateParticipationDuplicated(surveyId, userId);
 
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, surveyId);
 
@@ -60,9 +60,9 @@ public class ParticipationService {
 		// 문항과 답변 유효성 검증
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, memberId);
+		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, userId);
 
-		Participation participation = Participation.create(memberId, surveyId, participantInfo, responseDataList);
+		Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 
 		Participation savedParticipation = participationRepository.save(participation);
 
@@ -70,9 +70,13 @@ public class ParticipationService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<ParticipationInfoResponse> gets(String authHeader, Long memberId, Pageable pageable) {
-		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationInfos(memberId,
+	public Page<ParticipationInfoResponse> gets(String authHeader, Long userId, Pageable pageable) {
+		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationInfos(userId,
 			pageable);
+
+		if (participationInfos.isEmpty()) {
+			return Page.empty();
+		}
 
 		List<Long> surveyIds = participationInfos.getContent().stream()
 			.map(ParticipationInfo::getSurveyId)
@@ -128,10 +132,10 @@ public class ParticipationService {
 	}
 
 	@Transactional(readOnly = true)
-	public ParticipationDetailResponse get(Long loginMemberId, Long participationId) {
+	public ParticipationDetailResponse get(Long loginUserId, Long participationId) {
 		Participation participation = getParticipationOrThrow(participationId);
 
-		participation.validateOwner(loginMemberId);
+		participation.validateOwner(loginUserId);
 
 		// TODO: 상세 조회에서 수정가능한지 확인하기 위해 Response에 surveyStatus, endDate, allowResponseUpdate을 추가해야하는가 고려
 
@@ -139,11 +143,11 @@ public class ParticipationService {
 	}
 
 	@Transactional
-	public void update(String authHeader, Long memberId, Long participationId,
+	public void update(String authHeader, Long userId, Long participationId,
 		CreateParticipationRequest request) {
 		Participation participation = getParticipationOrThrow(participationId);
 
-		participation.validateOwner(memberId);
+		participation.validateOwner(userId);
 
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, participation.getSurveyId());
 
@@ -185,8 +189,8 @@ public class ParticipationService {
 	/*
 	private 메소드 정의
 	 */
-	private void validateParticipationDuplicated(Long surveyId, Long memberId) {
-		if (participationRepository.exists(surveyId, memberId)) {
+	private void validateParticipationDuplicated(Long surveyId, Long userId) {
+		if (participationRepository.exists(surveyId, userId)) {
 			throw new CustomException(CustomErrorCode.SURVEY_ALREADY_PARTICIPATED);
 		}
 	}
@@ -296,8 +300,8 @@ public class ParticipationService {
 		return false;
 	}
 
-	private ParticipantInfo getParticipantInfoByUser(String authHeader, Long memberId) {
-		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, memberId);
+	private ParticipantInfo getParticipantInfoByUser(String authHeader, Long userId) {
+		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, userId);
 
 		return ParticipantInfo.of(
 			userSnapshot.getBirth(),

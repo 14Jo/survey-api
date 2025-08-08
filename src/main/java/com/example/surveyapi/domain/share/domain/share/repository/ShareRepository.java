@@ -1,10 +1,12 @@
 package com.example.surveyapi.domain.share.domain.share.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 
 public interface ShareRepository {
 	Optional<Share> findByLink(String link);
@@ -15,4 +17,6 @@ public interface ShareRepository {
 	Optional<Share> findByToken(String token);
 
 	void delete(Share share);
+
+	List<Share> findBySource(Long sourceId);
 }
