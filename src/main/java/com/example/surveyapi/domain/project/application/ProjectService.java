@@ -1,9 +1,5 @@
 package com.example.surveyapi.domain.project.application;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +10,6 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
-import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -50,10 +45,17 @@ public class ProjectService {
 
 	@Transactional
 	public void updateProject(Long projectId, UpdateProjectRequest request) {
-		validateDuplicateName(request.getName());
 		Project project = findByIdOrElseThrow(projectId);
-		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
-			request.getPeriodEnd());
+
+		if (request.getName() != null && !request.getName().equals(project.getName())) {
+			validateDuplicateName(request.getName());
+		}
+
+		project.updateProject(
+			request.getName(), request.getDescription(),
+			request.getPeriodStart(), request.getPeriodEnd()
+		);
+
 		publishProjectEvents(project);
 	}
 
@@ -119,34 +121,6 @@ public class ProjectService {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
 		publishProjectEvents(project);
-	}
-
-	@Scheduled(cron = "0 0 0 * * *") // 매일 00시 실행
-	@Transactional
-	public void updateProjectStates() {
-		LocalDateTime now = LocalDateTime.now();
-		updatePendingProjects(now);
-		updateInProgressProjects(now);
-	}
-
-	private void updatePendingProjects(LocalDateTime now) {
-		List<Project> pendingProjects = projectRepository.findPendingProjectsToStart(now);
-
-		for (Project project : pendingProjects) {
-			// TODO : Batch Update
-			project.autoUpdateState(ProjectState.IN_PROGRESS);
-			publishProjectEvents(project);
-		}
-	}
-
-	private void updateInProgressProjects(LocalDateTime now) {
-		List<Project> inProgressProjects = projectRepository.findInProgressProjectsToClose(now);
-
-		for (Project project : inProgressProjects) {
-			// TODO : Batch Update
-			project.autoUpdateState(ProjectState.CLOSED);
-			publishProjectEvents(project);
-		}
 	}
 
 	private void validateDuplicateName(String name) {

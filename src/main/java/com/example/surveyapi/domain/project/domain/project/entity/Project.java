@@ -9,12 +9,11 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.Pr
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.participant.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
+import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
-import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
-import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
-import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
@@ -61,9 +60,9 @@ public class Project extends BaseEntity {
 	private ProjectState state = ProjectState.PENDING;
 	@Column(nullable = false)
 	private int maxMembers;
-	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	private List<ProjectManager> projectManagers = new ArrayList<>();
-	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	private List<ProjectMember> projectMembers = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, int maxMembers,
@@ -114,12 +113,6 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
-		registerEvent(new ProjectStateChangedEvent(this.id, newState.toString()));
-	}
-
-	public void autoUpdateState(ProjectState newState) {
-		this.state = newState;
-		registerEvent(new ProjectStateChangedEvent(this.id, newState.toString()));
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
