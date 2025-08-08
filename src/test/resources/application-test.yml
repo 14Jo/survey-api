@@ -16,6 +16,17 @@ spring:
     redis:
       host: ${ACTION_REDIS_HOST:localhost}
       port: ${ACTION_REDIS_PORT:6379}
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 # JWT Secret Key for test environment
 jwt:
   secret:

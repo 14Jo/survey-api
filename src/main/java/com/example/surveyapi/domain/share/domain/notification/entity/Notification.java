@@ -31,8 +31,10 @@ public class Notification extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "share_id")
 	private Share share;
-	@Column(name = "recipient_id", nullable = false)
+	@Column(name = "recipient_id")
 	private Long recipientId;
+	@Column(name = "recipient_email")
+	private String recipientEmail;
 	@Enumerated
 	@Column(name = "status", nullable = false)
 	private Status status;
@@ -46,6 +48,7 @@ public class Notification extends BaseEntity {
 	public Notification(
 		Share share,
 		Long recipientId,
+		String recipientEmail,
 		Status status,
 		LocalDateTime sentAt,
 		String failedReason,
@@ -53,14 +56,15 @@ public class Notification extends BaseEntity {
 	) {
 		this.share = share;
 		this.recipientId = recipientId;
+		this.recipientEmail = recipientEmail;
 		this.status = status;
 		this.sentAt = sentAt;
 		this.failedReason = failedReason;
 		this.notifyAt = notifyAt;
 	}
 
-	public static Notification createForShare(Share share, Long recipientId, LocalDateTime notifyAt) {
-		return new Notification(share, recipientId, Status.READY_TO_SEND, null, null, notifyAt);
+	public static Notification createForShare(Share share, Long recipientId, String recipientEmail, LocalDateTime notifyAt) {
+		return new Notification(share, recipientId, recipientEmail, Status.READY_TO_SEND, null, null, notifyAt);
 	}
 
 	public void setSent() {

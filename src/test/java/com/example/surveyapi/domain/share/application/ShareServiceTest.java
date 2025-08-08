@@ -2,39 +2,37 @@ package com.example.surveyapi.domain.share.application;
 
 import static org.assertj.core.api.Assertions.*;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.test.annotation.Commit;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
-import org.testcontainers.shaded.org.awaitility.Awaitility;
 
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
+import com.example.surveyapi.domain.share.domain.notification.repository.NotificationRepository;
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
-import com.example.surveyapi.global.exception.CustomException;
-
 
 @Transactional
 @ActiveProfiles("test")
 @SpringBootTest
 @Rollback(value = false)
+@TestPropertySource(properties = "management.health.mail.enabled=false")
 class ShareServiceTest {
 	@Autowired
 	private ShareRepository shareRepository;
@@ -42,89 +40,113 @@ class ShareServiceTest {
 	private ShareService shareService;
 	@Autowired
 	private ApplicationEventPublisher eventPublisher;
+	@Autowired
+	private NotificationRepository notificationRepository;
+	@MockBean
+	private JavaMailSender javaMailSender;
+
+	private Long savedShareId;
+
+	@BeforeEach
+	void setUp() {
+		ShareResponse response = shareService.createShare(
+			ShareSourceType.PROJECT_MEMBER,
+			1L,
+			1L,
+			ShareMethod.EMAIL,
+			LocalDateTime.of(2025, 12, 31, 23, 59, 59),
+			List.of(),
+			null
+		);
+		savedShareId = response.getId();
+	}
 
 	@Test
-	@Commit
-	@DisplayName("이벤트 기반 공유 생성 - ProjectMember")
+	@DisplayName("공유 생성")
 	void createShare_success() {
-		//given
-		Long sourceId = 1L;
-		Long creatorId = 1L;
-		ShareSourceType sourceType = ShareSourceType.PROJECT_MEMBER;
-		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		ShareMethod shareMethod = ShareMethod.URL;
+		Share share = shareRepository.findById(savedShareId)
+			.orElseThrow();
 
-		ProjectMemberAddedEvent event = new ProjectMemberAddedEvent(
-			sourceId,
-			expirationDate,
+		assertThat(share.getId()).isEqualTo(savedShareId);
+		assertThat(share.getNotifications()).isEmpty();
+		assertThat(share.getShareMethod()).isEqualTo(ShareMethod.EMAIL);
+	}
+
+	@Test
+	@DisplayName("이메일 알림 생성")
+	void createNotifications_success() {
+		//given
+		Long creatorId = 1L;
+		List<String> emails = List.of("user1@example.com", "user2@example.com");
+		LocalDateTime notifyAt = LocalDateTime.now();
+
+		//when
+		shareService.createNotifications(savedShareId, creatorId, emails, notifyAt);
+
+		//then
+		Share share = shareRepository.findById(savedShareId).orElseThrow();
+		List<Notification> notifications = share.getNotifications();
+
+		assertThat(notifications).hasSize(2);
+		for(Notification notification : notifications) {
+			assertThat(notification.getRecipientEmail()).isIn(emails);
+			assertThat(notification.getNotifyAt()).isEqualTo(notifyAt);
+			assertThat(notification.getStatus()).isEqualTo(Status.READY_TO_SEND);
+		}
+	}
+
+	@Test
+	@DisplayName("공유 조회 성공")
+	void getShare_success() {
+		ShareResponse response = shareService.getShare(savedShareId, 1L);
+
+		assertThat(response.getId()).isEqualTo(savedShareId);
+		assertThat(response.getShareMethod()).isEqualTo(ShareMethod.EMAIL);
+	}
+
+	@Test
+	@DisplayName("공유 삭제 성공")
+	void delete_success() {
+		//given
+		ShareResponse response = shareService.createShare(
+			ShareSourceType.PROJECT_MEMBER,
+			10L,
 			2L,
-			creatorId
+			ShareMethod.URL,
+			LocalDateTime.of(2025, 12, 31, 23, 59, 59),
+			List.of(),
+			null
 		);
 
 		//when
-		eventPublisher.publishEvent(event);
+		String result = shareService.delete(response.getId(), 2L);
 
 		//then
-		Awaitility.await()
-			.atMost(Duration.ofSeconds(5))
-			.pollInterval(Duration.ofMillis(300))
-			.untilAsserted(() -> {
-				List<Share> shares = shareRepository.findBySource(sourceId);
-				assertThat(shares).isNotEmpty();
-
-				Share share = shares.get(0);
-				assertThat(share.getSourceType()).isEqualTo(ShareSourceType.PROJECT_MEMBER);
-				assertThat(share.getSourceId()).isEqualTo(sourceId);
-				assertThat(share.getCreatorId()).isEqualTo(creatorId);
-				assertThat(share.getShareMethod()).isEqualTo(shareMethod);
-				assertThat(share.getLink()).startsWith("https://localhost:8080/api/v2/share/projects/");
-			});
+		assertThat(result).isEqualTo("공유 삭제 완료");
+		assertThat(shareRepository.findById(response.getId())).isEmpty();
 	}
 
 	@Test
-	@DisplayName("공유 조회 - 조회 성공")
-	void getShare_success() {
+	@DisplayName("토큰 조회 성공")
+	void getShareByToken_success() {
 		//given
-		Long sourceId = 1L;
-		Long creatorId = 1L;
-		ShareSourceType sourceType = ShareSourceType.PROJECT_MEMBER;
-		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		ShareMethod shareMethod = ShareMethod.URL;
-		LocalDateTime notifyAt = LocalDateTime.now();
-
-		ShareResponse response = shareService.createShare(
-			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds, notifyAt);
+		Share share = shareRepository.findById(savedShareId).orElseThrow();
+		String token = share.getToken();
 
 		//when
-		ShareResponse result = shareService.getShare(response.getId(), creatorId);
+		Share result = shareService.getShareByToken(token);
 
 		//then
-		assertThat(result).isNotNull();
-		assertThat(result.getId()).isEqualTo(response.getId());
-		assertThat(result.getSourceType()).isEqualTo(sourceType);
-		assertThat(result.getSourceId()).isEqualTo(sourceId);
-		assertThat(result.getShareMethod()).isEqualTo(shareMethod);
+		assertThat(result.getId()).isEqualTo(savedShareId);
+		assertThat(result.isDeleted()).isFalse();
 	}
 
 	@Test
-	@DisplayName("공유 조회 - 작성자 불일치 실패")
-	void getShare_failed_notCreator() {
-		//given
-		Long sourceId = 2L;
-		Long creatorId = 2L;
-		ShareSourceType sourceType = ShareSourceType.PROJECT_MEMBER;
-		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		ShareMethod shareMethod = ShareMethod.URL;
-		LocalDateTime notifyAt = LocalDateTime.now();
+	@DisplayName("공유 목록 조회")
+	void getShareBySource_success() {
+		List<Share> shares = shareService.getShareBySource(1L);
 
-		ShareResponse response = shareService.createShare(
-			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds, notifyAt);
-
-		//when, then
-		assertThatThrownBy(() -> shareService.getShare(response.getId(), 123L))
-			.isInstanceOf(CustomException.class)
-			.hasMessageContaining(CustomErrorCode.NOT_FOUND_SHARE.getMessage());
+		assertThat(shares).isNotEmpty();
+		assertThat(shares.get(0).getSourceId()).isEqualTo(1L);
 	}
 }

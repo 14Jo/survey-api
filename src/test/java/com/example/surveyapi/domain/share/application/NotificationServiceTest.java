@@ -19,7 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.example.surveyapi.domain.share.application.client.ShareServicePort;
+import com.example.surveyapi.domain.share.application.client.ShareValidationResponse;
 import com.example.surveyapi.domain.share.application.notification.NotificationSendService;
 import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
@@ -38,32 +38,10 @@ class NotificationServiceTest {
 	@Mock
 	private NotificationQueryRepository notificationQueryRepository;
 	@Mock
-	private ShareServicePort shareServicePort;
-	@Mock
 	private NotificationRepository notificationRepository;
 	@Mock
 	private NotificationSendService notificationSendService;
 
-	@Test
-	@DisplayName("알림 생성 - 정상")
-	void create_success() {
-		//given
-		Long shareId = 1L;
-		Long creatorId = 1L;
-		LocalDateTime notifyAt = LocalDateTime.now();
-
-		Share share = mock(Share.class);
-		when(share.getId()).thenReturn(shareId);
-
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		when(shareServicePort.getRecipientIds(shareId, creatorId)).thenReturn(recipientIds);
-
-		//when
-		notificationService.create(share, creatorId, notifyAt);
-
-		//then
-		verify(notificationRepository, times(1)).saveAll(anyList());
-	}
 	@Test
 	@DisplayName("알림 이력 조회 - 정상")
 	void gets_success() {
@@ -78,6 +56,7 @@ class NotificationServiceTest {
 		ReflectionTestUtils.setField(mockNotification, "id", 1L);
 		ReflectionTestUtils.setField(mockNotification, "share", mockShare);
 		ReflectionTestUtils.setField(mockNotification, "recipientId", requesterId);
+		ReflectionTestUtils.setField(mockNotification, "recipientEmail", "test@test.com");
 		ReflectionTestUtils.setField(mockNotification, "status", Status.SENT);
 		ReflectionTestUtils.setField(mockNotification, "sentAt", LocalDateTime.now());
 		ReflectionTestUtils.setField(mockNotification, "failedReason", null);
@@ -122,7 +101,7 @@ class NotificationServiceTest {
 	void send_success() {
 		//given
 		Notification notification = Notification.createForShare(
-			mock(Share.class), 1L, LocalDateTime.now()
+			mock(Share.class), 1L, "test@test.com", LocalDateTime.now()
 		);
 
 		//when
@@ -138,8 +117,9 @@ class NotificationServiceTest {
 	void send_failed() {
 		//given
 		Notification notification = Notification.createForShare(
-			mock(Share.class), 1L, LocalDateTime.now()
+			mock(Share.class), 1L, "test@test.com", LocalDateTime.now()
 		);
+		String email = "email";
 
 		doThrow(new RuntimeException("전송 오류")).when(notificationSendService).send(notification);
 
@@ -150,5 +130,41 @@ class NotificationServiceTest {
 		assertThat(notification.getStatus()).isEqualTo(Status.FAILED);
 		assertThat(notification.getFailedReason()).contains("전송 오류");
 		verify(notificationRepository).save(notification);
+	}
+
+	@Test
+	@DisplayName("알림 수신 대상 여부 검증 - 성공")
+	void isRecipient_success() {
+		//given
+		Long sourceId = 1L;
+		Long recipientId = 1L;
+
+		given(notificationQueryRepository.isRecipient(sourceId, recipientId))
+			.willReturn(true);
+
+		//when
+		ShareValidationResponse response = notificationService.isRecipient(sourceId, recipientId);
+
+		//then
+		assertThat(response).isNotNull();
+		assertThat(response.isValid()).isTrue();
+	}
+
+	@Test
+	@DisplayName("알림 수신 대상 여부 검증 - 실패")
+	void isRecipient_failed() {
+		//given
+		Long sourceid = 1L;
+		Long recipientId = 123L;
+
+		given(notificationQueryRepository.isRecipient(sourceid, recipientId))
+			.willReturn(false);
+
+		//when
+		ShareValidationResponse response = notificationService.isRecipient(sourceid, recipientId);
+
+		//then
+		assertThat(response).isNotNull();
+		assertThat(response.isValid()).isFalse();
 	}
 }
