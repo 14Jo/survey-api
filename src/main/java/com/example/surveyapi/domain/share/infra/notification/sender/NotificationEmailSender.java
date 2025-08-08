@@ -5,7 +5,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
-import com.example.surveyapi.domain.share.infra.annotation.ShareEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
