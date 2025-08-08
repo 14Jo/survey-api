@@ -188,20 +188,20 @@ public class ProjectQuerydslRepository {
 			.execute();
 	}
 
-	public long removeMemberFromProjects(Long userId) {
+	public void removeMemberFromProjects(Long userId) {
 		LocalDateTime now = LocalDateTime.now();
 
-		return query.update(projectMember)
+		query.update(projectMember)
 			.set(projectMember.isDeleted, true)
 			.set(projectMember.updatedAt, now)
 			.where(projectMember.userId.eq(userId), projectMember.isDeleted.eq(false))
 			.execute();
 	}
 
-	public long removeManagerFromProjects(Long userId) {
+	public void removeManagerFromProjects(Long userId) {
 		LocalDateTime now = LocalDateTime.now();
 
-		return query.update(projectManager)
+		query.update(projectManager)
 			.set(projectManager.isDeleted, true)
 			.set(projectManager.updatedAt, now)
 			.where(projectManager.userId.eq(userId), projectManager.isDeleted.eq(false))
