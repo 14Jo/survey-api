@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.share.infra.notification;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,5 +38,10 @@ public class NotificationRepositoryImpl implements NotificationRepository {
 	@Override
 	public void save(Notification notification) {
 		notificationJpaRepository.save(notification);
+	}
+
+	@Override
+	public Optional<Notification> findById(Long id) {
+		return notificationJpaRepository.findById(id);
 	}
 }
