@@ -20,4 +20,10 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
 
 		return dslRepository.findByShareId(shareId, requesterId, pageable);
 	}
+
+	@Override
+	public boolean isRecipient(Long sourceId, Long recipientId) {
+
+		return dslRepository.isRecipient(sourceId, recipientId);
+	}
 }

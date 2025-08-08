@@ -65,4 +65,21 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 
 		return pageResult;
 	}
+
+	@Override
+	public boolean isRecipient(Long sourceId, Long recipientId) {
+		QNotification notification = QNotification.notification;
+		QShare share = QShare.share;
+
+		Long count = queryFactory
+			.select(notification.count())
+			.from(notification)
+			.join(notification.share, share)
+			.where(
+				share.sourceId.eq(sourceId),
+				notification.recipientId.eq(recipientId)
+			).fetchOne();
+
+		return count != null && count > 0;
+	}
 }
