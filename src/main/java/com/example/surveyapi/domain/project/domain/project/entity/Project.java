@@ -60,9 +60,9 @@ public class Project extends BaseEntity {
 	private ProjectState state = ProjectState.PENDING;
 	@Column(nullable = false)
 	private int maxMembers;
-	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	private List<ProjectManager> projectManagers = new ArrayList<>();
-	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	private List<ProjectMember> projectMembers = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, int maxMembers,
