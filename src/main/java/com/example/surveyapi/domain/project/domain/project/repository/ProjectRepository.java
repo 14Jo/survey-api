@@ -11,6 +11,7 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 
 public interface ProjectRepository {
 
@@ -33,4 +34,10 @@ public interface ProjectRepository {
 	List<Project> findPendingProjectsToStart(LocalDateTime now);
 
 	List<Project> findInProgressProjectsToClose(LocalDateTime now);
+
+	void updateStateByIds(List<Long> projectIds, ProjectState newState);
+
+	void removeMemberFromProjects(Long userId);
+
+	void removeManagerFromProjects(Long userId);
 }

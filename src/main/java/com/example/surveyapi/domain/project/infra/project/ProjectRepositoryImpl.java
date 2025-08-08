@@ -12,6 +12,7 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
 import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
@@ -73,5 +74,20 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	@Override
 	public List<Project> findInProgressProjectsToClose(LocalDateTime now) {
 		return projectQuerydslRepository.findInProgressProjectsToClose(now);
+	}
+
+	@Override
+	public void updateStateByIds(List<Long> projectIds, ProjectState newState) {
+		projectQuerydslRepository.updateStateByIds(projectIds, newState);
+	}
+
+	@Override
+	public void removeMemberFromProjects(Long userId) {
+		projectQuerydslRepository.removeMemberFromProjects(userId);
+	}
+
+	@Override
+	public void removeManagerFromProjects(Long userId) {
+		projectQuerydslRepository.removeManagerFromProjects(userId);
 	}
 }
