@@ -15,12 +15,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectQueryService;
 import com.example.surveyapi.domain.project.application.ProjectService;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
+import com.example.surveyapi.domain.project.application.dto.request.SearchProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
@@ -57,10 +57,10 @@ public class ProjectController {
 
 	@GetMapping("/search")
 	public ResponseEntity<ApiResponse<Page<ProjectSearchInfoResponse>>> searchProjects(
-		@RequestParam(required = false) String keyword,
+		@Valid SearchProjectRequest request,
 		Pageable pageable
 	) {
-		Page<ProjectSearchInfoResponse> response = projectQueryService.searchProjects(keyword, pageable);
+		Page<ProjectSearchInfoResponse> response = projectQueryService.searchProjects(request, pageable);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 검색 성공", response));

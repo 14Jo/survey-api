@@ -50,7 +50,11 @@ public class Share extends BaseEntity {
 	@OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<Notification> notifications = new ArrayList<>();
 
-	public Share(ShareSourceType sourceType, Long sourceId, Long creatorId, ShareMethod shareMethod, String token, String link, LocalDateTime expirationDate, List<Long> recipientIds) {
+	public Share(ShareSourceType sourceType, Long sourceId,
+		Long creatorId, ShareMethod shareMethod,
+		String token, String link,
+		LocalDateTime expirationDate, List<Long> recipientIds,
+		LocalDateTime notifyAt) {
 		this.sourceType = sourceType;
 		this.sourceId = sourceId;
 		this.creatorId = creatorId;
@@ -59,7 +63,7 @@ public class Share extends BaseEntity {
 		this.link = link;
 		this.expirationDate = expirationDate;
 
-		createNotifications(recipientIds);
+		createNotifications(recipientIds, notifyAt);
 	}
 
 	public boolean isAlreadyExist(String link) {
@@ -68,19 +72,23 @@ public class Share extends BaseEntity {
 	}
 
 	public boolean isOwner(Long currentUserId) {
-		if (!creatorId.equals(currentUserId)) {
+		if (creatorId.equals(currentUserId)) {
 			return true;
 		}
 		return false;
 	}
 
-	private void createNotifications(List<Long> recipientIds) {
+	private void createNotifications(List<Long> recipientIds, LocalDateTime notifyAt) {
+		if(this.shareMethod == ShareMethod.URL) {
+			return;
+		}
+
 		if(recipientIds == null || recipientIds.isEmpty()) {
-			notifications.add(Notification.createForShare(this, this.creatorId));
+			notifications.add(Notification.createForShare(this, this.creatorId, notifyAt));
 			return;
 		}
 		recipientIds.forEach(recipientId -> {
-			notifications.add(Notification.createForShare(this, recipientId));
+			notifications.add(Notification.createForShare(this, recipientId, notifyAt));
 		});
 	}
 

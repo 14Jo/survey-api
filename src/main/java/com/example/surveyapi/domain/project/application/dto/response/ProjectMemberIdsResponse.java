@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.project.application.dto.response;
 
 import java.util.List;
 
-import com.example.surveyapi.domain.project.domain.member.entity.ProjectMember;
+import com.example.surveyapi.domain.project.domain.participant.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 
 import lombok.AccessLevel;

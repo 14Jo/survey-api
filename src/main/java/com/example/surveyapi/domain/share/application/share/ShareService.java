@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.share.application.client.ShareValidationResponse;
+import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
@@ -26,13 +27,21 @@ public class ShareService {
 	private final ShareRepository shareRepository;
 	private final ShareQueryRepository shareQueryRepository;
 	private final ShareDomainService shareDomainService;
+	private final NotificationService notificationService;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, ShareMethod shareMethod, LocalDateTime expirationDate, List<Long> recipientIds) {
+		Long creatorId, ShareMethod shareMethod,
+		LocalDateTime expirationDate, List<Long> recipientIds,
+		LocalDateTime notifyAt) {
 		//TODO : 설문 존재 여부 검증
 
-		Share share = shareDomainService.createShare(sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds);
+		Share share = shareDomainService.createShare(
+			sourceType, sourceId,
+			creatorId, shareMethod,
+			expirationDate, recipientIds, notifyAt);
 		Share saved = shareRepository.save(share);
+
+		notificationService.create(saved, creatorId, notifyAt);
 
 		return ShareResponse.from(saved);
 	}
@@ -42,13 +51,22 @@ public class ShareService {
 		Share share = shareRepository.findById(shareId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
-		// TODO : 권한 검증 - 관리자(admin)의 경우 추후 추가 예정
-
-		if (share.isOwner(currentUserId)) {
+		if (!share.isOwner(currentUserId)) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 
 		return ShareResponse.from(share);
+	}
+
+	@Transactional(readOnly = true)
+	public List<Share> getShareBySource(Long sourceId) {
+		List<Share> shares = shareRepository.findBySource(sourceId);
+
+		if (shares.isEmpty()) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return shares;
 	}
 
 	@Transactional(readOnly = true)
@@ -61,7 +79,7 @@ public class ShareService {
 		Share share = shareRepository.findById(shareId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
-		if (share.isOwner(currentUserId)) {
+		if (!share.isOwner(currentUserId)) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 		shareRepository.delete(share);

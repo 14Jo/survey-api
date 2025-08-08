@@ -1,6 +1,6 @@
 package com.example.surveyapi.domain.project.application.dto.request;
 
-import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

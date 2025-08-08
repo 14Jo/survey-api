@@ -25,7 +25,7 @@ public class ParticipationQueryDslRepository {
 
 	private final JPAQueryFactory queryFactory;
 
-	public Page<ParticipationInfo> findParticipationInfos(Long memberId, Pageable pageable) {
+	public Page<ParticipationInfo> findParticipationInfos(Long userId, Pageable pageable) {
 		List<ParticipationInfo> participations = queryFactory
 			.select(Projections.constructor(
 				ParticipationInfo.class,
@@ -34,7 +34,7 @@ public class ParticipationQueryDslRepository {
 				participation.updatedAt
 			))
 			.from(participation)
-			.where(participation.memberId.eq(memberId))
+			.where(participation.userId.eq(userId))
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
 			.fetch();
@@ -42,7 +42,7 @@ public class ParticipationQueryDslRepository {
 		Long total = queryFactory
 			.select(participation.id.count())
 			.from(participation)
-			.where(participation.memberId.eq(memberId))
+			.where(participation.userId.eq(userId))
 			.fetchOne();
 
 		return new PageImpl<>(participations, pageable, total);
