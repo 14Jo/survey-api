@@ -63,7 +63,6 @@ public class Share extends BaseEntity {
 		this.link = link;
 		this.expirationDate = expirationDate;
 
-		createNotifications(recipientIds, notifyAt);
 	}
 
 	public boolean isAlreadyExist(String link) {
@@ -78,17 +77,17 @@ public class Share extends BaseEntity {
 		return false;
 	}
 
-	private void createNotifications(List<Long> recipientIds, LocalDateTime notifyAt) {
+	public void createNotifications(List<String> emails, LocalDateTime notifyAt) {
 		if(this.shareMethod == ShareMethod.URL) {
 			return;
 		}
 
-		if(recipientIds == null || recipientIds.isEmpty()) {
-			notifications.add(Notification.createForShare(this, this.creatorId, notifyAt));
+		if(emails == null || emails.isEmpty()) {
+			notifications.add(Notification.createForShare(this, this.creatorId, null, notifyAt));
 			return;
 		}
-		recipientIds.forEach(recipientId -> {
-			notifications.add(Notification.createForShare(this, recipientId, notifyAt));
+		emails.forEach(email -> {
+			notifications.add(Notification.createForShare(this, null, email, notifyAt));
 		});
 	}
 
