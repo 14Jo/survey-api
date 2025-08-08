@@ -50,10 +50,17 @@ public class ProjectService {
 
 	@Transactional
 	public void updateProject(Long projectId, UpdateProjectRequest request) {
-		validateDuplicateName(request.getName());
 		Project project = findByIdOrElseThrow(projectId);
-		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
-			request.getPeriodEnd());
+
+		if (request.getName() != null && !request.getName().equals(project.getName())) {
+			validateDuplicateName(request.getName());
+		}
+
+		project.updateProject(
+			request.getName(), request.getDescription(),
+			request.getPeriodStart(), request.getPeriodEnd()
+		);
+
 		publishProjectEvents(project);
 	}
 
