@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.project.application.dto.request.SearchProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectManagerInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
@@ -44,9 +45,9 @@ public class ProjectQueryService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<ProjectSearchInfoResponse> searchProjects(String keyword, Pageable pageable) {
+	public Page<ProjectSearchInfoResponse> searchProjects(SearchProjectRequest request, Pageable pageable) {
 
-		return projectRepository.searchProjects(keyword, pageable)
+		return projectRepository.searchProjects(request.getKeyword(), pageable)
 			.map(ProjectSearchInfoResponse::from);
 	}
 

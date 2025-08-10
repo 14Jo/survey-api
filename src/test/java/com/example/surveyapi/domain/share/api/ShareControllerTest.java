@@ -69,6 +69,7 @@ class ShareControllerTest {
 		ShareMethod shareMethod = ShareMethod.URL;
 		String shareLink = "https://example.com/share/12345";
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
+		LocalDateTime notifyAt = LocalDateTime.now();
 
 		String requestJson = """
 			{
@@ -79,7 +80,7 @@ class ShareControllerTest {
 			}
 			""";
 
-		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds);
+		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds, notifyAt);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
@@ -88,7 +89,7 @@ class ShareControllerTest {
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
 		given(shareService.createShare(eq(sourceType), eq(sourceId),
 			eq(creatorId), eq(shareMethod),
-			eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
+			eq(expirationDate), eq(recipientIds), eq(notifyAt))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)
@@ -114,6 +115,7 @@ class ShareControllerTest {
 		String shareLink = "https://example.com/share/12345";
 		ShareMethod shareMethod = ShareMethod.URL;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
+		LocalDateTime notifyAt = LocalDateTime.now();
 
 		String requestJson = """
 			{
@@ -124,7 +126,7 @@ class ShareControllerTest {
 			}
 			""";
 
-		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds);
+		Share shareMock = new Share(sourceType, sourceId, creatorId, shareMethod, token, shareLink, expirationDate, recipientIds, notifyAt);
 
 		ReflectionTestUtils.setField(shareMock, "id", 1L);
 		ReflectionTestUtils.setField(shareMock, "createdAt", LocalDateTime.now());
@@ -133,7 +135,7 @@ class ShareControllerTest {
 		ShareResponse mockResponse = ShareResponse.from(shareMock);
 		given(shareService.createShare(eq(sourceType), eq(sourceId),
 			eq(creatorId), eq(shareMethod),
-			eq(expirationDate), eq(recipientIds))).willReturn(mockResponse);
+			eq(expirationDate), eq(recipientIds), eq(notifyAt))).willReturn(mockResponse);
 
 		//when, then
 		mockMvc.perform(post(URI)

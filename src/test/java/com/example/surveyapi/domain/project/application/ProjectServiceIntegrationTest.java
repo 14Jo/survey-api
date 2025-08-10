@@ -16,8 +16,8 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
-import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager;
-import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.participant.manager.entity.ProjectManager;
+import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;

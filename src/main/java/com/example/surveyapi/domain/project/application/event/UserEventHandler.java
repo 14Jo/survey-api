@@ -26,11 +26,13 @@ public class UserEventHandler {
 
 		List<Project> projectsByMember = projectRepository.findProjectsByMember(event.getUserId());
 		for (Project project : projectsByMember) {
+			// TODO: Batch Update
 			project.removeMember(event.getUserId());
 		}
 
 		List<Project> projectsByManager = projectRepository.findProjectsByManager(event.getUserId());
 		for (Project project : projectsByManager) {
+			// TODO: Batch Update
 			project.removeManager(event.getUserId());
 		}
 
