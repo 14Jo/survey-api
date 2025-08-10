@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.example.surveyapi.domain.project.domain.manager.entity.ProjectManager;
-import com.example.surveyapi.domain.project.domain.manager.enums.ManagerRole;
-import com.example.surveyapi.domain.project.domain.member.entity.ProjectMember;
+import com.example.surveyapi.domain.project.domain.participant.manager.entity.ProjectManager;
+import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
+import com.example.surveyapi.domain.project.domain.participant.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.domain.project.domain.project.event.DomainEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedEvent;
+import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
+import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
+import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
+import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -42,40 +43,28 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Project extends BaseEntity {
 
+	@Transient
+	private final List<Object> domainEvents = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-
 	@Column(nullable = false, unique = true)
 	private String name;
-
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String description;
-
 	@Column(nullable = false)
 	private Long ownerId;
-
 	@Embedded
 	private ProjectPeriod period;
-
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
-
 	@Column(nullable = false)
 	private int maxMembers;
-
-	@Column(nullable = false)
-	private int currentMemberCount;
-
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<ProjectManager> projectManagers = new ArrayList<>();
-
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
 	private List<ProjectMember> projectMembers = new ArrayList<>();
-
-	@Transient
-	private final List<DomainEvent> domainEvents = new ArrayList<>();
 
 	public static Project create(String name, String description, Long ownerId, int maxMembers,
 		LocalDateTime periodStart, LocalDateTime periodEnd) {
@@ -95,8 +84,6 @@ public class Project extends BaseEntity {
 
 	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,
 		LocalDateTime newPeriodEnd) {
-		checkNotClosedState();
-
 		if (newPeriodStart != null || newPeriodEnd != null) {
 			LocalDateTime start = Objects.requireNonNullElse(newPeriodStart, this.period.getPeriodStart());
 			LocalDateTime end = Objects.requireNonNullElse(newPeriodEnd, this.period.getPeriodEnd());
@@ -111,8 +98,6 @@ public class Project extends BaseEntity {
 	}
 
 	public void updateState(ProjectState newState) {
-		checkNotClosedState();
-
 		// PENDING -> IN_PROGRESS만 허용 periodStart를 now로 세팅
 		if (this.state == ProjectState.PENDING) {
 			if (newState != ProjectState.IN_PROGRESS) {
@@ -129,35 +114,21 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
-		registerEvent(new ProjectStateChangedEvent(this.id, newState));
+		registerEvent(new ProjectStateChangedEvent(this.id, newState.toString()));
 	}
 
 	public void autoUpdateState(ProjectState newState) {
-		checkNotClosedState();
 		this.state = newState;
-
-		registerEvent(new ProjectStateChangedEvent(this.id, newState));
-	}
-
-	public boolean shouldStart(LocalDateTime currentTime) {
-		return this.state == ProjectState.PENDING &&
-			this.period.getPeriodStart().isBefore(currentTime);
-	}
-
-	public boolean shouldEnd(LocalDateTime currentTime) {
-		return this.state == ProjectState.IN_PROGRESS &&
-			this.period.getPeriodEnd() != null &&
-			this.period.getPeriodEnd().isBefore(currentTime);
+		registerEvent(new ProjectStateChangedEvent(this.id, newState.toString()));
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
-		checkNotClosedState();
 		checkOwner(currentUserId);
 
 		ProjectManager previousOwner = findManagerByUserId(this.ownerId);
 		ProjectManager newOwner = findManagerByUserId(newOwnerId);
 
-		if (previousOwner.getUserId().equals(newOwnerId)) {
+		if (previousOwner.isSameUser(newOwnerId)) {
 			throw new CustomException(CustomErrorCode.CANNOT_TRANSFER_TO_SELF);
 		}
 
@@ -181,21 +152,21 @@ public class Project extends BaseEntity {
 		}
 
 		this.delete();
-		registerEvent(new ProjectDeletedEvent(this.id, this.name));
+		registerEvent(new ProjectDeletedEvent(this.id, this.name, currentUserId));
 	}
 
 	public void addManager(Long currentUserId) {
-		checkNotClosedState();
-
 		// 중복 가입 체크
 		boolean exists = this.projectManagers.stream()
-			.anyMatch(manager -> manager.getUserId().equals(currentUserId) && !manager.getIsDeleted());
+			.anyMatch(manager -> manager.isSameUser(currentUserId) && !manager.getIsDeleted());
 		if (exists) {
 			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MANAGER);
 		}
 
 		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
+
+		registerEvent(new ProjectManagerAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
@@ -203,11 +174,16 @@ public class Project extends BaseEntity {
 		ProjectManager projectManager = findManagerById(managerId);
 
 		// 본인 OWNER 권한 변경 불가
-		if (Objects.equals(currentUserId, projectManager.getUserId())) {
+		if (projectManager.isSameUser(currentUserId)) {
 			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
 		}
 
 		if (newRole == ManagerRole.OWNER) {
+			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
+		}
+
+		// 현재 소유자인 경우 권한 변경 불가
+		if (projectManager.isOwner()) {
 			throw new CustomException(CustomErrorCode.CANNOT_CHANGE_OWNER_ROLE);
 		}
 
@@ -218,7 +194,7 @@ public class Project extends BaseEntity {
 		checkOwner(currentUserId);
 		ProjectManager projectManager = findManagerById(managerId);
 
-		if (Objects.equals(projectManager.getUserId(), currentUserId)) {
+		if (projectManager.isSameUser(currentUserId)) {
 			throw new CustomException(CustomErrorCode.CANNOT_DELETE_SELF_OWNER);
 		}
 
@@ -226,59 +202,67 @@ public class Project extends BaseEntity {
 	}
 
 	public void removeManager(Long currentUserId) {
-		checkNotClosedState();
 		ProjectManager manager = findManagerByUserId(currentUserId);
 		manager.delete();
 	}
 
-	// List<ProjectManager> 조회 메소드
+	// Manager 조회 헬퍼 메소드
 	public ProjectManager findManagerByUserId(Long userId) {
+
 		return this.projectManagers.stream()
-			.filter(projectManager -> projectManager.getUserId().equals(userId) && !projectManager.getIsDeleted())
+			.filter(manager -> manager.isSameUser(userId) && !manager.getIsDeleted())
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
 	public ProjectManager findManagerById(Long managerId) {
+
 		return this.projectManagers.stream()
-			.filter(projectManager -> Objects.equals(projectManager.getId(), managerId))
+			.filter(manager -> Objects.equals(manager.getId(), managerId))
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MANAGER));
 	}
 
-	// TODO: 동시성 문제 해결
 	public void addMember(Long currentUserId) {
-		checkNotClosedState();
 		// 중복 가입 체크
 		boolean exists = this.projectMembers.stream()
 			.anyMatch(
-				projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted());
+				member -> member.isSameUser(currentUserId) && !member.getIsDeleted());
 		if (exists) {
 			throw new CustomException(CustomErrorCode.ALREADY_REGISTERED_MEMBER);
 		}
 
 		// 최대 인원수 체크
-		if (this.currentMemberCount >= this.maxMembers) {
+		if (getCurrentMemberCount() >= this.maxMembers) {
 			throw new CustomException(CustomErrorCode.PROJECT_MEMBER_LIMIT_EXCEEDED);
 		}
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
-		this.currentMemberCount++;
+
+		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void removeMember(Long currentUserId) {
-		checkNotClosedState();
-		ProjectMember member = this.projectMembers.stream()
-			.filter(projectMember -> projectMember.getUserId().equals(currentUserId) && !projectMember.getIsDeleted())
-			.findFirst()
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
-
+		ProjectMember member = findMemberByUserId(currentUserId);
 		member.delete();
-
-		this.currentMemberCount--;
 	}
 
-	// 소유자 권한 확인
+	// Member 조회 헬퍼 메소드
+	private ProjectMember findMemberByUserId(Long userId) {
+		return this.projectMembers.stream()
+			.filter(member -> member.isSameUser(userId))
+			.findFirst()
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
+	}
+
+	public int getCurrentMemberCount() {
+
+		return (int)this.projectMembers.stream()
+			.filter(member -> !member.getIsDeleted())
+			.count();
+	}
+
+	// 권한 검증 헬퍼 메소드
 	private void checkOwner(Long currentUserId) {
 		if (!this.ownerId.equals(currentUserId)) {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
@@ -286,19 +270,13 @@ public class Project extends BaseEntity {
 	}
 
 	// 이벤트 등록/ 관리
-	public List<DomainEvent> pullDomainEvents() {
-		List<DomainEvent> events = new ArrayList<>(domainEvents);
+	public List<Object> pullDomainEvents() {
+		List<Object> events = new ArrayList<>(domainEvents);
 		domainEvents.clear();
 		return events;
 	}
 
-	private void registerEvent(DomainEvent event) {
+	private void registerEvent(Object event) {
 		this.domainEvents.add(event);
-	}
-
-	private void checkNotClosedState() {
-		if (this.state == ProjectState.CLOSED) {
-			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE);
-		}
 	}
 }
