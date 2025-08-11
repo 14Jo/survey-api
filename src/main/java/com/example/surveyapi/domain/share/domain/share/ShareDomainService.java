@@ -46,11 +46,11 @@ public class ShareDomainService {
 
 	public String getRedirectUrl(Share share) {
 		if (share.getSourceType() == ShareSourceType.PROJECT_MEMBER) {
-			return "/api/v2/projects/members/" + share.getSourceId();
+			return "https://localhost:8080/api/v2/projects/members/" + share.getSourceId();
 		} else if(share.getSourceType() == ShareSourceType.PROJECT_MANAGER) {
-			return "/api/v2/projects/managers/" + share.getSourceId();
+			return "https://localhost:8080/api/v2/projects/managers/" + share.getSourceId();
 		} else if (share.getSourceType() == ShareSourceType.SURVEY) {
-			return "api/v1/survey/" + share.getSourceId() + "/detail";
+			return "https://localhost:8080/api/v1/survey/" + share.getSourceId() + "/detail";
 		}
 		throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
 	}
