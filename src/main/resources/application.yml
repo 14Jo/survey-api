@@ -11,6 +11,11 @@ spring:
         format_sql: true
         show_sql: true
 
+  cache:
+    cache-names: surveyDetails, userDetails
+    caffeine:
+      spec: surveyDetails:expireAfterWrite=10m,userDetails:expireAfterWrite=3m
+
 # =======================================================
 # == Actuator 공통 설정 추가
 management:
