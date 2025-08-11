@@ -20,12 +20,12 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.QProjectSearchResult;
+import com.example.surveyapi.domain.project.domain.participant.manager.entity.QProjectManager;
+import com.example.surveyapi.domain.project.domain.participant.member.entity.QProjectMember;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.JPAExpressions;
-import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
 import lombok.RequiredArgsConstructor;
@@ -37,8 +37,10 @@ public class ProjectQuerydslRepository {
 	private final JPAQueryFactory query;
 
 	public List<ProjectManagerResult> findMyProjectsAsManager(Long currentUserId) {
+		QProjectManager managerForCount = new QProjectManager("managerForCount");
 
-		return query.select(new QProjectManagerResult(
+		return query
+			.select(new QProjectManagerResult(
 				project.id,
 				project.name,
 				project.description,
@@ -47,24 +49,39 @@ public class ProjectQuerydslRepository {
 				project.period.periodStart,
 				project.period.periodEnd,
 				project.state.stringValue(),
-				getManagerCountExpression(),
+				managerForCount.id.count().intValue(),
 				project.createdAt,
 				project.updatedAt
 			))
 			.from(projectManager)
 			.join(projectManager.project, project)
+			.leftJoin(project.projectManagers, managerForCount).on(managerForCount.isDeleted.eq(false))
 			.where(
 				isManagerUser(currentUserId),
 				isManagerNotDeleted(),
 				isProjectNotDeleted()
+			)
+			.groupBy(
+				project.id,
+				project.name,
+				project.description,
+				project.ownerId,
+				projectManager.role,
+				project.period.periodStart,
+				project.period.periodEnd,
+				project.state,
+				project.createdAt,
+				project.updatedAt
 			)
 			.orderBy(project.createdAt.desc())
 			.fetch();
 	}
 
 	public List<ProjectMemberResult> findMyProjectsAsMember(Long currentUserId) {
+		QProjectMember memberForCount = new QProjectMember("memberForCount");
 
-		return query.select(new QProjectMemberResult(
+		return query
+			.select(new QProjectMemberResult(
 				project.id,
 				project.name,
 				project.description,
@@ -72,18 +89,30 @@ public class ProjectQuerydslRepository {
 				project.period.periodStart,
 				project.period.periodEnd,
 				project.state.stringValue(),
-				getManagerCountExpression(),
-				getMemberCountExpression(),
+				memberForCount.id.count().intValue(),
 				project.maxMembers,
 				project.createdAt,
 				project.updatedAt
 			))
 			.from(projectMember)
 			.join(projectMember.project, project)
+			.leftJoin(project.projectMembers, memberForCount).on(memberForCount.isDeleted.eq(false))
 			.where(
 				isMemberUser(currentUserId),
 				isMemberNotDeleted(),
 				isProjectNotDeleted()
+			)
+			.groupBy(
+				project.id,
+				project.name,
+				project.description,
+				project.ownerId,
+				project.period.periodStart,
+				project.period.periodEnd,
+				project.state,
+				project.maxMembers,
+				project.createdAt,
+				project.updatedAt
 			)
 			.orderBy(project.createdAt.desc())
 			.fetch();
@@ -117,28 +146,6 @@ public class ProjectQuerydslRepository {
 			.fetchOne();
 
 		return new PageImpl<>(content, pageable, total != null ? total : 0L);
-	}
-
-	public List<Project> findProjectsByMember(Long userId) {
-		return query.selectFrom(project)
-			.join(project.projectMembers, projectMember).fetchJoin()
-			.where(
-				isMemberUser(userId),
-				isMemberNotDeleted(),
-				isProjectActive()
-			)
-			.fetch();
-	}
-
-	public List<Project> findProjectsByManager(Long userId) {
-		return query.selectFrom(project)
-			.join(project.projectManagers, projectManager).fetchJoin()
-			.where(
-				isManagerUser(userId),
-				isManagerNotDeleted(),
-				isProjectActive()
-			)
-			.fetch();
 	}
 
 	public Optional<Project> findByIdAndIsDeletedFalse(Long projectId) {
@@ -251,27 +258,5 @@ public class ProjectQuerydslRepository {
 		}
 
 		return builder;
-	}
-
-	private JPQLQuery<Integer> getManagerCountExpression() {
-
-		return JPAExpressions
-			.select(projectManager.count().intValue())
-			.from(projectManager)
-			.where(
-				projectManager.project.eq(project),
-				isManagerNotDeleted()
-			);
-	}
-
-	private JPQLQuery<Integer> getMemberCountExpression() {
-
-		return JPAExpressions
-			.select(projectMember.count().intValue())
-			.from(projectMember)
-			.where(
-				projectMember.project.eq(project),
-				isMemberNotDeleted()
-			);
 	}
 }
