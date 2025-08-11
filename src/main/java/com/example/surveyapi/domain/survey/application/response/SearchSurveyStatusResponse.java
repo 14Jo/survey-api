@@ -18,4 +18,10 @@ public class SearchSurveyStatusResponse {
 		searchSurveyStatusResponse.surveyIds = surveyStatusList.getSurveyIds();
 		return searchSurveyStatusResponse;
 	}
+
+	public static SearchSurveyStatusResponse from(List<Long> surveyIds) {
+		SearchSurveyStatusResponse searchSurveyStatusResponse = new SearchSurveyStatusResponse();
+		searchSurveyStatusResponse.surveyIds = surveyIds;
+		return searchSurveyStatusResponse;
+	}
 }
