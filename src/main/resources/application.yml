@@ -40,12 +40,14 @@ management:
 spring:
   cache:
     cache-names:
-      - participationCountCache, surveyDetails, userDetails
+      - participationCountCache
+      - surveyDetails
+      - userDetails
     caffeine:
-      spec: > 
+      spec: >
         initialCapacity=100,
         maximumSize=500,
-        expireAfterWrite=10m
+        expireAfterWrite=10m,
         recordStats,
         userDetails:expireAfterWrite=3m
   config:
