@@ -9,10 +9,17 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        show_sql: true
+        show_sql: false
 
-# =======================================================
-# == Actuator 공통 설정 추가
+  data:
+    mongodb:
+      host: ${MONGODB_HOST:localhost}
+      port: ${MONGODB_PORT:27017}
+      database: ${MONGODB_DATABASE:survey_read_db}
+      username: ${MONGODB_USERNAME:survey_user}
+      password: ${MONGODB_PASSWORD:survey_password}
+      authentication-database: ${MONGODB_AUTHDB:admin}
+
 management:
   endpoints:
     web:
@@ -21,11 +28,25 @@ management:
   endpoint:
     health:
       show-details: always
-# =======================================================
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
 
 ---
 # 개발(dev) 프로필 - 로컬 PostgreSQL DB 설정
 spring:
+  cache:
+    cache-names:
+      - participationCountCache
+    caffeine:
+      spec: > 
+        initialCapacity=100,
+        maximumSize=500,
+        expireAfterWrite=10m
+        recordStats
   config:
     activate:
       on-profile: dev
@@ -34,6 +55,12 @@ spring:
     url: jdbc:postgresql://localhost:5432/${DB_SCHEME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
   jpa:
     properties:
       hibernate:
@@ -54,9 +81,28 @@ spring:
           starttls:
             enable: true
 
+server:
+  tomcat:
+    threads:
+      max: 20 # 최대 스레드 수를 25개
+      min-spare: 10 # 최소 유휴 스레드
+
+# 로그 설정 - 외부 API 관련 로그만 DEBUG로 설정
 logging:
   level:
-    org.springframework.security: DEBUG
+    org.springframework.security: INFO
+    com.example.surveyapi: INFO
+    # 외부 API 관련 로그만 DEBUG로 설정
+    com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
+    com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
+    com.example.surveyapi.domain.survey.api.SurveyQueryController: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/external_api_debug.log
+    max-size: 10MB
+    max-history: 30
 
 # JWT Secret Key
 jwt:
@@ -78,15 +124,21 @@ spring:
       on-profile: prod
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DB_URL}
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_SCHEME}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      
   jpa:
-    hibernate:
-      ddl-auto: update
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -98,12 +150,40 @@ spring:
           auth: true
           starttls:
             enable: true
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+server:
+  tomcat:
+    threads:
+      max: 20
+      min-spare: 10
+# 로그 설정
+logging:
+  level:
+    org.springframework.security: INFO
+    com.example.surveyapi: INFO
+    # 외부 API 관련 로그만 DEBUG로 설정
+    com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
+    com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
+    com.example.surveyapi.domain.survey.api.SurveyQueryController: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/external_api_debug.log
+    max-size: 100MB
+    max-history: 30
 
-# =======================================================
-# == 운영(prod) 환경을 위한 Actuator 보안 설정
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health, info, prometheus"
-# =======================================================
+# JWT Secret Key
+jwt:
+  secret:
+    key: ${SECRET_KEY}
+
+oauth:
+  kakao:
+    client-id: ${CLIENT_ID}
+    redirect-uri: ${REDIRECT_URL}
+    token-uri: https://kauth.kakao.com/oauth/token
+    user-info-uri: https://kapi.kakao.com/v2/user/me
