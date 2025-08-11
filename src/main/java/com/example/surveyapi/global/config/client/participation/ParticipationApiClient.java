@@ -23,7 +23,6 @@ public interface ParticipationApiClient {
 
 	@GetExchange("/api/v2/surveys/participations/count")
 	ExternalApiResponse getParticipationCounts(
-		@RequestHeader("Authorization") String authHeader,
 		@RequestParam List<Long> surveyIds
 	);
 
