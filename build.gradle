@@ -71,6 +71,18 @@ dependencies {
 
     // Gmail SMTP
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // Apache HttpClient 5
+    implementation 'org.apache.httpcomponents.client5:httpclient5'
+
+    // 카페인 캐시
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    // MongoDB 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    // 테스트용 MongoDB
+    testImplementation 'org.testcontainers:mongodb:1.19.3'
 }
 
 tasks.named('test') {
