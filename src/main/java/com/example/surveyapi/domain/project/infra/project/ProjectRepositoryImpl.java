@@ -57,16 +57,6 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public List<Project> findProjectsByMember(Long userId) {
-		return projectQuerydslRepository.findProjectsByMember(userId);
-	}
-
-	@Override
-	public List<Project> findProjectsByManager(Long userId) {
-		return projectQuerydslRepository.findProjectsByManager(userId);
-	}
-
-	@Override
 	public List<Project> findPendingProjectsToStart(LocalDateTime now) {
 		return projectQuerydslRepository.findPendingProjectsToStart(now);
 	}

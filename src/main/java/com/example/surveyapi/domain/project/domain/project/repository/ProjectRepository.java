@@ -27,10 +27,6 @@ public interface ProjectRepository {
 
 	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
 
-	List<Project> findProjectsByMember(Long userId);
-
-	List<Project> findProjectsByManager(Long userId);
-
 	List<Project> findPendingProjectsToStart(LocalDateTime now);
 
 	List<Project> findInProgressProjectsToClose(LocalDateTime now);
