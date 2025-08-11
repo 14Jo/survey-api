@@ -1,10 +1,9 @@
 package com.example.surveyapi.domain.survey.application;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +55,7 @@ public class SurveyService {
 		return save.getSurveyId();
 	}
 
+	@CacheEvict(value = "surveyDetails", key = "#surveyId")
 	//TODO 실제 업데이트 적용 컬럼 수 계산하는 쿼리 작성 필요
 	@Transactional
 	public Long update(String authHeader, Long surveyId, Long userId, UpdateSurveyRequest request) {
@@ -129,6 +129,7 @@ public class SurveyService {
 		return survey.getSurveyId();
 	}
 
+	@CacheEvict(value = "surveyDetails", key = "#surveyId")
 	@Transactional
 	public Long open(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
@@ -149,6 +150,7 @@ public class SurveyService {
 		return survey.getSurveyId();
 	}
 
+	@CacheEvict(value = "surveyDetails", key = "#surveyId")
 	@Transactional
 	public Long close(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
