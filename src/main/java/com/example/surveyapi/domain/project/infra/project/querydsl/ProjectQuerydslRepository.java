@@ -175,13 +175,10 @@ public class ProjectQuerydslRepository {
 			.fetch();
 	}
 
-	public long updateStateByIds(List<Long> projectIds, ProjectState newState) {
-		if (projectIds == null || projectIds.isEmpty()) {
-			return 0;
-		}
+	public void updateStateByIds(List<Long> projectIds, ProjectState newState) {
 		LocalDateTime now = LocalDateTime.now();
 
-		return query.update(project)
+		query.update(project)
 			.set(project.state, newState)
 			.set(project.updatedAt, now)
 			.where(project.id.in(projectIds))
