@@ -7,6 +7,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 
 @EnableCaching
 @EnableAsync
+@EnableCaching
 @SpringBootApplication
 public class SurveyApiApplication {
 

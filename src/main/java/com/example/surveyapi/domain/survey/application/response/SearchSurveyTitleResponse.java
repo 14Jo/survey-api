@@ -2,10 +2,8 @@ package com.example.surveyapi.domain.survey.application.response;
 
 import java.time.LocalDateTime;
 
+import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyTitle;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class SearchSurveyTitleResponse {
 	private Long surveyId;
 	private String title;
-	private SurveyStatus status;
+	private String status;
 	private Option option;
 	private Duration duration;
 	private Integer participationCount;
@@ -25,10 +23,25 @@ public class SearchSurveyTitleResponse {
 		SearchSurveyTitleResponse response = new SearchSurveyTitleResponse();
 		response.surveyId = surveyTitle.getSurveyId();
 		response.title = surveyTitle.getTitle();
-		response.status = surveyTitle.getStatus();
-		response.option = Option.from(surveyTitle.getOption());
-		response.duration = Duration.from(surveyTitle.getDuration());
+		response.status = surveyTitle.getStatus().name();
+		response.option = Option.from(surveyTitle.getOption().isAnonymous(), surveyTitle.getOption().isAnonymous());
+		response.duration = Duration.from(surveyTitle.getDuration().getStartDate(), surveyTitle.getDuration().getEndDate());
 		response.participationCount = count;
+		return response;
+	}
+
+	public static SearchSurveyTitleResponse from(SurveyReadEntity entity) {
+		SearchSurveyTitleResponse response = new SearchSurveyTitleResponse();
+		response.surveyId = entity.getSurveyId();
+		response.title = entity.getTitle();
+		response.status = entity.getStatus();
+		
+		if (entity.getOptions() != null) {
+			response.option = Option.from(entity.getOptions().isAnonymous(), entity.getOptions().isAllowResponseUpdate());
+			response.duration = Duration.from(entity.getOptions().getStartDate(), entity.getOptions().getEndDate());
+		}
+		
+		response.participationCount = entity.getParticipationCount();
 		return response;
 	}
 
@@ -38,10 +51,10 @@ public class SearchSurveyTitleResponse {
 		private LocalDateTime startDate;
 		private LocalDateTime endDate;
 
-		public static Duration from(SurveyDuration duration) {
+		public static Duration from(LocalDateTime startDate, LocalDateTime endDate) {
 			Duration result = new Duration();
-			result.startDate = duration.getStartDate();
-			result.endDate = duration.getEndDate();
+			result.startDate = startDate;
+			result.endDate = endDate;
 			return result;
 		}
 	}
@@ -52,10 +65,10 @@ public class SearchSurveyTitleResponse {
 		private boolean anonymous = false;
 		private boolean allowResponseUpdate = false;
 
-		public static Option from(SurveyOption option) {
+		public static Option from(boolean anonymous, boolean allowResponseUpdate) {
 			Option result = new Option();
-			result.anonymous = option.isAnonymous();
-			result.allowResponseUpdate = option.isAllowResponseUpdate();
+			result.anonymous = anonymous;
+			result.allowResponseUpdate = allowResponseUpdate;
 			return result;
 		}
 	}
