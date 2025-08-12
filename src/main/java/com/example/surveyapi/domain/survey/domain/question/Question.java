@@ -10,15 +10,24 @@ import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
+import com.example.surveyapi.domain.survey.domain.survey.Survey;
+import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
+import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -34,9 +43,6 @@ public class Question extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "question_id")
 	private Long questionId;
-
-	@Column(name = "survey_id", nullable = false)
-	private Long surveyId;
 
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String content;
@@ -56,47 +62,44 @@ public class Question extends BaseEntity {
 	@Column(name = "choices", columnDefinition = "jsonb")
 	private List<Choice> choices = new ArrayList<>();
 
+	@ManyToOne(
+		fetch = FetchType.LAZY,
+		optional = false
+	)
+	@JoinColumn(
+		name = "survey_id",
+		nullable = false
+	)
+	private Survey survey;
+
 	public static Question create(
-		Long surveyId,
+		Survey survey,
 		String content,
 		QuestionType type,
 		int displayOrder,
 		boolean isRequired,
-		List<Choice> choices
+		List<ChoiceInfo> choices
 	) {
 		Question question = new Question();
-
-		question.surveyId = surveyId;
+		question.survey = survey;
 		question.content = content;
 		question.type = type;
 		question.displayOrder = displayOrder;
 		question.isRequired = isRequired;
-		question.choices = choices != null ? choices : new ArrayList<>();
-
-		if (choices != null && !choices.isEmpty()) {
-			question.duplicateChoiceOrder();
-		}
+		question.addChoice(choices);
 
 		return question;
 	}
 
-	public void duplicateChoiceOrder() {
-		if (choices == null || choices.isEmpty()) {
-			return;
+	private void addChoice(List<ChoiceInfo> choices) {
+		try {
+			List<Choice> choiceList = choices.stream().map(choiceInfo -> {
+				return Choice.of(choiceInfo.getContent(), choiceInfo.getDisplayOrder());
+			}).toList();
+			this.choices.addAll(choiceList);
+		} catch (NullPointerException e) {
+			log.error("선택지 null {}", e.getMessage());
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, e.getMessage());
 		}
-
-		List<Choice> mutableChoices = new ArrayList<>();
-		Set<Integer> usedOrders = new HashSet<>();
-
-		for (Choice choice : choices) {
-			int candidate = choice.getDisplayOrder();
-			while (usedOrders.contains(candidate)) {
-				candidate++;
-			}
-			mutableChoices.add(Choice.of(choice.getContent(), candidate));
-			usedOrders.add(candidate);
-		}
-
-		this.choices = mutableChoices;
 	}
 }
