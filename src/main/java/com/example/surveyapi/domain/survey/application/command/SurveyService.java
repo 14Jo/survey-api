@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.survey.application.command;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.cache.annotation.Cacheable;
@@ -11,6 +12,7 @@ import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncServi
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
+import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
@@ -49,8 +51,10 @@ public class SurveyService {
 		);
 
 		Survey save = surveyRepository.save(survey);
-		
+
+		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
+		surveyReadSyncService.questionReadSync(save.getSurveyId(), questionList);
 
 		return save.getSurveyId();
 	}
@@ -90,7 +94,9 @@ public class SurveyService {
 
 		survey.updateFields(updateFields);
 		surveyRepository.update(survey);
-		surveyReadSyncService.updateSurveyRead(SurveySyncDto.from(survey));
+		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
+		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
+		surveyReadSyncService.questionReadSync(survey.getSurveyId(), questionList);
 
 		return survey.getSurveyId();
 	}

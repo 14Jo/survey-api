@@ -20,4 +20,12 @@ public class Choice {
 		choice.displayOrder = displayOrder;
 		return choice;
 	}
+
+	public static Choice of(UUID choiceId, String content, int displayOrder) {
+		Choice choice = new Choice();
+		choice.choiceId = choiceId;
+		choice.content = content;
+		choice.displayOrder = displayOrder;
+		return choice;
+	}
 }
