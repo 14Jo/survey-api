@@ -39,32 +39,18 @@ public class SurveyService {
 		Long creatorId,
 		CreateSurveyRequest request
 	) {
-		long startTime = System.currentTimeMillis();
-
 		validateProjectAccess(authHeader, projectId, creatorId);
 
-		long endTime = System.currentTimeMillis();
-		log.info("프로젝트 검증 in {} ms", endTime - startTime);
-
-		startTime = System.currentTimeMillis();
 		Survey survey = Survey.create(
 			projectId, creatorId,
 			request.getTitle(), request.getDescription(), request.getSurveyType(),
 			request.getSurveyDuration().toSurveyDuration(), request.getSurveyOption().toSurveyOption(),
 			request.getQuestions().stream().map(CreateSurveyRequest.QuestionRequest::toQuestionInfo).toList()
 		);
-		endTime = System.currentTimeMillis();
-		log.info("설문 생성 in {} ms", endTime - startTime);
 
-		startTime = System.currentTimeMillis();
 		Survey save = surveyRepository.save(survey);
-		endTime = System.currentTimeMillis();
-		log.info("설문 저장 in {} ms", endTime - startTime);
-
-		startTime = System.currentTimeMillis();
+		
 		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
-		endTime = System.currentTimeMillis();
-		log.info("조회 동기화 in {} ms", endTime - startTime);
 
 		return save.getSurveyId();
 	}
