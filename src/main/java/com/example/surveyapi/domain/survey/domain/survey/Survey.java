@@ -17,6 +17,7 @@ import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.enums.EventCode;
 import com.example.surveyapi.global.event.SurveyActivateEvent;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -87,22 +88,13 @@ public class Survey extends AbstractRoot {
 			survey.duration = duration;
 			survey.option = option;
 
-			survey.registerEvent(new SurveyCreatedEvent(questions));
+			survey.registerEvent(new SurveyCreatedEvent(questions), EventCode.SURVEY_CREATED);
 		} catch (NullPointerException ex) {
 			log.error(ex.getMessage(), ex);
 			throw new CustomException(CustomErrorCode.SERVER_ERROR);
 		}
 
 		return survey;
-	}
-
-	private static SurveyStatus decideStatus(LocalDateTime startDate) {
-		LocalDateTime now = LocalDateTime.now();
-		if (startDate.isAfter(now)) {
-			return SurveyStatus.PREPARING;
-		} else {
-			return SurveyStatus.IN_PROGRESS;
-		}
 	}
 
 	public void updateFields(Map<String, Object> fields) {
@@ -115,7 +107,7 @@ public class Survey extends AbstractRoot {
 				case "option" -> this.option = (SurveyOption)value;
 				case "questions" -> {
 					List<QuestionInfo> questions = (List<QuestionInfo>)value;
-					registerEvent(new SurveyUpdatedEvent(this.surveyId, questions));
+					registerEvent(new SurveyUpdatedEvent(this.surveyId, questions), EventCode.SURVEY_UPDATED);
 				}
 			}
 		});
@@ -124,18 +116,18 @@ public class Survey extends AbstractRoot {
 	public void open() {
 		this.status = SurveyStatus.IN_PROGRESS;
 		this.duration = SurveyDuration.of(LocalDateTime.now(), this.duration.getEndDate());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()), EventCode.SURVEY_ACTIVATED);
 	}
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()), EventCode.SURVEY_ACTIVATED);
 	}
 
 	public void delete() {
 		this.status = SurveyStatus.DELETED;
 		this.isDeleted = true;
-		registerEvent(new SurveyDeletedEvent(this.surveyId));
+		registerEvent(new SurveyDeletedEvent(this.surveyId), EventCode.SURVEY_DELETED);
 	}
 }

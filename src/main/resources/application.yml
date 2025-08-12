@@ -11,6 +11,12 @@ spring:
         format_sql: true
         show_sql: false
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
   data:
     mongodb:
       host: ${MONGODB_HOST:localhost}
@@ -19,6 +25,7 @@ spring:
       username: ${MONGODB_USERNAME:survey_user}
       password: ${MONGODB_PASSWORD:survey_password}
       authentication-database: ${MONGODB_AUTHDB:admin}
+
 
 management:
   endpoints:
