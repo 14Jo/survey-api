@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.participation.infra.adapter;
 
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.participation.application.client.UserServicePort;
@@ -19,7 +18,6 @@ public class UserServiceAdapter implements UserServicePort {
 	private final UserApiClient userApiClient;
 	private final ObjectMapper objectMapper;
 
-	@Cacheable(value = "userDetails", key = "#userId", sync = true)
 	@Override
 	public UserSnapshotDto getParticipantInfo(String authHeader, Long userId) {
 		ExternalApiResponse userSnapshot = userApiClient.getParticipantInfo(authHeader, userId);

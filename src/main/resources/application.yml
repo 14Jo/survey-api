@@ -42,14 +42,12 @@ spring:
     cache-names:
       - participationCountCache
       - surveyDetails
-      - userDetails
     caffeine:
       spec: >
         initialCapacity=100,
         maximumSize=500,
         expireAfterWrite=10m,
         recordStats,
-        userDetails:expireAfterWrite=3m
   config:
     activate:
       on-profile: dev
