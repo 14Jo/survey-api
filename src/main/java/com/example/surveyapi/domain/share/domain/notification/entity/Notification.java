@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -31,6 +32,9 @@ public class Notification extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "share_id")
 	private Share share;
+	@Enumerated
+	@Column(name = "share_method")
+	private ShareMethod shareMethod;
 	@Column(name = "recipient_id")
 	private Long recipientId;
 	@Column(name = "recipient_email")
@@ -47,6 +51,7 @@ public class Notification extends BaseEntity {
 
 	public Notification(
 		Share share,
+		ShareMethod shareMethod,
 		Long recipientId,
 		String recipientEmail,
 		Status status,
@@ -55,6 +60,7 @@ public class Notification extends BaseEntity {
 		LocalDateTime notifyAt
 	) {
 		this.share = share;
+		this.shareMethod = shareMethod;
 		this.recipientId = recipientId;
 		this.recipientEmail = recipientEmail;
 		this.status = status;
@@ -63,8 +69,8 @@ public class Notification extends BaseEntity {
 		this.notifyAt = notifyAt;
 	}
 
-	public static Notification createForShare(Share share, Long recipientId, String recipientEmail, LocalDateTime notifyAt) {
-		return new Notification(share, recipientId, recipientEmail, Status.READY_TO_SEND, null, null, notifyAt);
+	public static Notification createForShare(Share share, ShareMethod shareMethod, Long recipientId, String recipientEmail, LocalDateTime notifyAt) {
+		return new Notification(share, shareMethod, recipientId, recipientEmail, Status.READY_TO_SEND, null, null, notifyAt);
 	}
 
 	public void setSent() {

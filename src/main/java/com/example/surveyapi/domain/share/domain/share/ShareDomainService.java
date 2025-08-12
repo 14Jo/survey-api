@@ -19,17 +19,15 @@ public class ShareDomainService {
 	private static final String PROJECT_MANAGER_URL = "https://localhost:8080/api/v2/share/projects/managers/";
 
 	public Share createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, ShareMethod shareMethod,
-		LocalDateTime expirationDate, List<Long> recipientIds,
-		LocalDateTime notifyAt) {
+		Long creatorId,	LocalDateTime expirationDate,
+		List<Long> recipientIds, LocalDateTime notifyAt) {
 		String token = UUID.randomUUID().toString().replace("-", "");
 		String link = generateLink(sourceType, token);
 
 		return new Share(sourceType, sourceId,
-			creatorId, shareMethod,
-			token, link,
-			expirationDate, recipientIds,
-			notifyAt);
+			creatorId, token,
+			link, expirationDate,
+			recipientIds, notifyAt);
 	}
 
 	public String generateLink(ShareSourceType sourceType, String token) {

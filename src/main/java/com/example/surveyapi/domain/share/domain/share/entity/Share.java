@@ -38,8 +38,6 @@ public class Share extends BaseEntity {
 	private Long sourceId;
 	@Column(name = "creator_id", nullable = false)
 	private Long creatorId;
-	@Enumerated(EnumType.STRING)
-	private ShareMethod shareMethod;
 	@Column(name = "token", nullable = false)
 	private String token;
 	@Column(name = "link", nullable = false, unique = true)
@@ -51,14 +49,12 @@ public class Share extends BaseEntity {
 	private List<Notification> notifications = new ArrayList<>();
 
 	public Share(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, ShareMethod shareMethod,
-		String token, String link,
-		LocalDateTime expirationDate, List<Long> recipientIds,
-		LocalDateTime notifyAt) {
+		Long creatorId,	String token,
+		String link, LocalDateTime expirationDate,
+		List<Long> recipientIds, LocalDateTime notifyAt) {
 		this.sourceType = sourceType;
 		this.sourceId = sourceId;
 		this.creatorId = creatorId;
-		this.shareMethod = shareMethod;
 		this.token = token;
 		this.link = link;
 		this.expirationDate = expirationDate;
@@ -77,17 +73,28 @@ public class Share extends BaseEntity {
 		return false;
 	}
 
-	public void createNotifications(List<String> emails, LocalDateTime notifyAt) {
-		if(this.shareMethod == ShareMethod.URL) {
+	public void createNotifications(ShareMethod shareMethod, List<String> emails, LocalDateTime notifyAt) {
+		if(shareMethod == ShareMethod.URL) {
 			return;
 		}
 
 		if(emails == null || emails.isEmpty()) {
-			notifications.add(Notification.createForShare(this, this.creatorId, null, notifyAt));
+			notifications.add(
+				Notification.createForShare(
+					this, shareMethod,
+					this.creatorId, null,
+					notifyAt)
+			);
+
 			return;
 		}
 		emails.forEach(email -> {
-			notifications.add(Notification.createForShare(this, null, email, notifyAt));
+			notifications.add(
+				Notification.createForShare(
+					this, shareMethod,
+					null, email,
+					notifyAt)
+			);
 		});
 	}
 
