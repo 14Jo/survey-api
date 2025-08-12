@@ -1,12 +1,14 @@
 package com.example.surveyapi.domain.survey.application.client;
 
+import java.io.Serializable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProjectStateDto {
+public class ProjectStateDto implements Serializable {
 
 	private String state;
 

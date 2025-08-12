@@ -18,19 +18,16 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	private final JpaSurveyRepository jpaRepository;
 
 	@Override
-	@SurveyEvent
 	public Survey save(Survey survey) {
 		return jpaRepository.save(survey);
 	}
 
 	@Override
-	@SurveyEvent
 	public void delete(Survey survey) {
 		jpaRepository.save(survey);
 	}
 
 	@Override
-	@SurveyEvent
 	public void update(Survey survey) {
 		jpaRepository.save(survey);
 	}
