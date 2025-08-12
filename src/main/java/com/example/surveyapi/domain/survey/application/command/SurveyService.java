@@ -53,8 +53,7 @@ public class SurveyService {
 		Survey save = surveyRepository.save(survey);
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
-		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
-		surveyReadSyncService.questionReadSync(save.getSurveyId(), questionList);
+		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey), questionList);
 
 		return save.getSurveyId();
 	}
@@ -95,8 +94,8 @@ public class SurveyService {
 		survey.updateFields(updateFields);
 		surveyRepository.update(survey);
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
-		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
-		surveyReadSyncService.questionReadSync(survey.getSurveyId(), questionList);
+		surveyReadSyncService.updateSurveyRead(SurveySyncDto.from(survey));
+		surveyReadSyncService.questionReadSync(surveyId, questionList);
 
 		return survey.getSurveyId();
 	}

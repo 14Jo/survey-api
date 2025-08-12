@@ -31,7 +31,7 @@ public class SurveyReadSyncService {
 
 	@Async
 	@Transactional
-	public void surveyReadSync(SurveySyncDto dto) {
+	public void surveyReadSync(SurveySyncDto dto, List<QuestionSyncDto> questions) {
 		try {
 			log.debug("설문 조회 테이블 동기화 시작");
 
@@ -44,8 +44,11 @@ public class SurveyReadSyncService {
 				dto.getDescription(), dto.getStatus().name(), 0, surveyOptions
 			);
 
-			surveyReadRepository.save(surveyRead);
+			SurveyReadEntity save = surveyReadRepository.save(surveyRead);
 			log.debug("설문 조회 테이블 동기화 종료");
+
+			questionReadSync(save.getSurveyId(), questions);
+
 
 		} catch (Exception e) {
 			log.error("설문 조회 테이블 동기화 실패 {}", e.getMessage());
