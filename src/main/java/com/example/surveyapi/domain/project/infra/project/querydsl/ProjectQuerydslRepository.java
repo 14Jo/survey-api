@@ -8,9 +8,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.StringUtils;
 
@@ -24,6 +23,7 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.QP
 import com.example.surveyapi.domain.project.domain.participant.member.entity.QProjectMember;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.global.util.RepositorySliceUtil;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -118,8 +118,7 @@ public class ProjectQuerydslRepository {
 			.fetch();
 	}
 
-	public Page<ProjectSearchResult> searchProjects(String keyword, Pageable pageable) {
-
+	public Slice<ProjectSearchResult> searchProjectsNoOffset(String keyword, Long lastProjectId, Pageable pageable) {
 		BooleanBuilder condition = createProjectSearchCondition(keyword);
 
 		List<ProjectSearchResult> content = query
@@ -133,19 +132,19 @@ public class ProjectQuerydslRepository {
 				project.updatedAt
 			))
 			.from(project)
-			.where(condition)
-			.orderBy(project.createdAt.desc())
-			.offset(pageable.getOffset())
-			.limit(pageable.getPageSize())
+			.where(condition, ltProjectId(lastProjectId))
+			.orderBy(project.id.desc())
+			.limit(pageable.getPageSize() + 1)
 			.fetch();
 
-		Long total = query
-			.select(project.count())
-			.from(project)
-			.where(condition)
-			.fetchOne();
+		return RepositorySliceUtil.toSlice(content, pageable);
+	}
 
-		return new PageImpl<>(content, pageable, total != null ? total : 0L);
+	private BooleanExpression ltProjectId(Long lastProjectId) {
+		if (lastProjectId == null) {
+			return null;
+		}
+		return project.id.lt(lastProjectId);
 	}
 
 	public Optional<Project> findByIdAndIsDeletedFalse(Long projectId) {
