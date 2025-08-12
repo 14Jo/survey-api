@@ -25,12 +25,10 @@ public class ShareService {
 	private final ShareDomainService shareDomainService;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, LocalDateTime expirationDate,
-		List<Long> recipientIds, LocalDateTime notifyAt) {
+		Long creatorId, LocalDateTime expirationDate) {
 		Share share = shareDomainService.createShare(
 			sourceType, sourceId,
-			creatorId, expirationDate,
-			recipientIds, notifyAt);
+			creatorId, expirationDate);
 		Share saved = shareRepository.save(share);
 
 		return ShareResponse.from(saved);

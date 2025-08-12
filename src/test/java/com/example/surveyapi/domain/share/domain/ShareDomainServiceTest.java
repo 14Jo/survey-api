@@ -35,13 +35,10 @@ class ShareDomainServiceTest {
 		Long creatorId = 1L;
 		ShareSourceType sourceType = ShareSourceType.SURVEY;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		ShareMethod shareMethod = ShareMethod.URL;
-		LocalDateTime notifyAt = LocalDateTime.now();
 
 		//when
 		Share share = shareDomainService.createShare(
-			sourceType, sourceId, creatorId, expirationDate, recipientIds, notifyAt);
+			sourceType, sourceId, creatorId, expirationDate);
 
 		//then
 		assertThat(share).isNotNull();
@@ -59,13 +56,10 @@ class ShareDomainServiceTest {
 		Long creatorId = 1L;
 		ShareSourceType sourceType = ShareSourceType.PROJECT_MEMBER;
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		List<Long> recipientIds = List.of(2L, 3L, 4L);
-		ShareMethod shareMethod = ShareMethod.URL;
-		LocalDateTime notifyAt = LocalDateTime.now();
 
 		//when
 		Share share = shareDomainService.createShare(
-			sourceType, sourceId, creatorId, expirationDate, recipientIds, notifyAt);
+			sourceType, sourceId, creatorId, expirationDate);
 
 		//then
 		assertThat(share).isNotNull();
@@ -80,10 +74,9 @@ class ShareDomainServiceTest {
 	void redirectUrl_survey() {
 		//given
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		LocalDateTime notifyAt = LocalDateTime.now();
 
 		Share share = new Share(
-			ShareSourceType.SURVEY, 1L, 1L, "token", "link", expirationDate, List.of(), notifyAt);
+			ShareSourceType.SURVEY, 1L, 1L, "token", "link", expirationDate);
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
@@ -96,10 +89,9 @@ class ShareDomainServiceTest {
 	void redirectUrl_projectMember() {
 		//given
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		LocalDateTime notifyAt = LocalDateTime.now();
 
 		Share share = new Share(
-			ShareSourceType.PROJECT_MEMBER, 1L, 1L, "token", "link", expirationDate, List.of(), notifyAt);
+			ShareSourceType.PROJECT_MEMBER, 1L, 1L, "token", "link", expirationDate);
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
@@ -112,10 +104,9 @@ class ShareDomainServiceTest {
 	void redirectUrl_projectManager() {
 		//given
 		LocalDateTime expirationDate = LocalDateTime.of(2025, 12, 31, 23, 59, 59);
-		LocalDateTime notifyAt = LocalDateTime.now();
 
 		Share share = new Share(
-			ShareSourceType.PROJECT_MANAGER, 1L, 1L, "token", "link", expirationDate, List.of(), notifyAt);
+			ShareSourceType.PROJECT_MANAGER, 1L, 1L, "token", "link", expirationDate);
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);

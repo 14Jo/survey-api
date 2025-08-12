@@ -29,15 +29,11 @@ public class ShareEventListener {
 	public void handleSurveyActivateEvent(SurveyActivateEvent event) {
 		log.info("설문 공유 작업 생성 시작: {}", event.getSurveyId());
 
-		List<Long> recipientIds = Collections.emptyList();
-
 		shareService.createShare(
 			ShareSourceType.SURVEY,
 			event.getSurveyId(),
 			event.getCreatorID(),
-			event.getEndTime(),
-			recipientIds,
-			LocalDateTime.now()
+			event.getEndTime()
 		);
 	}
 
@@ -45,15 +41,11 @@ public class ShareEventListener {
 	public void handleProjectManagerEvent(ProjectManagerAddedEvent event) {
 		log.info("프로젝트 매니저 공유 작업 생성 시작: {}", event.getProjectId());
 
-		List<Long> recipientIds = List.of(event.getUserId());
-
 		shareService.createShare(
 			ShareSourceType.PROJECT_MANAGER,
 			event.getProjectId(),
 			event.getProjectOwnerId(),
-			event.getPeriodEnd(),
-			recipientIds,
-			LocalDateTime.now()
+			event.getPeriodEnd()
 		);
 	}
 
@@ -61,15 +53,11 @@ public class ShareEventListener {
 	public void handleProjectMemberEvent(ProjectMemberAddedEvent event) {
 		log.info("프로젝트 참여 인원 공유 작업 생성 시작: {}", event.getProjectId());
 
-		List<Long> recipientIds = List.of(event.getUserId());
-
 		shareService.createShare(
 			ShareSourceType.PROJECT_MEMBER,
 			event.getProjectId(),
 			event.getProjectOwnerId(),
-			event.getPeriodEnd(),
-			recipientIds,
-			LocalDateTime.now()
+			event.getPeriodEnd()
 		);
 	}
 
