@@ -69,6 +69,9 @@ dependencies {
     // Prometheus
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
+    // Gmail SMTP
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
     // Apache HttpClient 5
     implementation 'org.apache.httpcomponents.client5:httpclient5'
 
