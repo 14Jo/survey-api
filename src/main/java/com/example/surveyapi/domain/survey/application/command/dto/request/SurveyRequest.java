@@ -62,8 +62,8 @@ public abstract class SurveyRequest {
 
 	@Getter
 	public static class Option {
-		private boolean anonymous = false;
-		private boolean allowResponseUpdate = false;
+		private Boolean anonymous = false;
+		private Boolean allowResponseUpdate = false;
 
 		public SurveyOption toSurveyOption() {
 			return SurveyOption.of(anonymous, allowResponseUpdate);
@@ -78,10 +78,11 @@ public abstract class SurveyRequest {
 		@NotNull(message = "질문 타입은 필수입니다.")
 		private QuestionType questionType;
 
-		private boolean isRequired;
+		@NotNull(message = "수정 허용 여부는 필수 입니다.")
+		private Boolean isRequired;
 
 		@NotNull(message = "표시 순서는 필수입니다.")
-		private int displayOrder;
+		private Integer displayOrder;
 
 		private List<ChoiceRequest> choices;
 
@@ -99,7 +100,7 @@ public abstract class SurveyRequest {
 			private String content;
 
 			@NotNull(message = "표시 순서는 필수입니다.")
-			private int displayOrder;
+			private Integer displayOrder;
 
 			public ChoiceInfo toChoiceInfo() {
 				return ChoiceInfo.of(content, displayOrder);

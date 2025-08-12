@@ -14,7 +14,7 @@ public class NotificationSendServiceImpl implements NotificationSendService {
 
 	@Override
 	public void send(Notification notification) {
-		NotificationSender sender = factory.getSender(notification.getShare().getShareMethod());
+		NotificationSender sender = factory.getSender(notification.getShareMethod());
 		sender.send(notification);
 	}
 }
