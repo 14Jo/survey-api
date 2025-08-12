@@ -273,7 +273,6 @@ public class ParticipationService {
 			Map<String, Object> answer = response.getAnswer();
 
 			boolean validatedAnswerValue = validateAnswerValue(answer, question.getQuestionType());
-			log.info("is_required: {}", question.isRequired());
 
 			if (!validatedAnswerValue && !isEmpty(answer)) {
 				log.info("INVALID_ANSWER_TYPE questionId : {}", questionId);
