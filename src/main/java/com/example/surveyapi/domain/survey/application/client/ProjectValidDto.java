@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.survey.application.client;
 
+import java.io.Serializable;
 import java.util.List;
 
 import lombok.AccessLevel;
@@ -8,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProjectValidDto {
+public class ProjectValidDto implements Serializable {
 
 	private Boolean valid;
 

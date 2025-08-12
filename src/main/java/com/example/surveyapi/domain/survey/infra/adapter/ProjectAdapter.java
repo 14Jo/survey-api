@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
@@ -23,6 +24,7 @@ public class ProjectAdapter implements ProjectPort {
 	private final ProjectApiClient projectClient;
 
 	@Override
+	@Cacheable(value = "projectMemberCache", key = "#projectId + '_' + #userId")
 	public ProjectValidDto getProjectMembers(String authHeader, Long projectId, Long userId) {
 		ExternalApiResponse projectMembers = projectClient.getProjectMembers(authHeader);
 		if (!projectMembers.isSuccess())
@@ -46,6 +48,7 @@ public class ProjectAdapter implements ProjectPort {
 	}
 
 	@Override
+	@Cacheable(value = "projectStateCache", key = "#projectId")
 	public ProjectStateDto getProjectState(String authHeader, Long projectId) {
 		ExternalApiResponse projectState = projectClient.getProjectState(authHeader, projectId);
 		if (!projectState.isSuccess()) {
