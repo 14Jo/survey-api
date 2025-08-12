@@ -38,8 +38,6 @@ public class Share extends BaseEntity {
 	private Long sourceId;
 	@Column(name = "creator_id", nullable = false)
 	private Long creatorId;
-	@Enumerated(EnumType.STRING)
-	private ShareMethod shareMethod;
 	@Column(name = "token", nullable = false)
 	private String token;
 	@Column(name = "link", nullable = false, unique = true)
@@ -51,19 +49,15 @@ public class Share extends BaseEntity {
 	private List<Notification> notifications = new ArrayList<>();
 
 	public Share(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, ShareMethod shareMethod,
-		String token, String link,
-		LocalDateTime expirationDate, List<Long> recipientIds,
-		LocalDateTime notifyAt) {
+		Long creatorId,	String token,
+		String link, LocalDateTime expirationDate) {
 		this.sourceType = sourceType;
 		this.sourceId = sourceId;
 		this.creatorId = creatorId;
-		this.shareMethod = shareMethod;
 		this.token = token;
 		this.link = link;
 		this.expirationDate = expirationDate;
 
-		createNotifications(recipientIds, notifyAt);
 	}
 
 	public boolean isAlreadyExist(String link) {
@@ -78,17 +72,28 @@ public class Share extends BaseEntity {
 		return false;
 	}
 
-	private void createNotifications(List<Long> recipientIds, LocalDateTime notifyAt) {
-		if(this.shareMethod == ShareMethod.URL) {
+	public void createNotifications(ShareMethod shareMethod, List<String> emails, LocalDateTime notifyAt) {
+		if(shareMethod == ShareMethod.URL) {
 			return;
 		}
 
-		if(recipientIds == null || recipientIds.isEmpty()) {
-			notifications.add(Notification.createForShare(this, this.creatorId, notifyAt));
+		if(emails == null || emails.isEmpty()) {
+			notifications.add(
+				Notification.createForShare(
+					this, shareMethod,
+					this.creatorId, null,
+					notifyAt)
+			);
+
 			return;
 		}
-		recipientIds.forEach(recipientId -> {
-			notifications.add(Notification.createForShare(this, recipientId, notifyAt));
+		emails.forEach(email -> {
+			notifications.add(
+				Notification.createForShare(
+					this, shareMethod,
+					null, email,
+					notifyAt)
+			);
 		});
 	}
 

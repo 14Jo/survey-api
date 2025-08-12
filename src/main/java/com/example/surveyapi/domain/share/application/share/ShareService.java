@@ -6,12 +6,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.share.application.client.ShareValidationResponse;
-import com.example.surveyapi.domain.share.application.notification.NotificationService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
-import com.example.surveyapi.domain.share.domain.share.repository.query.ShareQueryRepository;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
@@ -25,25 +22,29 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class ShareService {
 	private final ShareRepository shareRepository;
-	private final ShareQueryRepository shareQueryRepository;
 	private final ShareDomainService shareDomainService;
-	private final NotificationService notificationService;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, ShareMethod shareMethod,
-		LocalDateTime expirationDate, List<Long> recipientIds,
-		LocalDateTime notifyAt) {
-		//TODO : 설문 존재 여부 검증
-
+		Long creatorId, LocalDateTime expirationDate) {
 		Share share = shareDomainService.createShare(
 			sourceType, sourceId,
-			creatorId, shareMethod,
-			expirationDate, recipientIds, notifyAt);
+			creatorId, expirationDate);
 		Share saved = shareRepository.save(share);
 
-		notificationService.create(saved, creatorId, notifyAt);
-
 		return ShareResponse.from(saved);
+	}
+
+	public void createNotifications(Long shareId, Long creatorId,
+		ShareMethod shareMethod, List<String> emails,
+		LocalDateTime notifyAt) {
+		Share share = shareRepository.findById(shareId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+
+		if (!share.isOwner(creatorId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED_SHARE);
+		}
+
+		share.createNotifications(shareMethod, emails, notifyAt);
 	}
 
 	@Transactional(readOnly = true)
@@ -59,6 +60,18 @@ public class ShareService {
 	}
 
 	@Transactional(readOnly = true)
+	public Share getShareEntity(Long shareId, Long currentUserId) {
+		Share share = shareRepository.findById(shareId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+
+		if (!share.isOwner(currentUserId)) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return share;
+	}
+
+	@Transactional(readOnly = true)
 	public List<Share> getShareBySource(Long sourceId) {
 		List<Share> shares = shareRepository.findBySource(sourceId);
 
@@ -67,12 +80,6 @@ public class ShareService {
 		}
 
 		return shares;
-	}
-
-	@Transactional(readOnly = true)
-	public ShareValidationResponse isRecipient(Long surveyId, Long userId) {
-		boolean valid = shareQueryRepository.isExist(surveyId, userId);
-		return new ShareValidationResponse(valid);
 	}
 
 	public String delete(Long shareId, Long currentUserId) {

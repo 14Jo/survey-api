@@ -1,32 +1,36 @@
 package com.example.surveyapi.domain.survey.domain.survey;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyDeletedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyUpdatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.enums.EventCode;
 import com.example.surveyapi.global.event.SurveyActivateEvent;
 import com.example.surveyapi.global.exception.CustomException;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +69,18 @@ public class Survey extends AbstractRoot {
 	@Column(name = "survey_duration", nullable = false, columnDefinition = "jsonb")
 	private SurveyDuration duration;
 
+	@OneToMany(
+		mappedBy = "survey",
+		cascade = {
+			CascadeType.PERSIST,
+			CascadeType.MERGE,
+			CascadeType.REFRESH
+		},
+		fetch = FetchType.LAZY
+	)
+	@OrderBy("displayOrder ASC")
+	private List<Question> questions = new ArrayList<>();
+
 	public static Survey create(
 		Long projectId,
 		Long creatorId,
@@ -76,33 +92,17 @@ public class Survey extends AbstractRoot {
 		List<QuestionInfo> questions
 	) {
 		Survey survey = new Survey();
-
-		try {
-			survey.projectId = projectId;
-			survey.creatorId = creatorId;
-			survey.title = title;
-			survey.description = description;
-			survey.type = type;
-			survey.status = SurveyStatus.PREPARING;
-			survey.duration = duration;
-			survey.option = option;
-
-			survey.registerEvent(new SurveyCreatedEvent(questions));
-		} catch (NullPointerException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new CustomException(CustomErrorCode.SERVER_ERROR);
-		}
+		survey.projectId = projectId;
+		survey.creatorId = creatorId;
+		survey.title = title;
+		survey.description = description;
+		survey.type = type;
+		survey.status = SurveyStatus.PREPARING;
+		survey.duration = duration;
+		survey.option = option;
+		survey.addQuestion(questions);
 
 		return survey;
-	}
-
-	private static SurveyStatus decideStatus(LocalDateTime startDate) {
-		LocalDateTime now = LocalDateTime.now();
-		if (startDate.isAfter(now)) {
-			return SurveyStatus.PREPARING;
-		} else {
-			return SurveyStatus.IN_PROGRESS;
-		}
 	}
 
 	public void updateFields(Map<String, Object> fields) {
@@ -115,7 +115,7 @@ public class Survey extends AbstractRoot {
 				case "option" -> this.option = (SurveyOption)value;
 				case "questions" -> {
 					List<QuestionInfo> questions = (List<QuestionInfo>)value;
-					registerEvent(new SurveyUpdatedEvent(this.surveyId, questions));
+					this.addQuestion(questions);
 				}
 			}
 		});
@@ -124,18 +124,40 @@ public class Survey extends AbstractRoot {
 	public void open() {
 		this.status = SurveyStatus.IN_PROGRESS;
 		this.duration = SurveyDuration.of(LocalDateTime.now(), this.duration.getEndDate());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()),
+			EventCode.SURVEY_ACTIVATED);
 	}
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()),
+			EventCode.SURVEY_ACTIVATED);
 	}
 
 	public void delete() {
 		this.status = SurveyStatus.DELETED;
 		this.isDeleted = true;
-		registerEvent(new SurveyDeletedEvent(this.surveyId));
+		removeQuestions();
+	}
+
+	private void addQuestion(List<QuestionInfo> questions) {
+		try {
+			List<Question> questionList = questions.stream().map(questionInfo -> {
+				return Question.create(
+					this,
+					questionInfo.getContent(), questionInfo.getQuestionType(),
+					questionInfo.getDisplayOrder(), questionInfo.isRequired(),
+					questionInfo.getChoices());
+			}).toList();
+			this.questions.addAll(questionList);
+		} catch (NullPointerException e) {
+			log.error("질문 null {}", e.getMessage());
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, e.getMessage());
+		}
+	}
+
+	private void removeQuestions() {
+		this.questions.forEach(Question::delete);
 	}
 }
