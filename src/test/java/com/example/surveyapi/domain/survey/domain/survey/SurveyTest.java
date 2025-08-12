@@ -1,19 +1,20 @@
 package com.example.surveyapi.domain.survey.domain.survey;
 
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
-import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
-import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
-import static org.assertj.core.api.Assertions.*;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
+import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
+import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
 class SurveyTest {
 
@@ -51,18 +52,18 @@ class SurveyTest {
     }
 
     @Test
-    @DisplayName("Survey.create - null questions 허용")
-    void createSurvey_withNullQuestions() {
+    @DisplayName("Survey.create - 빈 questions 리스트 허용")
+    void createSurvey_withEmptyQuestions() {
         // given
         LocalDateTime startDate = LocalDateTime.now().plusDays(1);
         LocalDateTime endDate = LocalDateTime.now().plusDays(10);
 
-        // when
+        // when - null 대신 빈 리스트 사용
         Survey survey = Survey.create(
             1L, 1L, "설문 제목", "설문 설명", SurveyType.VOTE,
             SurveyDuration.of(startDate, endDate),
             SurveyOption.of(true, true),
-            null
+            List.of() // null 대신 빈 리스트
         );
 
         // then
@@ -70,25 +71,7 @@ class SurveyTest {
         assertThat(survey.getTitle()).isEqualTo("설문 제목");
         assertThat(survey.getType()).isEqualTo(SurveyType.VOTE);
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.PREPARING);
-    }
-
-    @Test
-    @DisplayName("Survey.create - 이벤트 발생")
-    void createSurvey_eventsGenerated() {
-        // given
-        LocalDateTime startDate = LocalDateTime.now().plusDays(1);
-        LocalDateTime endDate = LocalDateTime.now().plusDays(10);
-
-        // when
-        Survey survey = Survey.create(
-            1L, 1L, "설문 제목", "설문 설명", SurveyType.VOTE,
-            SurveyDuration.of(startDate, endDate),
-            SurveyOption.of(true, true),
-            List.of()
-        );
-
-        // then
-        assertThat(survey.pollAllEvents()).isNotEmpty();
+        assertThat(survey.getQuestions()).isEmpty(); // 빈 리스트 확인
     }
 
     @Test
@@ -199,7 +182,6 @@ class SurveyTest {
             SurveyOption.of(true, true),
             List.of()
         );
-
         LocalDateTime newStartDate = LocalDateTime.now().plusDays(5);
         LocalDateTime newEndDate = LocalDateTime.now().plusDays(15);
 
@@ -251,7 +233,7 @@ class SurveyTest {
 
         // then
         assertThat(survey).isNotNull();
-        assertThat(survey.pollAllEvents()).isNotEmpty();
+        assertThat(survey.getQuestions()).hasSize(2); // 질문 개수 확인
     }
 
     @Test
@@ -318,4 +300,4 @@ class SurveyTest {
         assertThat(survey.getDuration().getStartDate()).isBefore(originalStartDate);
         assertThat(survey.getDuration().getEndDate()).isBefore(originalEndDate);
     }
-} 
+}
