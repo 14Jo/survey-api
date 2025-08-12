@@ -56,7 +56,7 @@ public class Question extends BaseEntity {
 	private Integer displayOrder;
 
 	@Column(name = "is_required", nullable = false)
-	private boolean isRequired = false;
+	private boolean isRequired;
 
 	@JdbcTypeCode(SqlTypes.JSON)
 	@Column(name = "choices", columnDefinition = "jsonb")
