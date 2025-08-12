@@ -3,6 +3,8 @@ package com.example.surveyapi.domain.share.application.notification.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class NotificationEmailCreateRequest {
+	private ShareMethod shareMethod;
 	private List<@Email String> emails;
 	private LocalDateTime notifyAt;
 }

@@ -35,7 +35,6 @@ public class ShareEventListener {
 			ShareSourceType.SURVEY,
 			event.getSurveyId(),
 			event.getCreatorID(),
-			ShareMethod.URL, // TODO: 변경 방식은 추후 변경
 			event.getEndTime(),
 			recipientIds,
 			LocalDateTime.now()
@@ -52,7 +51,6 @@ public class ShareEventListener {
 			ShareSourceType.PROJECT_MANAGER,
 			event.getProjectId(),
 			event.getProjectOwnerId(),
-			ShareMethod.URL, // TODO: 변경 방식은 추후 변경
 			event.getPeriodEnd(),
 			recipientIds,
 			LocalDateTime.now()
@@ -69,7 +67,6 @@ public class ShareEventListener {
 			ShareSourceType.PROJECT_MEMBER,
 			event.getProjectId(),
 			event.getProjectOwnerId(),
-			ShareMethod.URL, // TODO : 변경 방식은 추후 변경
 			event.getPeriodEnd(),
 			recipientIds,
 			LocalDateTime.now()

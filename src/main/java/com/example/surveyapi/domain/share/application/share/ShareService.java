@@ -25,22 +25,20 @@ public class ShareService {
 	private final ShareDomainService shareDomainService;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId, ShareMethod shareMethod,
-		LocalDateTime expirationDate, List<Long> recipientIds,
-		LocalDateTime notifyAt) {
-		//TODO : 설문 존재 여부 검증
-
+		Long creatorId, LocalDateTime expirationDate,
+		List<Long> recipientIds, LocalDateTime notifyAt) {
 		Share share = shareDomainService.createShare(
 			sourceType, sourceId,
-			creatorId, shareMethod,
-			expirationDate, recipientIds, notifyAt);
+			creatorId, expirationDate,
+			recipientIds, notifyAt);
 		Share saved = shareRepository.save(share);
 
 		return ShareResponse.from(saved);
 	}
 
 	public void createNotifications(Long shareId, Long creatorId,
-		List<String> emails, LocalDateTime notifyAt) {
+		ShareMethod shareMethod, List<String> emails,
+		LocalDateTime notifyAt) {
 		Share share = shareRepository.findById(shareId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
@@ -48,7 +46,7 @@ public class ShareService {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED_SHARE);
 		}
 
-		share.createNotifications(emails, notifyAt);
+		share.createNotifications(shareMethod, emails, notifyAt);
 	}
 
 	@Transactional(readOnly = true)

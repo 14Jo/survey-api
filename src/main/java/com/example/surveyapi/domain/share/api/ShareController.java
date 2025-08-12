@@ -30,7 +30,10 @@ public class ShareController {
 		@Valid @RequestBody NotificationEmailCreateRequest request,
 		@AuthenticationPrincipal Long creatorId
 	) {
-		shareService.createNotifications(shareId, creatorId, request.getEmails(), request.getNotifyAt());
+		shareService.createNotifications(
+			shareId, creatorId,
+			request.getShareMethod(), request.getEmails(),
+			request.getNotifyAt());
 
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
