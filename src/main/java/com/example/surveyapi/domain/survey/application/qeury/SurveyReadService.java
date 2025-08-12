@@ -7,9 +7,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyDetailResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyStatusResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;

@@ -1,8 +1,10 @@
 package com.example.surveyapi.domain.survey.application.command;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,9 +12,10 @@ import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncServi
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
+import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
-import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -38,15 +41,7 @@ public class SurveyService {
 		Long creatorId,
 		CreateSurveyRequest request
 	) {
-		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, projectId, creatorId);
-		if (!projectValid.getValid()) {
-			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
-		}
-
-		ProjectStateDto projectState = projectPort.getProjectState(authHeader, projectId);
-		if (projectState.isClosed()) {
-			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE, "종료된 프로젝트에서는 설문을 생성할 수 없습니다.");
-		}
+		validateProjectAccess(authHeader, projectId, creatorId);
 
 		Survey survey = Survey.create(
 			projectId, creatorId,
@@ -54,8 +49,12 @@ public class SurveyService {
 			request.getSurveyDuration().toSurveyDuration(), request.getSurveyOption().toSurveyOption(),
 			request.getQuestions().stream().map(CreateSurveyRequest.QuestionRequest::toQuestionInfo).toList()
 		);
+
 		Survey save = surveyRepository.save(survey);
+
+		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
+		surveyReadSyncService.questionReadSync(save.getSurveyId(), questionList);
 
 		return save.getSurveyId();
 	}
@@ -69,15 +68,7 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.CONFLICT, "진행 중인 설문은 수정할 수 없습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
-		if (!projectValid.getValid()) {
-			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
-		}
-
-		ProjectStateDto projectState = projectPort.getProjectState(authHeader, survey.getProjectId());
-		if (projectState.isClosed()) {
-			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE, "종료된 프로젝트에서는 설문을 수정할 수 없습니다.");
-		}
+		validateProjectAccess(authHeader, survey.getProjectId(), userId);
 
 		Map<String, Object> updateFields = new HashMap<>();
 
@@ -103,7 +94,9 @@ public class SurveyService {
 
 		survey.updateFields(updateFields);
 		surveyRepository.update(survey);
-		surveyReadSyncService.updateSurveyRead(SurveySyncDto.from(survey));
+		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
+		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey));
+		surveyReadSyncService.questionReadSync(survey.getSurveyId(), questionList);
 
 		return survey.getSurveyId();
 	}
@@ -117,15 +110,7 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.CONFLICT, "진행 중인 설문은 삭제할 수 없습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
-		if (!projectValid.getValid()) {
-			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
-		}
-
-		ProjectStateDto projectState = projectPort.getProjectState(authHeader, survey.getProjectId());
-		if (projectState.isClosed()) {
-			throw new CustomException(CustomErrorCode.INVALID_PROJECT_STATE, "종료된 프로젝트에서는 설문을 삭제할 수 없습니다.");
-		}
+		validateProjectAccess(authHeader, survey.getProjectId(), userId);
 
 		survey.delete();
 		surveyRepository.delete(survey);
@@ -143,10 +128,7 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION, "준비 중인 설문만 시작할 수 있습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
-		if (!projectValid.getValid()) {
-			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
-		}
+		validateProjectMembership(authHeader, survey.getProjectId(), userId);
 
 		survey.open();
 		surveyRepository.stateUpdate(survey);
@@ -162,14 +144,30 @@ public class SurveyService {
 			throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION, "진행 중인 설문만 종료할 수 있습니다.");
 		}
 
-		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, survey.getProjectId(), userId);
-		if (!projectValid.getValid()) {
-			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
-		}
+		validateProjectMembership(authHeader, survey.getProjectId(), userId);
 
 		survey.close();
 		surveyRepository.stateUpdate(survey);
 		updateState(surveyId, survey.getStatus());
+	}
+
+	private void validateProjectAccess(String authHeader, Long projectId, Long userId) {
+		validateProjectState(authHeader, projectId, userId);
+		validateProjectMembership(authHeader, projectId, userId);
+	}
+
+	private void validateProjectMembership(String authHeader, Long projectId, Long userId) {
+		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, projectId, userId);
+		if (!projectValid.getValid()) {
+			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
+		}
+	}
+
+	private void validateProjectState(String authHeader, Long projectId, Long userId) {
+		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, projectId, userId);
+		if (!projectValid.getValid()) {
+			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
+		}
 	}
 
 	private void updateState(Long surveyId, SurveyStatus surveyStatus) {

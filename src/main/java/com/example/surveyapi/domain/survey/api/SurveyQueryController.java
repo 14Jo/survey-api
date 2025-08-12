@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyDetailResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyStatusResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;

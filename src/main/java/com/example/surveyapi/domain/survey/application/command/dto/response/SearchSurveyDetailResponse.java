@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.response;
+package com.example.surveyapi.domain.survey.application.command.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,8 +29,6 @@ public class SearchSurveyDetailResponse {
 	private Integer participationCount;
 	private List<QuestionResponse> questions;
 
-
-
 	public static SearchSurveyDetailResponse from(SurveyDetail surveyDetail, Integer count) {
 		SearchSurveyDetailResponse response = new SearchSurveyDetailResponse();
 		response.surveyId = surveyDetail.getSurveyId();
@@ -53,18 +51,19 @@ public class SearchSurveyDetailResponse {
 		response.description = entity.getDescription();
 		response.status = SurveyStatus.valueOf(entity.getStatus());
 		response.participationCount = participationCount != null ? participationCount : entity.getParticipationCount();
-		
+
 		if (entity.getOptions() != null) {
-			response.option = Option.from(entity.getOptions().isAnonymous(), entity.getOptions().isAllowResponseUpdate());
+			response.option = Option.from(entity.getOptions().isAnonymous(),
+				entity.getOptions().isAllowResponseUpdate());
 			response.duration = Duration.from(entity.getOptions().getStartDate(), entity.getOptions().getEndDate());
 		}
-		
+
 		if (entity.getQuestions() != null) {
 			response.questions = entity.getQuestions().stream()
 				.map(QuestionResponse::from)
 				.toList();
 		}
-		
+
 		return response;
 	}
 

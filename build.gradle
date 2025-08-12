@@ -83,6 +83,10 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
     // 테스트용 MongoDB
     testImplementation 'org.testcontainers:mongodb:1.19.3'
+
+    //AMQP
+    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
 }
 
 tasks.named('test') {

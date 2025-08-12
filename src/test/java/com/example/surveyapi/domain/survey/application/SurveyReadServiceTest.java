@@ -1,13 +1,12 @@
 package com.example.surveyapi.domain.survey.application;
 
 import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDetailResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyStatusResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyDetailResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyStatusResponse;
+import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
-import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
