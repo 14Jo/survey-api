@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
@@ -47,8 +47,8 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public Page<ProjectSearchResult> searchProjects(String keyword, Pageable pageable) {
-		return projectQuerydslRepository.searchProjects(keyword, pageable);
+	public Slice<ProjectSearchResult> searchProjectsNoOffset(String keyword, Long lastProjectId, Pageable pageable) {
+		return projectQuerydslRepository.searchProjectsNoOffset(keyword, lastProjectId, pageable);
 	}
 
 	@Override
