@@ -53,9 +53,7 @@ class ShareServiceTest {
 			ShareSourceType.PROJECT_MEMBER,
 			1L,
 			1L,
-			LocalDateTime.of(2025, 12, 31, 23, 59, 59),
-			List.of(),
-			null
+			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
 		savedShareId = response.getId();
 	}
@@ -110,9 +108,7 @@ class ShareServiceTest {
 			ShareSourceType.PROJECT_MEMBER,
 			10L,
 			2L,
-			LocalDateTime.of(2025, 12, 31, 23, 59, 59),
-			List.of(),
-			null
+			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
 
 		//when

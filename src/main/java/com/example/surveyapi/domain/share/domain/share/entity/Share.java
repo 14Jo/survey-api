@@ -50,8 +50,7 @@ public class Share extends BaseEntity {
 
 	public Share(ShareSourceType sourceType, Long sourceId,
 		Long creatorId,	String token,
-		String link, LocalDateTime expirationDate,
-		List<Long> recipientIds, LocalDateTime notifyAt) {
+		String link, LocalDateTime expirationDate) {
 		this.sourceType = sourceType;
 		this.sourceId = sourceId;
 		this.creatorId = creatorId;
