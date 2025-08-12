@@ -1,8 +1,7 @@
 package com.example.surveyapi.domain.survey.api;
 
-import com.example.surveyapi.domain.survey.application.command.SurveyService;
-import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -11,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;

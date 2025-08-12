@@ -74,7 +74,7 @@ public class StatisticService {
 		});
 	}
 
-	private Statistic getStatistic(Long surveyId) {
+	public Statistic getStatistic(Long surveyId) {
 		return statisticRepository.findById(surveyId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.STATISTICS_NOT_FOUND));
 	}
