@@ -53,7 +53,6 @@ class ShareServiceTest {
 			ShareSourceType.PROJECT_MEMBER,
 			1L,
 			1L,
-			ShareMethod.EMAIL,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59),
 			List.of(),
 			null
@@ -69,7 +68,6 @@ class ShareServiceTest {
 
 		assertThat(share.getId()).isEqualTo(savedShareId);
 		assertThat(share.getNotifications()).isEmpty();
-		assertThat(share.getShareMethod()).isEqualTo(ShareMethod.EMAIL);
 	}
 
 	@Test
@@ -79,9 +77,9 @@ class ShareServiceTest {
 		Long creatorId = 1L;
 		List<String> emails = List.of("user1@example.com", "user2@example.com");
 		LocalDateTime notifyAt = LocalDateTime.now();
-
+		ShareMethod shareMethod= ShareMethod.EMAIL;
 		//when
-		shareService.createNotifications(savedShareId, creatorId, emails, notifyAt);
+		shareService.createNotifications(savedShareId, creatorId, shareMethod, emails, notifyAt);
 
 		//then
 		Share share = shareRepository.findById(savedShareId).orElseThrow();
@@ -112,7 +110,6 @@ class ShareServiceTest {
 			ShareSourceType.PROJECT_MEMBER,
 			10L,
 			2L,
-			ShareMethod.URL,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59),
 			List.of(),
 			null

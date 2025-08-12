@@ -47,7 +47,6 @@ class MailSendTest {
 			ShareSourceType.PROJECT_MEMBER,
 			1L,
 			1L,
-			ShareMethod.EMAIL,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59),
 			List.of(),
 			null
@@ -63,7 +62,7 @@ class MailSendTest {
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
 		Notification notification = Notification.createForShare(
-			share, 1L, "test@example.com", LocalDateTime.now()
+			share, ShareMethod.EMAIL, 1L, "test@example.com", LocalDateTime.now()
 		);
 
 		//when

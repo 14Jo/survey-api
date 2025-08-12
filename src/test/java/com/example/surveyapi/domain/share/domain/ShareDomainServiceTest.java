@@ -41,13 +41,12 @@ class ShareDomainServiceTest {
 
 		//when
 		Share share = shareDomainService.createShare(
-			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds, notifyAt);
+			sourceType, sourceId, creatorId, expirationDate, recipientIds, notifyAt);
 
 		//then
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getShareMethod()).isEqualTo(shareMethod);
 		assertThat(share.getLink()).startsWith("https://localhost:8080/api/v2/share/surveys/");
 		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/api/v2/share/surveys/".length());
 	}
@@ -66,13 +65,12 @@ class ShareDomainServiceTest {
 
 		//when
 		Share share = shareDomainService.createShare(
-			sourceType, sourceId, creatorId, shareMethod, expirationDate, recipientIds, notifyAt);
+			sourceType, sourceId, creatorId, expirationDate, recipientIds, notifyAt);
 
 		//then
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getShareMethod()).isEqualTo(shareMethod);
 		assertThat(share.getLink()).startsWith("https://localhost:8080/api/v2/share/projects/");
 		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/api/v2/share/projects/".length());
 	}
@@ -85,7 +83,7 @@ class ShareDomainServiceTest {
 		LocalDateTime notifyAt = LocalDateTime.now();
 
 		Share share = new Share(
-			ShareSourceType.SURVEY, 1L, 1L, ShareMethod.URL, "token", "link", expirationDate, List.of(), notifyAt);
+			ShareSourceType.SURVEY, 1L, 1L, "token", "link", expirationDate, List.of(), notifyAt);
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
@@ -101,7 +99,7 @@ class ShareDomainServiceTest {
 		LocalDateTime notifyAt = LocalDateTime.now();
 
 		Share share = new Share(
-			ShareSourceType.PROJECT_MEMBER, 1L, 1L, ShareMethod.URL, "token", "link", expirationDate, List.of(), notifyAt);
+			ShareSourceType.PROJECT_MEMBER, 1L, 1L, "token", "link", expirationDate, List.of(), notifyAt);
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
@@ -117,7 +115,7 @@ class ShareDomainServiceTest {
 		LocalDateTime notifyAt = LocalDateTime.now();
 
 		Share share = new Share(
-			ShareSourceType.PROJECT_MANAGER, 1L, 1L, ShareMethod.URL, "token", "link", expirationDate, List.of(), notifyAt);
+			ShareSourceType.PROJECT_MANAGER, 1L, 1L, "token", "link", expirationDate, List.of(), notifyAt);
 
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
