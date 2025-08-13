@@ -42,8 +42,12 @@ public class SecurityConfig {
                 .requestMatchers("/auth/naver/**").permitAll()
                 .requestMatchers("/auth/google/**").permitAll()
                 .requestMatchers("/api/v1/survey/**").permitAll()
+                .requestMatchers("/api/v1/surveys/**").permitAll()
+                .requestMatchers("/api/v1/projects/**").permitAll()
+                .requestMatchers("/api/v2/survey/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/api/v2/surveys/participations/count").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class);
 
