@@ -9,6 +9,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.global.constant.RabbitConst;
+import com.example.surveyapi.global.model.ParticipationEvent;
 import com.example.surveyapi.global.model.SurveyEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rabbitmq.client.Channel;
@@ -61,7 +62,7 @@ public class EventConsumer {
 		// Activate 이벤트 처리
 		List<SurveyActivateEvent> activateEvents = events.stream()
 			.filter(event -> event instanceof SurveyActivateEvent)
-			.map(event -> (SurveyActivateEvent) event)
+			.map(event -> (SurveyActivateEvent)event)
 			.collect(Collectors.toList());
 
 		if (!activateEvents.isEmpty()) {
@@ -99,6 +100,23 @@ public class EventConsumer {
 			}
 		} catch (Exception e) {
 			throw new RuntimeException("SurveyEvent 변환 실패", e);
+		}
+	}
+
+	private ParticipationEvent convertToParticipationEvent(Message message) {
+		try {
+			String json = new String(message.getBody());
+
+			if (json.contains("ParticipationCreatedEvent")) {
+				return objectMapper.readValue(json, ParticipationCreatedEvent.class);
+			} else if (json.contains("ParticipationUpdatedEvent")) {
+				return objectMapper.readValue(json, ParticipationUpdatedEvent.class);
+			} else {
+				log.warn("알 수 없는 이벤트 타입: {}", json);
+				return null;
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("ParticipationEvent 변환 실패", e);
 		}
 	}
 
