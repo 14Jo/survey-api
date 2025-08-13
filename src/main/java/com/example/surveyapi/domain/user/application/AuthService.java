@@ -31,7 +31,6 @@ import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRedisRepository;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.global.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
 import com.example.surveyapi.global.config.oauth.GoogleOAuthProperties;
 import com.example.surveyapi.global.config.oauth.KakaoOAuthProperties;
@@ -79,7 +78,6 @@ public class AuthService {
         return createAccessAndSaveRefresh(user);
     }
 
-    @UserWithdraw
     @Transactional
     public void withdraw(Long userId, UserWithdrawRequest request, String authHeader) {
 
@@ -118,6 +116,7 @@ public class AuthService {
         }
 
         user.delete();
+        userRepository.withdrawSave(user);
 
         String accessToken = jwtUtil.subStringToken(authHeader);
 
