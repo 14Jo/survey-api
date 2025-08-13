@@ -1,22 +1,73 @@
 package com.example.surveyapi.global.event;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.example.surveyapi.domain.participation.domain.command.ResponseData;
+import com.example.surveyapi.domain.participation.domain.participation.Participation;
+import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
+import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.model.ParticipationEvent;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ParticipationCreatedEvent implements ParticipationEvent {
 
-	private final Long participationId;
-	private final Long surveyId;
-	private final List<ResponseData> responseDataList;
+	private Long participationId;
+	private Long surveyId;
+	private Long userId;
+	private ParticipantInfo demographic;
+	private LocalDateTime completedAt;
+	private List<Answer> answers;
 
-	public ParticipationCreatedEvent(Long participationId, Long surveyId, List<ResponseData> responseDataList) {
-		this.participationId = participationId;
-		this.surveyId = surveyId;
-		this.responseDataList = responseDataList;
+	public static ParticipationCreatedEvent from(Participation participation) {
+		ParticipationCreatedEvent createdEvent = new ParticipationCreatedEvent();
+		createdEvent.participationId = participation.getId();
+		createdEvent.surveyId = participation.getSurveyId();
+		createdEvent.userId = participation.getUserId();
+		createdEvent.demographic = participation.getParticipantInfo();
+		createdEvent.completedAt = participation.getUpdatedAt();
+		createdEvent.answers = Answer.from(participation.getResponses());
+
+		return createdEvent;
+	}
+
+	@Getter
+	private static class Answer {
+
+		private Long questionId;
+		private List<Integer> choiceIds = new ArrayList<>();
+		private String responseText;
+
+		private static List<Answer> from(List<Response> responses) {
+			return responses.stream()
+				.map(response -> {
+					Answer answerDto = new Answer();
+					answerDto.questionId = response.getQuestionId();
+
+					Map<String, Object> rawAnswer = response.getAnswer();
+
+					if (rawAnswer != null && !rawAnswer.isEmpty()) {
+						Object value = rawAnswer.values().iterator().next();
+
+						if (value instanceof String) {
+							answerDto.responseText = (String)value;
+						} else if (value instanceof List<?> rawList) {
+							answerDto.choiceIds = rawList.stream()
+								.filter(Integer.class::isInstance)
+								.map(Integer.class::cast)
+								.collect(Collectors.toList());
+						}
+					}
+					return answerDto;
+				})
+				.collect(Collectors.toList());
+		}
 	}
 }
