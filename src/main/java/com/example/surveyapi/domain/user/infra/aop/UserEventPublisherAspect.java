@@ -25,7 +25,7 @@ public class UserEventPublisherAspect {
 
     private final UserRepository userRepository;
 
-    @Pointcut("@annotation(com.example.surveyapi.domain.user.infra.annotation.UserWithdraw) && args(userId,request,authHeader)")
+    @Pointcut("@annotation(com.example.surveyapi.global.annotation.UserWithdraw) && args(userId,request,authHeader)")
     public void withdraw(Long userId, UserWithdrawRequest request, String authHeader) {
     }
 
