@@ -122,10 +122,10 @@ public class User extends BaseEntity {
 
         this.auth.updateAuth(password);
 
-        this.profile.updateProfile(name,phoneNumber,nickName);
+        this.profile.updateProfile(name, phoneNumber, nickName);
 
         this.demographics.getAddress().
-            updateAddress(province,district,detailAddress,postalCode);
+            updateAddress(province, district, detailAddress, postalCode);
 
         this.setUpdatedAt(LocalDateTime.now());
     }
@@ -134,15 +134,13 @@ public class User extends BaseEntity {
         this.userWithdrawEvent = new UserWithdrawEvent(this.id);
     }
 
-    public UserWithdrawEvent getUserWithdrawEvent() {
+    public UserWithdrawEvent pollUserWithdrawEvent() {
         if (userWithdrawEvent == null) {
             throw new CustomException(CustomErrorCode.SERVER_ERROR);
         }
-        return userWithdrawEvent;
-    }
-
-    public void clearUserWithdrawEvent() {
+        UserWithdrawEvent event = this.userWithdrawEvent;
         this.userWithdrawEvent = null;
+        return event;
     }
 
     public void delete() {
@@ -155,19 +153,18 @@ public class User extends BaseEntity {
         this.demographics.masking();
     }
 
-    public void increasePoint(){
+    public void increasePoint() {
         this.point += 5;
         updatePointGrade();
     }
 
-    private void updatePointGrade(){
-        if(this.point >= 100){
+    private void updatePointGrade() {
+        if (this.point >= 100) {
             this.point -= 100;
-            if(this.grade.next() != null){
+            if (this.grade.next() != null) {
                 this.grade = this.grade.next();
             }
         }
     }
-
 
 }
