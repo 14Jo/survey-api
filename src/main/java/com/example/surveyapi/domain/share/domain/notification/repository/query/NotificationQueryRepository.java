@@ -7,4 +7,6 @@ import com.example.surveyapi.domain.share.application.notification.dto.Notificat
 
 public interface NotificationQueryRepository {
 	Page<NotificationResponse> findPageByShareId(Long shareId, Long requesterId, Pageable pageable);
+
+	boolean isRecipient(Long sourceId, Long recipientId);
 }

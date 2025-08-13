@@ -13,14 +13,16 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.surveyapi.domain.survey.application.SurveyService;
-import com.example.surveyapi.domain.survey.application.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.command.SurveyService;
+import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
@@ -47,6 +49,7 @@ public class SurveyController {
 		@AuthenticationPrincipal Long creatorId,
 		@RequestHeader("Authorization") String authHeader
 	) {
+
 		surveyService.open(authHeader, surveyId, creatorId);
 
 		return ResponseEntity.status(HttpStatus.OK)

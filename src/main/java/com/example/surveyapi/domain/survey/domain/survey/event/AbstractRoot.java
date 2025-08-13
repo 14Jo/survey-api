@@ -2,8 +2,11 @@ package com.example.surveyapi.domain.survey.domain.survey.event;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import com.example.surveyapi.global.enums.EventCode;
 import com.example.surveyapi.global.model.BaseEntity;
 import com.example.surveyapi.global.model.SurveyEvent;
 
@@ -12,23 +15,26 @@ import jakarta.persistence.Transient;
 public abstract class AbstractRoot extends BaseEntity {
 
 	@Transient
-	private final List<SurveyEvent> surveyEvents = new ArrayList<>();
+	private final Map<EventCode, List<SurveyEvent>> surveyEvents = new HashMap<>();
 
-	protected void registerEvent(SurveyEvent event) {
-		this.surveyEvents.add(event);
+	protected void registerEvent(SurveyEvent event, EventCode key) {
+		if (!this.surveyEvents.containsKey(key)) {
+			this.surveyEvents.put(key, new ArrayList<>());
+		}
+		this.surveyEvents.get(key).add(event);
 	}
 
-	public List<SurveyEvent> pollAllEvents() {
+	public Map<EventCode, List<SurveyEvent>> pollAllEvents() {
 		if (surveyEvents.isEmpty()) {
-			return Collections.emptyList();
+			return Collections.emptyMap();
 		}
-		List<SurveyEvent> events = new ArrayList<>(this.surveyEvents);
+		Map<EventCode, List<SurveyEvent>> events = new HashMap<>(this.surveyEvents);
 		this.surveyEvents.clear();
 		return events;
 	}
 
 	public void setCreateEventId(Long surveyId) {
-		for (SurveyEvent event : this.surveyEvents) {
+		for (SurveyEvent event : this.surveyEvents.get(EventCode.SURVEY_CREATED)) {
 			if (event instanceof SurveyCreatedEvent createdEvent) {
 				createdEvent.setSurveyId(surveyId);
 				break;
