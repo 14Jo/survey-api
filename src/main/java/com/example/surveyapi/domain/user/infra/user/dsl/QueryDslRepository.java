@@ -39,6 +39,10 @@ public class QueryDslRepository {
 
         List<User> users = queryFactory
             .selectFrom(user)
+            .leftJoin(user.auth)
+            .fetchJoin()
+            .leftJoin(user.demographics)
+            .fetchJoin()
             .where(user.isDeleted.eq(false))
             .orderBy(user.createdAt.desc())
             .offset(pageable.getOffset())

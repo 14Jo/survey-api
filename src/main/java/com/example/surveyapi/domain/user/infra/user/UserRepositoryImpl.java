@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
@@ -24,6 +25,11 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public boolean existsByEmail(String email) {
         return userJpaRepository.existsByAuthEmail(email);
+    }
+
+    @Override
+    public boolean existsByProfileNickName(String nickname) {
+        return userJpaRepository.existsByProfileNickName(nickname);
     }
 
     @Override
@@ -57,8 +63,8 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<User> findByAuthProviderIdAndIsDeletedFalse(String providerId) {
-        return userJpaRepository.findByAuthProviderIdAndIsDeletedFalse(providerId);
+    public Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String providerId) {
+        return userJpaRepository.findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(provider, providerId);
     }
 
 }
