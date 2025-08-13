@@ -15,7 +15,6 @@ public class ProjectMemberResult {
 	private final LocalDateTime periodStart;
 	private final LocalDateTime periodEnd;
 	private final String state;
-	private final int managersCount;
 	private final int currentMemberCount;
 	private final int maxMembers;
 	private final LocalDateTime createdAt;
@@ -23,7 +22,7 @@ public class ProjectMemberResult {
 
 	@QueryProjection
 	public ProjectMemberResult(Long projectId, String name, String description, Long ownerId, LocalDateTime periodStart,
-		LocalDateTime periodEnd, String state, int managersCount, int currentMemberCount, int maxMembers,
+		LocalDateTime periodEnd, String state, int currentMemberCount, int maxMembers,
 		LocalDateTime createdAt, LocalDateTime updatedAt) {
 		this.projectId = projectId;
 		this.name = name;
@@ -32,7 +31,6 @@ public class ProjectMemberResult {
 		this.periodStart = periodStart;
 		this.periodEnd = periodEnd;
 		this.state = state;
-		this.managersCount = managersCount;
 		this.currentMemberCount = currentMemberCount;
 		this.maxMembers = maxMembers;
 		this.createdAt = createdAt;
