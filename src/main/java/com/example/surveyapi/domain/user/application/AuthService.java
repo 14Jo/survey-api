@@ -2,29 +2,40 @@ package com.example.surveyapi.domain.user.application;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.user.application.client.KakaoOauthPort;
-import com.example.surveyapi.domain.user.application.client.KakaoOauthRequest;
-import com.example.surveyapi.domain.user.application.client.KakaoAccessResponse;
-import com.example.surveyapi.domain.user.application.client.KakaoUserInfoResponse;
-import com.example.surveyapi.domain.user.application.client.MyProjectRoleResponse;
-import com.example.surveyapi.domain.user.application.client.ParticipationPort;
-import com.example.surveyapi.domain.user.application.client.ProjectPort;
-import com.example.surveyapi.domain.user.application.client.UserSurveyStatusResponse;
+import com.example.surveyapi.domain.user.application.client.port.OAuthPort;
+import com.example.surveyapi.domain.user.application.client.request.GoogleOAuthRequest;
+import com.example.surveyapi.domain.user.application.client.request.KakaoOAuthRequest;
+import com.example.surveyapi.domain.user.application.client.request.NaverOAuthRequest;
+import com.example.surveyapi.domain.user.application.client.response.GoogleAccessResponse;
+import com.example.surveyapi.domain.user.application.client.response.GoogleUserInfoResponse;
+import com.example.surveyapi.domain.user.application.client.response.KakaoAccessResponse;
+import com.example.surveyapi.domain.user.application.client.response.KakaoUserInfoResponse;
+import com.example.surveyapi.domain.user.application.client.response.MyProjectRoleResponse;
+import com.example.surveyapi.domain.user.application.client.port.ParticipationPort;
+import com.example.surveyapi.domain.user.application.client.port.ProjectPort;
+import com.example.surveyapi.domain.user.application.client.response.NaverAccessResponse;
+import com.example.surveyapi.domain.user.application.client.response.NaverUserInfoResponse;
+import com.example.surveyapi.domain.user.application.client.response.UserSurveyStatusResponse;
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
 import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRedisRepository;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
+import com.example.surveyapi.global.annotation.UserWithdraw;
 import com.example.surveyapi.global.config.jwt.JwtUtil;
-import com.example.surveyapi.global.config.oauth.KakaoOauthProperties;
+import com.example.surveyapi.global.config.oauth.GoogleOAuthProperties;
+import com.example.surveyapi.global.config.oauth.KakaoOAuthProperties;
+import com.example.surveyapi.global.config.oauth.NaverOAuthProperties;
 import com.example.surveyapi.global.config.security.PasswordEncoder;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -43,13 +54,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final ProjectPort projectPort;
     private final ParticipationPort participationPort;
-    private final KakaoOauthPort kakaoOauthPort;
-    private final KakaoOauthProperties kakaoOauthProperties;
+    private final OAuthPort OAuthPort;
+    private final KakaoOAuthProperties kakaoOAuthProperties;
+    private final NaverOAuthProperties naverOAuthProperties;
+    private final GoogleOAuthProperties googleOAuthProperties;
     private final UserRedisRepository userRedisRepository;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
-
         User createUser = createAndSaveUser(request);
 
         return SignupResponse.from(createUser);
@@ -57,7 +69,6 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-
         User user = userRepository.findByEmailAndIsDeletedFalse(request.getEmail())
             .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
 
@@ -79,28 +90,31 @@ public class AuthService {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
         }
 
-        List<MyProjectRoleResponse> myRoleList = projectPort.getProjectMyRole(authHeader, userId);
-        log.info("프로젝트 조회 성공 : {}", myRoleList.size());
+        CompletableFuture<List<MyProjectRoleResponse>> projectFuture = getMyProjectRoleAsync(authHeader, userId);
+        CompletableFuture<List<UserSurveyStatusResponse>> surveyStatusFuture = getSurveyStatusAsync(authHeader, userId);
 
-        for (MyProjectRoleResponse myRole : myRoleList) {
-            log.info("권한 : {}", myRole.getMyRole());
-            if ("OWNER".equals(myRole.getMyRole())) {
-                throw new CustomException(CustomErrorCode.PROJECT_ROLE_OWNER);
+        try {
+            CompletableFuture.allOf(projectFuture, surveyStatusFuture).join();
+
+            List<MyProjectRoleResponse> myRoleList = projectFuture.get();
+            List<UserSurveyStatusResponse> surveyStatus = surveyStatusFuture.get();
+
+            for (MyProjectRoleResponse myRole : myRoleList) {
+                log.info("권한 : {}", myRole.getMyRole());
+                if ("OWNER".equals(myRole.getMyRole())) {
+                    throw new CustomException(CustomErrorCode.PROJECT_ROLE_OWNER);
+                }
             }
-        }
 
-        int page = 0;
-        int size = 20;
-
-        List<UserSurveyStatusResponse> surveyStatus =
-            participationPort.getParticipationSurveyStatus(authHeader, userId, page, size);
-        log.info("설문 참여 상태 수: {}", surveyStatus.size());
-
-        for (UserSurveyStatusResponse survey : surveyStatus) {
-            log.info("설문 상태: {}", survey.getSurveyStatus());
-            if ("IN_PROGRESS".equals(survey.getSurveyStatus())) {
-                throw new CustomException(CustomErrorCode.SURVEY_IN_PROGRESS);
+            for (UserSurveyStatusResponse survey : surveyStatus) {
+                log.info("설문 상태: {}", survey.getSurveyStatus());
+                if ("IN_PROGRESS".equals(survey.getSurveyStatus())) {
+                    throw new CustomException(CustomErrorCode.SURVEY_IN_PROGRESS);
+                }
             }
+
+        } catch (Exception e) {
+            throw new CustomException(CustomErrorCode.EXTERNAL_API_ERROR);
         }
 
         user.delete();
@@ -183,7 +197,7 @@ public class AuthService {
         String providerId = String.valueOf(kakaoUserInfo.getProviderId());
 
         // 회원가입 유저인지 확인
-        User user = userRepository.findByAuthProviderIdAndIsDeletedFalse(providerId)
+        User user = userRepository.findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider.KAKAO, providerId)
             .orElseGet(() -> {
                 User newUser = createAndSaveUser(request);
                 newUser.getAuth().updateProviderId(providerId);
@@ -194,9 +208,60 @@ public class AuthService {
         return createAccessAndSaveRefresh(user);
     }
 
+    @Transactional
+    public LoginResponse naverLogin(String code, SignupRequest request) {
+        log.info("네이버 로그인 실행");
+        NaverAccessResponse naverAccessToken = getNaverAcessToken(code);
+        log.info("액세스 토큰 발급 완료");
+
+        NaverUserInfoResponse naverUserInfo = getNaverUserInfo(naverAccessToken.getAccess_token());
+        log.info("providerId 획득");
+
+        String providerId = String.valueOf(naverUserInfo.getResponse().getProviderId());
+
+        // 회원가입 유저인지 확인
+        User user = userRepository.findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider.NAVER, providerId)
+            .orElseGet(() -> {
+                User newUser = createAndSaveUser(request);
+                newUser.getAuth().updateProviderId(providerId);
+                log.info("회원가입 완료");
+                return newUser;
+            });
+
+        return createAccessAndSaveRefresh(user);
+    }
+
+    @Transactional
+    public LoginResponse googleLogin(String code, SignupRequest request) {
+        log.info("구글 로그인 실행");
+        GoogleAccessResponse googleAccessResponse = getGoogleAccessToken(code);
+        log.info("액세스 토큰 발급 완료");
+
+        GoogleUserInfoResponse googleuserInfo = getGoogleUserInfo(googleAccessResponse.getAccess_token());
+        log.info("providerId 획득");
+
+        String providerId = String.valueOf(googleuserInfo.getProviderId());
+
+        // 회원가입 유저인지 확인
+        User user = userRepository.findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider.GOOGLE, providerId)
+            .orElseGet(() -> {
+                User newUser = createAndSaveUser(request);
+                newUser.getAuth().updateProviderId(providerId);
+                log.info("회원가입 완료");
+                return newUser;
+            });
+
+        return createAccessAndSaveRefresh(user);
+
+    }
+
     private User createAndSaveUser(SignupRequest request) {
         if (userRepository.existsByEmail(request.getAuth().getEmail())) {
             throw new CustomException(CustomErrorCode.EMAIL_DUPLICATED);
+        }
+
+        if (userRepository.existsByProfileNickName(request.getProfile().getNickName())) {
+            throw new CustomException(CustomErrorCode.NICKNAME_DUPLICATED);
         }
 
         String encryptedPassword = passwordEncoder.encode(request.getAuth().getPassword());
@@ -230,6 +295,33 @@ public class AuthService {
         return LoginResponse.of(newAccessToken, newRefreshToken, user);
     }
 
+    @Async
+    public CompletableFuture<List<MyProjectRoleResponse>> getMyProjectRoleAsync(String authHeader, Long userId) {
+        try {
+            List<MyProjectRoleResponse> myRoleList = projectPort.getProjectMyRole(authHeader, userId);
+            log.info("프로젝트 조회 : {}", myRoleList.size());
+
+            return CompletableFuture.completedFuture(myRoleList);
+        } catch (Exception e) {
+            log.error("프로젝트 조회 실패 (비동기): {}", e.getMessage());
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    @Async
+    public CompletableFuture<List<UserSurveyStatusResponse>> getSurveyStatusAsync(String authHeader, Long userId) {
+        try {
+            List<UserSurveyStatusResponse> surveyStatus =
+                participationPort.getParticipationSurveyStatus(authHeader, userId, 0, 20);
+            log.info("참여중인 설문  : {}", surveyStatus.size());
+
+            return CompletableFuture.completedFuture(surveyStatus);
+        } catch (Exception e) {
+            log.error("설문 참여 상태 조회 실패 (비동기): {}", e.getMessage());
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
     private void addBlackLists(String accessToken) {
 
         Long remainingTime = jwtUtil.getExpiration(accessToken);
@@ -248,13 +340,13 @@ public class AuthService {
     private KakaoAccessResponse getKakaoAccessToken(String code) {
 
         try {
-            KakaoOauthRequest request = KakaoOauthRequest.of(
+            KakaoOAuthRequest request = KakaoOAuthRequest.of(
                 "authorization_code",
-                kakaoOauthProperties.getClientId(),
-                kakaoOauthProperties.getRedirectUri(),
+                kakaoOAuthProperties.getClientId(),
+                kakaoOAuthProperties.getRedirectUri(),
                 code);
 
-            return kakaoOauthPort.getKakaoAccess(request);
+            return OAuthPort.getKakaoAccess(request);
         } catch (Exception e) {
             throw new CustomException(CustomErrorCode.OAUTH_ACCESS_TOKEN_FAILED);
         }
@@ -262,9 +354,55 @@ public class AuthService {
 
     private KakaoUserInfoResponse getKakaoUserInfo(String accessToken) {
         try {
-            return kakaoOauthPort.getKakaoUserInfo("Bearer " + accessToken);
+            return OAuthPort.getKakaoUserInfo("Bearer " + accessToken);
         } catch (Exception e) {
-            log.error("카카오 사용자 정보 요청 실패 : ", e);
+            throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
+        }
+    }
+
+    private NaverAccessResponse getNaverAcessToken(String code) {
+        try {
+            NaverOAuthRequest request = NaverOAuthRequest.of(
+                "authorization_code",
+                naverOAuthProperties.getClientId(),
+                naverOAuthProperties.getClientSecret(),
+                code,
+                "test_state_123");
+
+            return OAuthPort.getNaverAccess(request);
+        } catch (Exception e) {
+            throw new CustomException(CustomErrorCode.OAUTH_ACCESS_TOKEN_FAILED);
+        }
+    }
+
+    private NaverUserInfoResponse getNaverUserInfo(String accessToken) {
+        try {
+            return OAuthPort.getNaverUserInfo("Bearer " + accessToken);
+        } catch (Exception e) {
+            throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
+        }
+    }
+
+    private GoogleAccessResponse getGoogleAccessToken(String code) {
+        try {
+            GoogleOAuthRequest request = GoogleOAuthRequest.of(
+                "authorization_code",
+                googleOAuthProperties.getClientId(),
+                googleOAuthProperties.getClientSecret(),
+                googleOAuthProperties.getRedirectUri(),
+                code);
+
+            return OAuthPort.getGoogleAccess(request);
+        } catch (Exception e) {
+            throw new CustomException(CustomErrorCode.OAUTH_ACCESS_TOKEN_FAILED);
+        }
+    }
+
+    private GoogleUserInfoResponse getGoogleUserInfo(String accessToken) {
+        try {
+
+            return OAuthPort.getGoogleUserInfo("Bearer " + accessToken);
+        } catch (Exception e) {
             throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
         }
     }

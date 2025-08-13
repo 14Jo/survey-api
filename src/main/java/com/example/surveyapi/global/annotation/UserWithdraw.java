@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.infra.annotation;
+package com.example.surveyapi.global.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
