@@ -1,12 +1,9 @@
 package com.example.surveyapi.domain.project.application.event;
 
-import java.util.List;
-
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.event.UserWithdrawEvent;
 
@@ -24,17 +21,8 @@ public class UserEventHandler {
 	public void handleUserWithdrawEvent(UserWithdrawEvent event) {
 		log.debug("회원 탈퇴 이벤트 수신 userId: {}", event.getUserId());
 
-		List<Project> projectsByMember = projectRepository.findProjectsByMember(event.getUserId());
-		for (Project project : projectsByMember) {
-			// TODO: Batch Update
-			project.removeMember(event.getUserId());
-		}
-
-		List<Project> projectsByManager = projectRepository.findProjectsByManager(event.getUserId());
-		for (Project project : projectsByManager) {
-			// TODO: Batch Update
-			project.removeManager(event.getUserId());
-		}
+		projectRepository.removeMemberFromProjects(event.getUserId());
+		projectRepository.removeManagerFromProjects(event.getUserId());
 
 		log.debug("회원 탈퇴 처리 완료 userId: {}", event.getUserId());
 	}
