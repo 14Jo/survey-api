@@ -39,6 +39,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/reissue").permitAll()
                 .requestMatchers("/auth/kakao/**").permitAll()
+                .requestMatchers("/auth/naver/**").permitAll()
+                .requestMatchers("/auth/google/**").permitAll()
                 .requestMatchers("/api/v1/survey/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
