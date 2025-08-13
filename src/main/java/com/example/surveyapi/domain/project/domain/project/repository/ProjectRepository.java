@@ -4,13 +4,14 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 
 import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 
 public interface ProjectRepository {
 
@@ -22,15 +23,17 @@ public interface ProjectRepository {
 
 	List<ProjectMemberResult> findMyProjectsAsMember(Long currentUserId);
 
-	Page<ProjectSearchResult> searchProjects(String keyword, Pageable pageable);
+	Slice<ProjectSearchResult> searchProjectsNoOffset(String keyword, Long lastProjectId, Pageable pageable);
 
 	Optional<Project> findByIdAndIsDeletedFalse(Long projectId);
-
-	List<Project> findProjectsByMember(Long userId);
-
-	List<Project> findProjectsByManager(Long userId);
 
 	List<Project> findPendingProjectsToStart(LocalDateTime now);
 
 	List<Project> findInProgressProjectsToClose(LocalDateTime now);
+
+	void updateStateByIds(List<Long> projectIds, ProjectState newState);
+
+	void removeMemberFromProjects(Long userId);
+
+	void removeManagerFromProjects(Long userId);
 }

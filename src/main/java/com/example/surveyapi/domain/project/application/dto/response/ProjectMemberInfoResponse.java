@@ -18,7 +18,6 @@ public class ProjectMemberInfoResponse {
 	private LocalDateTime periodStart;
 	private LocalDateTime periodEnd;
 	private String state;
-	private int managersCount;
 	private int currentMemberCount;
 	private int maxMembers;
 	private LocalDateTime createdAt;
@@ -33,7 +32,6 @@ public class ProjectMemberInfoResponse {
 		response.periodStart = projectMemberResult.getPeriodStart();
 		response.periodEnd = projectMemberResult.getPeriodEnd();
 		response.state = projectMemberResult.getState();
-		response.managersCount = projectMemberResult.getManagersCount();
 		response.currentMemberCount = projectMemberResult.getCurrentMemberCount();
 		response.maxMembers = projectMemberResult.getMaxMembers();
 		response.createdAt = projectMemberResult.getCreatedAt();
