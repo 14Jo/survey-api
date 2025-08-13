@@ -73,11 +73,7 @@ public class ParticipationService {
 		Participation savedParticipation = participationRepository.save(participation);
 
 		// 이벤트 생성
-		ParticipationCreatedEvent event = new ParticipationCreatedEvent(
-			savedParticipation.getId(),
-			savedParticipation.getSurveyId(),
-			responseDataList
-		);
+		ParticipationCreatedEvent event = ParticipationCreatedEvent.from(savedParticipation);
 		savedParticipation.registerEvent(event);
 
 		// 이벤트 발행
@@ -183,11 +179,7 @@ public class ParticipationService {
 		// 문항과 답변 유효성 검사
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		ParticipationUpdatedEvent event = new ParticipationUpdatedEvent(
-			participation.getId(),
-			participation.getSurveyId(),
-			responseDataList
-		);
+		ParticipationUpdatedEvent event = ParticipationUpdatedEvent.from(participation);
 		participation.registerEvent(event);
 
 		participation.pollAllEvents().forEach(evt ->
