@@ -55,22 +55,18 @@ public class ProjectService {
 			request.getName(), request.getDescription(),
 			request.getPeriodStart(), request.getPeriodEnd()
 		);
-
-		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
-		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void updateOwner(Long projectId, UpdateProjectOwnerRequest request, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateOwner(currentUserId, request.getNewOwnerId());
-		publishProjectEvents(project);
 	}
 
 	@Transactional
@@ -92,14 +88,12 @@ public class ProjectService {
 		Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
-		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void deleteManager(Long projectId, Long managerId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.deleteManager(currentUserId, managerId);
-		publishProjectEvents(project);
 	}
 
 	@Transactional
@@ -113,14 +107,12 @@ public class ProjectService {
 	public void leaveProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeManager(currentUserId);
-		publishProjectEvents(project);
 	}
 
 	@Transactional
 	public void leaveProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
-		publishProjectEvents(project);
 	}
 
 	private void validateDuplicateName(String name) {
