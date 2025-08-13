@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum CustomErrorCode {
 
     EMAIL_DUPLICATED(HttpStatus.CONFLICT,"사용중인 이메일입니다."),
+    NICKNAME_DUPLICATED(HttpStatus.CONFLICT,"사용중인 닉네임입니다."),
     WRONG_PASSWORD(HttpStatus.UNAUTHORIZED, "비밀번호가 틀렸습니다"),
     GRADE_POINT_NOT_FOUND(HttpStatus.NOT_FOUND, "등급 및 포인트를 조회 할 수 없습니다"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "이메일을 찾을 수 없습니다."),
@@ -27,6 +28,7 @@ public enum CustomErrorCode {
     SURVEY_IN_PROGRESS(HttpStatus.CONFLICT,"참여중인 설문이 존재합니다."),
     PROVIDER_ID_NOT_FOUNT(HttpStatus.NOT_FOUND,"해당 providerId로 가입된 사용자가 존재하지 않습니다"),
     OAUTH_ACCESS_TOKEN_FAILED(HttpStatus.BAD_REQUEST,"소셜 로그인 인증에 실패했습니다"),
+    EXTERNAL_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"외부 API 오류 발생했습니다."),
 
     // 프로젝트 에러
     START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
