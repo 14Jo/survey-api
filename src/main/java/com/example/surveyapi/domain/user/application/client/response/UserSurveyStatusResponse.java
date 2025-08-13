@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.application.client;
+package com.example.surveyapi.domain.user.application.client.response;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
