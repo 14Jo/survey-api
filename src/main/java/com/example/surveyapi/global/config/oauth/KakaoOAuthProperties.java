@@ -14,18 +14,10 @@ import lombok.Setter;
 @Getter
 @Component
 @ConfigurationProperties(prefix = "oauth.kakao")
-public class KakaoOauthProperties {
+public class KakaoOAuthProperties {
 
-    // 카카오 REST API 키
     private String clientId;
-
-    // 카카오 로그인 후 인가 코드 리다이렉트 되는 내 서버 URI
     private String redirectUri;
 
-    // 인가 코드를 토큰으로 바꾸기 위해 호출하는 URI
-    private String tokenUri;
-
-    // 액세스 토큰으로 사용자 정보를 가져오는 URI (provider_id, 동의항목 가지고 옴) (현재 : 동의항목 미선택)
-    private String userInfoUri; 
 
 }
