@@ -8,7 +8,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
 import com.example.surveyapi.domain.survey.infra.event.EventPublisher;
 import com.example.surveyapi.global.enums.EventCode;
@@ -27,7 +26,6 @@ public class DomainEventPublisherAspect {
 	@AfterReturning(pointcut = "com.example.surveyapi.domain.survey.infra.aop.SurveyPointcuts.surveyPointCut(entity)", argNames = "entity")
 	public void afterSave(Object entity) {
 		if (entity instanceof AbstractRoot aggregateRoot) {
-			registerEvent(aggregateRoot);
 
 			Map<EventCode, List<SurveyEvent>> eventListMap = aggregateRoot.pollAllEvents();
 			eventListMap.forEach((eventCode, eventList) -> {
@@ -35,12 +33,6 @@ public class DomainEventPublisherAspect {
 					eventPublisher.publishEvent(event, eventCode);
 				}
 			});
-		}
-	}
-
-	private void registerEvent(AbstractRoot root) {
-		if (root instanceof Survey survey) {
-			root.setCreateEventId(survey.getSurveyId());
 		}
 	}
 }
