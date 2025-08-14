@@ -7,6 +7,7 @@ import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
+import org.springframework.data.domain.AbstractAggregateRoot;
 
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -19,6 +20,7 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.enums.EventCode;
 import com.example.surveyapi.global.event.SurveyActivateEvent;
 import com.example.surveyapi.global.exception.CustomException;
+import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -39,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Survey extends AbstractRoot {
+public class Survey extends AbstractRoot<Survey> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -124,15 +126,13 @@ public class Survey extends AbstractRoot {
 	public void open() {
 		this.status = SurveyStatus.IN_PROGRESS;
 		this.duration = SurveyDuration.of(LocalDateTime.now(), this.duration.getEndDate());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()),
-			EventCode.SURVEY_ACTIVATED);
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()),
-			EventCode.SURVEY_ACTIVATED);
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 
 	public void delete() {

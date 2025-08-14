@@ -1,0 +1,9 @@
+package com.example.surveyapi.domain.survey.application.event;
+
+import com.example.surveyapi.global.enums.EventCode;
+import com.example.surveyapi.global.model.SurveyEvent;
+
+public interface RabbitPublisherPort {
+
+	void publish(SurveyEvent event, EventCode key);
+}
