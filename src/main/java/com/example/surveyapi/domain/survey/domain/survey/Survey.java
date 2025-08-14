@@ -16,7 +16,6 @@ import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.enums.EventCode;
 import com.example.surveyapi.global.event.SurveyActivateEvent;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -39,7 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Survey extends AbstractRoot {
+public class Survey extends AbstractRoot<Survey> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -124,15 +123,13 @@ public class Survey extends AbstractRoot {
 	public void open() {
 		this.status = SurveyStatus.IN_PROGRESS;
 		this.duration = SurveyDuration.of(LocalDateTime.now(), this.duration.getEndDate());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()),
-			EventCode.SURVEY_ACTIVATED);
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()),
-			EventCode.SURVEY_ACTIVATED);
+		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 
 	public void delete() {
