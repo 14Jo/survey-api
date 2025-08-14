@@ -39,6 +39,10 @@ spring:
       database: ${MONGODB_DATABASE:test_survey_db}
       auto-index-creation: true
 
+firebase:
+  credentials:
+    path: classpath:firebase-survey-account.json
+
 # JWT Secret Key for test environment
 jwt:
   secret:

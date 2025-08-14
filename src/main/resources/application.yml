@@ -99,6 +99,9 @@ spring:
           auth: true
           starttls:
             enable: true
+firebase:
+  credentials:
+    path: classpath:firebase-survey-account.json
 
 server:
   tomcat:
@@ -190,6 +193,10 @@ server:
     threads:
       max: 20
       min-spare: 10
+
+firebase:
+  credentials:
+    path: classpath:firebase-survey-account.json
 
 # 로그 설정
 logging:
