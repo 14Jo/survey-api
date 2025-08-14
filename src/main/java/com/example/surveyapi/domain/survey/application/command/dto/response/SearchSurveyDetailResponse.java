@@ -150,19 +150,19 @@ public class SearchSurveyDetailResponse {
 	@NoArgsConstructor(access = AccessLevel.PRIVATE)
 	public static class ChoiceResponse {
 		private String content;
-		private int displayOrder;
+		private Integer choiceId;
 
 		public static ChoiceResponse from(ChoiceInfo choiceInfo) {
 			ChoiceResponse result = new ChoiceResponse();
 			result.content = choiceInfo.getContent();
-			result.displayOrder = choiceInfo.getDisplayOrder();
+			result.choiceId = choiceInfo.getChoiceId();
 			return result;
 		}
 
 		public static ChoiceResponse from(Choice choice) {
 			ChoiceResponse result = new ChoiceResponse();
 			result.content = choice.getContent();
-			result.displayOrder = choice.getDisplayOrder();
+			result.choiceId = choice.getChoiceId();
 			return result;
 		}
 	}
