@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.survey.application.event;
 
-import org.springframework.data.domain.AbstractAggregateRoot;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -14,9 +13,9 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class SurveyEventListener extends AbstractAggregateRoot {
+public class SurveyEventListener {
 
-	private final RabbitPublisherPort rabbitPublisher;
+	private final SurveyEventPublisherPort rabbitPublisher;
 	private final ObjectMapper objectMapper;
 
 	@Async

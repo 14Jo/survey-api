@@ -5,7 +5,6 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.model.SurveyEvent;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ShareConsumer {
 
 	@RabbitHandler
-	public void handleSurveyEventBatch(SurveyEvent event) {
+	public void handleSurveyEventBatch(SurveyActivateEvent event) {
 		try {
 			log.info("Received survey event");
 		} catch (Exception e) {
