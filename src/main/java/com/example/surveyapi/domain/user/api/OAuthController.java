@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.user.api;
 
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,7 @@ import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.global.util.ApiResponse;
 
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -21,7 +23,7 @@ public class OAuthController {
     private final AuthService authService;
 
     @PostMapping("/auth/kakao/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> KakaoLogin(
+    public ResponseEntity<ApiResponse<LoginResponse>> kakaoLogin(
         @RequestParam("code") String code,
         @RequestBody SignupRequest request
     ) {
@@ -31,4 +33,26 @@ public class OAuthController {
             .body(ApiResponse.success("로그인 성공", login));
     }
 
+
+    @PostMapping("/auth/naver/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> naverLogin(
+        @RequestParam("code") String code,
+        @RequestBody SignupRequest request
+    ){
+        LoginResponse login = authService.naverLogin(code, request);
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ApiResponse.success("로그인 성공", login));
+    }
+
+    @PostMapping("/auth/google/login")
+    public ResponseEntity<ApiResponse<LoginResponse>> googleLogin(
+        @RequestParam("code") String code,
+        @RequestBody SignupRequest request
+    ){
+        LoginResponse login = authService.googleLogin(code, request);
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ApiResponse.success("로그인 성공", login));
+    }
 }

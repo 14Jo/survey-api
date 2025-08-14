@@ -5,13 +5,18 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 
 public interface UserRepository {
 
     boolean existsByEmail(String email);
 
+    boolean existsByProfileNickName(String nickname);
+
     User save(User user);
+
+    User withdrawSave(User user);
 
     Optional<User> findByEmailAndIsDeletedFalse(String email);
 
@@ -23,5 +28,5 @@ public interface UserRepository {
 
     Optional<UserGradePoint> findByGradeAndPoint(Long userId);
 
-    Optional<User> findByAuthProviderIdAndIsDeletedFalse(String providerId);
+    Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String providerId);
 }
