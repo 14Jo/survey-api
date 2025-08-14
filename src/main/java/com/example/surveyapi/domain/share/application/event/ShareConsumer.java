@@ -4,8 +4,8 @@ import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-import com.example.surveyapi.domain.share.application.share.ShareService;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
+import com.example.surveyapi.domain.share.application.event.dto.ShareCreateRequest;
+import com.example.surveyapi.domain.share.application.event.port.ShareEventPort;
 import com.example.surveyapi.global.constant.RabbitConst;
 import com.example.surveyapi.global.event.SurveyActivateEvent;
 
@@ -19,19 +19,20 @@ import lombok.extern.slf4j.Slf4j;
 	queues = RabbitConst.QUEUE_NAME_SHARE
 )
 public class ShareConsumer {
-	private final ShareService shareService;
+	private final ShareEventPort shareEventPort;
 
 	@RabbitHandler
 	public void handleSurveyEventBatch(SurveyActivateEvent event) {
 		try {
 			log.info("Received survey event");
 
-			shareService.createShare(
-				ShareSourceType.SURVEY,
+			ShareCreateRequest request = new ShareCreateRequest(
 				event.getSurveyId(),
 				event.getCreatorID(),
 				event.getEndTime()
 			);
+
+			shareEventPort.handleSurveyEvent(request);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
