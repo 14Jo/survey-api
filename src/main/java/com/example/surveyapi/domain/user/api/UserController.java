@@ -61,7 +61,7 @@ public class UserController {
             .body(ApiResponse.success("회원 등급 조회 성공", success));
     }
 
-    @PatchMapping("/v1/users")
+    @PatchMapping("/v1/users/me")
     public ResponseEntity<ApiResponse<UpdateUserResponse>> update(
         @Valid @RequestBody UpdateUserRequest request,
         @AuthenticationPrincipal Long userId
