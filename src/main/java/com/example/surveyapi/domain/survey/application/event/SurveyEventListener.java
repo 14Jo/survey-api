@@ -1,23 +1,26 @@
 package com.example.surveyapi.domain.survey.application.event;
 
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.AbstractAggregateRoot;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.global.enums.EventCode;
-import com.example.surveyapi.global.model.SurveyEvent;
-
+import com.example.surveyapi.global.event.SurveyActivateEvent;
 import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class SurveyEventListener {
+public class SurveyEventListener extends AbstractAggregateRoot {
 
 	private final RabbitPublisherPort rabbitPublisher;
 
+	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handle(SurveyEvent event) {
+	public void handle(SurveyActivateEvent event) {
 		rabbitPublisher.publish(event, EventCode.SURVEY_ACTIVATED);
 	}
+
+
 }

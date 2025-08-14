@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.survey.infra.event;
 
+import java.util.Objects;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -12,12 +14,13 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class RabbitPublisherImpl implements RabbitPublisherPort {
+public class RabbitPublisher implements RabbitPublisherPort {
 
 	private final RabbitTemplate rabbitTemplate;
 
 	public void publish(SurveyEvent event, EventCode key) {
-		String routingKey = RabbitConst.ROUTING_KEY.replace("#", key.name());
-		rabbitTemplate.convertAndSend(RabbitConst.EXCHANGE_NAME, routingKey, event);
+		if (key.equals(EventCode.SURVEY_ACTIVATED)) {
+			rabbitTemplate.convertAndSend(RabbitConst.EXCHANGE_NAME, RabbitConst.ROUTING_KEY_SURVEY_ACTIVE, event);
+		}
 	}
 }
