@@ -8,12 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChoiceInfo {
 	private String content;
-	private int displayOrder;
+	private Integer choiceId;
 
 	public static ChoiceInfo of(String content, int displayOrder) {
 		ChoiceInfo choiceInfo = new ChoiceInfo();
 		choiceInfo.content = content;
-		choiceInfo.displayOrder = displayOrder;
+		choiceInfo.choiceId = displayOrder;
 		return choiceInfo;
 	}
 }

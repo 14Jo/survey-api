@@ -1,9 +1,7 @@
 package com.example.surveyapi.domain.survey.domain.question;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -17,12 +15,10 @@ import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
-import jakarta.persistence.ConstraintMode;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -94,7 +90,7 @@ public class Question extends BaseEntity {
 	private void addChoice(List<ChoiceInfo> choices) {
 		try {
 			List<Choice> choiceList = choices.stream().map(choiceInfo -> {
-				return Choice.of(choiceInfo.getContent(), choiceInfo.getDisplayOrder());
+				return Choice.of(choiceInfo.getContent(), choiceInfo.getChoiceId());
 			}).toList();
 			this.choices.addAll(choiceList);
 		} catch (NullPointerException e) {

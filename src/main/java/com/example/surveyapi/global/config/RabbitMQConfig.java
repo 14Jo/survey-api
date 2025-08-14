@@ -24,47 +24,6 @@ public class RabbitMQConfig {
 	private final ConnectionFactory connectionFactory;
 
 	@Bean
-	public TopicExchange exchange() {
-		return new TopicExchange(RabbitConst.EXCHANGE_NAME);
-	}
-
-	@Bean
-	public Queue queue() {
-		return new Queue(RabbitConst.QUEUE_NAME, true);
-	}
-
-	@Bean
-	public Binding binding(Queue queue, TopicExchange exchange) {
-
-		return BindingBuilder
-			.bind(queue)
-			.to(exchange)
-			.with(RabbitConst.ROUTING_KEY);
-	}
-
-	@Bean
-	public SimpleRabbitListenerContainerFactory batchListenerContainerFactory() {
-
-		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
-		factory.setConnectionFactory(connectionFactory);
-
-		factory.setConsumerBatchEnabled(true);
-		factory.setBatchSize(100);
-		factory.setBatchReceiveTimeout(5000L);
-
-		factory.setAcknowledgeMode(MANUAL);
-
-		factory.setConcurrentConsumers(1);
-		factory.setMaxConcurrentConsumers(1);
-
-		factory.setMessageConverter(jsonMessageConverter());
-
-		factory.setBatchListener(true);
-
-		return factory;
-	}
-
-	@Bean
 	public SimpleRabbitListenerContainerFactory defaultListenerContainerFactory() {
 
 		SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
@@ -80,7 +39,7 @@ public class RabbitMQConfig {
 		return factory;
 	}
 
-	// 🔄 JSON 메시지 변환기
+	// JSON 메시지 변환기
 	@Bean
 	public MessageConverter jsonMessageConverter() {
 		return new Jackson2JsonMessageConverter();

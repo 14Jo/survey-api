@@ -1,7 +1,6 @@
 package com.example.surveyapi.domain.survey.application.qeury.dto;
 
 import java.util.List;
-import java.util.UUID;
 
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
@@ -35,15 +34,13 @@ public class QuestionSyncDto {
 
 	@Getter
 	public static class ChoiceDto {
-		private UUID choiceId;
 		private String content;
-		private int displayOrder;
+		private Integer choiceId;
 
 		public static ChoiceDto of(Choice choice) {
 			ChoiceDto dto = new ChoiceDto();
-			dto.choiceId = choice.getChoiceId();
 			dto.content = choice.getContent();
-			dto.displayOrder = choice.getDisplayOrder();
+			dto.choiceId = choice.getChoiceId();
 			return dto;
 		}
 	}
