@@ -49,7 +49,8 @@ class MailSendTest {
 			1L,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
-		savedShareId = response.getId();
+		Share savedShare = shareRepository.findBySource(1L).get(0);
+		savedShareId = savedShare.getId();
 	}
 
 	@Test

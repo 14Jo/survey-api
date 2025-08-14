@@ -55,7 +55,8 @@ class ShareServiceTest {
 			1L,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
-		savedShareId = response.getId();
+		Share savedShare = shareRepository.findBySource(1L).get(0);
+		savedShareId = savedShare.getId();
 	}
 
 	@Test
@@ -95,8 +96,8 @@ class ShareServiceTest {
 	@DisplayName("공유 조회 성공")
 	void getShare_success() {
 		ShareResponse response = shareService.getShare(savedShareId, 1L);
-
-		assertThat(response.getId()).isEqualTo(savedShareId);
+		Share share = shareService.getShareEntity(savedShareId, 1L);
+		assertThat(response.getShareLink()).isEqualTo(share.getLink());
 	}
 
 	@Test
@@ -110,12 +111,14 @@ class ShareServiceTest {
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
 
+		Share share = shareService.getShareBySource(10L).get(0);
+
 		//when
-		String result = shareService.delete(response.getId(), 2L);
+		String result = shareService.delete(share.getId(), 2L);
 
 		//then
 		assertThat(result).isEqualTo("공유 삭제 완료");
-		assertThat(shareRepository.findById(response.getId())).isEmpty();
+		assertThat(shareRepository.findById(share.getId())).isEmpty();
 	}
 
 	@Test
