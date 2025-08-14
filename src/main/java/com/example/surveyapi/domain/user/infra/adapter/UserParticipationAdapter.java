@@ -5,8 +5,8 @@ import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
-import com.example.surveyapi.domain.user.application.client.UserSurveyStatusResponse;
-import com.example.surveyapi.domain.user.application.client.ParticipationPort;
+import com.example.surveyapi.domain.user.application.client.response.UserSurveyStatusResponse;
+import com.example.surveyapi.domain.user.application.client.port.ParticipationPort;
 import com.example.surveyapi.global.config.client.ExternalApiResponse;
 import com.example.surveyapi.global.config.client.participation.ParticipationApiClient;
 import com.fasterxml.jackson.core.type.TypeReference;

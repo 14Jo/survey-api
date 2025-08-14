@@ -46,7 +46,8 @@ spring:
       password: ${MONGODB_PASSWORD:survey_password}
       authentication-database: ${MONGODB_AUTHDB:admin}
 
-
+# =======================================================
+# == Actuator 공통 설정 추가
 management:
   endpoints:
     web:
@@ -79,7 +80,10 @@ spring:
       connection-timeout: 5000
       idle-timeout: 600000
       max-lifetime: 1800000
-
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
   data:
     redis:
       host: ${REDIS_HOST}
@@ -105,7 +109,9 @@ server:
 # 로그 설정 - 외부 API 관련 로그만 DEBUG로 설정
 logging:
   level:
-    org.springframework.security: INFO
+    org.springframework.security: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.apache.tomcat.util.threads.ThreadPoolExecutor: DEBUG
     com.example.surveyapi: INFO
     # 외부 API 관련 로그만 DEBUG로 설정
     com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
@@ -126,10 +132,17 @@ jwt:
 
 oauth:
   kakao:
-    client-id: ${CLIENT_ID}
-    redirect-uri: ${REDIRECT_URL}
-    token-uri: https://kauth.kakao.com/oauth/token
-    user-info-uri: https://kapi.kakao.com/v2/user/me
+    client-id: ${KAKAO_CLIENT_ID}
+    redirect-uri: ${KAKAO_REDIRECT_URL}
+  naver:
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_SECRET}
+    redirect-uri: ${NAVER_REDIRECT_URL}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_SECRET}
+    redirect-uri: ${GOOGLE_REDIRECT_URL}
+
 
 ---
 # 운영(prod) 프로필 - PostgreSQL (EC2 등 외부 서버) 설정
@@ -204,5 +217,3 @@ oauth:
   kakao:
     client-id: ${CLIENT_ID}
     redirect-uri: ${REDIRECT_URL}
-    token-uri: https://kauth.kakao.com/oauth/token
-    user-info-uri: https://kapi.kakao.com/v2/user/me

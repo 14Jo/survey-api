@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.application.client;
+package com.example.surveyapi.domain.user.application.client.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
