@@ -6,7 +6,6 @@ import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
-import com.example.surveyapi.domain.survey.infra.annotation.SurveyEvent;
 import com.example.surveyapi.domain.survey.infra.survey.jpa.JpaSurveyRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -33,7 +32,6 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	}
 
 	@Override
-	@SurveyEvent
 	public void stateUpdate(Survey survey) {
 		jpaRepository.save(survey);
 	}

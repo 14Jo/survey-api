@@ -100,10 +100,10 @@ public abstract class SurveyRequest {
 			private String content;
 
 			@NotNull(message = "표시 순서는 필수입니다.")
-			private Integer displayOrder;
+			private Integer choiceId;
 
 			public ChoiceInfo toChoiceInfo() {
-				return ChoiceInfo.of(content, displayOrder);
+				return ChoiceInfo.of(content, choiceId);
 			}
 		}
 
