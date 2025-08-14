@@ -54,7 +54,7 @@ public class PushSendTest {
 			1L,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
-		Share savedShare = shareService.getShareBySource(1L).get(0);
+		Share savedShare = shareService.getShareBySource(ShareSourceType.PROJECT_MEMBER, 1L);
 		shareId = savedShare.getId();
 	}
 

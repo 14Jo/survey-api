@@ -4,6 +4,7 @@ import java.net.URI;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,6 +17,7 @@ import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
+import com.example.surveyapi.global.util.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +26,16 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v2/share")
 public class ShareExternalController {
 	private final ShareService shareService;
+
+	@GetMapping("{sourceType}/{sourceId}/link")
+	public ResponseEntity<ApiResponse<String>> getLink(
+		@PathVariable ShareSourceType sourceType,
+		@PathVariable Long sourceId) {
+		Share share = shareService.getShareBySource(sourceType, sourceId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("공유 링크 조회 성공", share.getLink()));
+	}
 
 	@GetMapping("/surveys/{token}")
 	public ResponseEntity<Void> redirectToSurvey(@PathVariable String token) {

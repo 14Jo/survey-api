@@ -55,7 +55,7 @@ class ShareServiceTest {
 			1L,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
-		Share savedShare = shareRepository.findBySource(1L).get(0);
+		Share savedShare = shareRepository.findBySource(ShareSourceType.PROJECT_MEMBER, 1L);
 		savedShareId = savedShare.getId();
 	}
 
@@ -111,7 +111,7 @@ class ShareServiceTest {
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
 
-		Share share = shareService.getShareBySource(10L).get(0);
+		Share share = shareService.getShareBySource(ShareSourceType.PROJECT_MEMBER, 10L);
 
 		//when
 		String result = shareService.delete(share.getId(), 2L);
@@ -139,7 +139,7 @@ class ShareServiceTest {
 	@Test
 	@DisplayName("공유 목록 조회")
 	void getShareBySource_success() {
-		List<Share> shares = shareService.getShareBySource(1L);
+		List<Share> shares = shareService.getShareBySourceId(1L);
 
 		assertThat(shares).isNotEmpty();
 		assertThat(shares.get(0).getSourceId()).isEqualTo(1L);
