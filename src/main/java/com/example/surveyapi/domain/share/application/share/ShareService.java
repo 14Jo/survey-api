@@ -72,8 +72,19 @@ public class ShareService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Share> getShareBySource(Long sourceId) {
-		List<Share> shares = shareRepository.findBySource(sourceId);
+	public Share getShareBySource(ShareSourceType sourceType, Long sourceId) {
+		Share share = shareRepository.findBySource(sourceType, sourceId);
+
+		if (share.isDeleted()) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return share;
+	}
+
+	@Transactional(readOnly = true)
+	public List<Share> getShareBySourceId(Long sourceId) {
+		List<Share> shares = shareRepository.findBySourceId(sourceId);
 
 		if (shares.isEmpty()) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);

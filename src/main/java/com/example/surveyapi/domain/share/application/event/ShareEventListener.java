@@ -49,7 +49,7 @@ public class ShareEventListener {
 	public void handleProjectDeleteEvent(ProjectDeletedEvent event) {
 		log.info("프로젝트 삭제 시작: {}", event.getProjectId());
 
-		List<Share> shares = shareService.getShareBySource(event.getProjectId());
+		List<Share> shares = shareService.getShareBySourceId(event.getProjectId());
 
 		for (Share share: shares) {
 			shareService.delete(share.getId(), event.getDeleterId());
