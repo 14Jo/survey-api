@@ -8,6 +8,8 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.global.enums.EventCode;
 import com.example.surveyapi.global.event.SurveyActivateEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.RequiredArgsConstructor;
 
 @Component
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 public class SurveyEventListener extends AbstractAggregateRoot {
 
 	private final RabbitPublisherPort rabbitPublisher;
+	private final ObjectMapper objectMapper;
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
