@@ -2,8 +2,8 @@ package com.example.surveyapi.domain.project.api;
 
 import java.util.List;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -56,11 +56,11 @@ public class ProjectController {
 	}
 
 	@GetMapping("/search")
-	public ResponseEntity<ApiResponse<Page<ProjectSearchInfoResponse>>> searchProjects(
+	public ResponseEntity<ApiResponse<Slice<ProjectSearchInfoResponse>>> searchProjects(
 		@Valid SearchProjectRequest request,
 		Pageable pageable
 	) {
-		Page<ProjectSearchInfoResponse> response = projectQueryService.searchProjects(request, pageable);
+		Slice<ProjectSearchInfoResponse> response = projectQueryService.searchProjects(request, pageable);
 
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(ApiResponse.success("프로젝트 검색 성공", response));
