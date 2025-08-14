@@ -1,11 +1,9 @@
 package com.example.surveyapi.domain.survey.infra.event;
 
-import java.util.Objects;
-
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
-import com.example.surveyapi.domain.survey.application.event.RabbitPublisherPort;
+import com.example.surveyapi.domain.survey.application.event.SurveyEventPublisherPort;
 import com.example.surveyapi.global.constant.RabbitConst;
 import com.example.surveyapi.global.enums.EventCode;
 import com.example.surveyapi.global.model.SurveyEvent;
@@ -14,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class RabbitPublisher implements RabbitPublisherPort {
+public class SurveyEventPublisher implements SurveyEventPublisherPort {
 
 	private final RabbitTemplate rabbitTemplate;
 
