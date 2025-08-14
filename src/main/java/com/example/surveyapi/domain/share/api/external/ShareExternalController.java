@@ -33,7 +33,7 @@ public class ShareExternalController {
 			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
 		}
 
-		String redirectUrl = "/surveys/" + share.getSourceId();
+		String redirectUrl = shareService.getRedirectUrl(share);
 
 		return ResponseEntity.status(HttpStatus.FOUND)
 			.location(URI.create(redirectUrl)).build();
