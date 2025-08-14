@@ -3,8 +3,6 @@ package com.example.surveyapi.domain.share.application.share.dto;
 import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 
 import lombok.Getter;
 
