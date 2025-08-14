@@ -25,7 +25,7 @@ import com.example.surveyapi.domain.share.domain.notification.repository.Notific
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 
 @Transactional
