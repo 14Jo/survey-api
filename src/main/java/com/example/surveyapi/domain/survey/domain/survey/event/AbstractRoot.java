@@ -32,13 +32,4 @@ public abstract class AbstractRoot extends BaseEntity {
 		this.surveyEvents.clear();
 		return events;
 	}
-
-	public void setCreateEventId(Long surveyId) {
-		for (SurveyEvent event : this.surveyEvents.get(EventCode.SURVEY_CREATED)) {
-			if (event instanceof SurveyCreatedEvent createdEvent) {
-				createdEvent.setSurveyId(surveyId);
-				break;
-			}
-		}
-	}
 }

@@ -93,7 +93,7 @@ public class SurveyReadSyncService {
 					dto.isRequired(), dto.getDisplayOrder(),
 					dto.getChoices()
 						.stream()
-						.map(choiceDto -> Choice.of(choiceDto.getChoiceId(), choiceDto.getContent(), choiceDto.getDisplayOrder()))
+						.map(choiceDto -> Choice.of(choiceDto.getChoiceId(), choiceDto.getContent(), choiceDto.getChoiceId()))
 						.toList()
 				);
 			}).toList());
