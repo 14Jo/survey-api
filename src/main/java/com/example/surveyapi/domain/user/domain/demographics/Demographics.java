@@ -29,7 +29,7 @@ public class Demographics extends BaseEntity {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "birth_date", nullable = false)

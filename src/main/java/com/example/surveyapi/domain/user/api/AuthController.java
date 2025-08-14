@@ -22,12 +22,12 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/v1")
+@RequestMapping("api/v1/auth")
 public class AuthController {
 
     private final AuthService authService;
 
-    @PostMapping("/auth/signup")
+    @PostMapping("/signup")
     public ResponseEntity<ApiResponse<SignupResponse>> signup(
         @Valid @RequestBody SignupRequest request
     ) {
@@ -37,7 +37,7 @@ public class AuthController {
             .body(ApiResponse.success("회원가입 성공", signup));
     }
 
-    @PostMapping("/auth/login")
+    @PostMapping("/login")
     public ResponseEntity<ApiResponse<LoginResponse>> login(
         @Valid @RequestBody LoginRequest request
     ) {
@@ -47,7 +47,7 @@ public class AuthController {
             .body(ApiResponse.success("로그인 성공", login));
     }
 
-    @PostMapping("/auth/withdraw")
+    @PostMapping("/withdraw")
     public ResponseEntity<ApiResponse<Void>> withdraw(
         @Valid @RequestBody UserWithdrawRequest request,
         @AuthenticationPrincipal Long userId,
@@ -59,7 +59,7 @@ public class AuthController {
             .body(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));
     }
 
-    @PostMapping("/auth/logout")
+    @PostMapping("/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
         @RequestHeader("Authorization") String authHeader,
         @AuthenticationPrincipal Long userId
@@ -70,7 +70,7 @@ public class AuthController {
             .body(ApiResponse.success("로그아웃 되었습니다.", null));
     }
 
-    @PostMapping("/auth/reissue")
+    @PostMapping("/reissue")
     public ResponseEntity<ApiResponse<LoginResponse>> reissue(
         @RequestHeader("Authorization") String accessToken,
         @RequestHeader("RefreshToken") String refreshToken // Bearer 까지 넣어서
