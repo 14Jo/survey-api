@@ -3,7 +3,7 @@ package com.example.surveyapi.domain.share.application.notification.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 
 import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;

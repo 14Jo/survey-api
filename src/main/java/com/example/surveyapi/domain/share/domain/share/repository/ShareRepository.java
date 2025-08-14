@@ -18,5 +18,7 @@ public interface ShareRepository {
 
 	void delete(Share share);
 
-	List<Share> findBySource(Long sourceId);
+	Share findBySource(ShareSourceType sourceType, Long sourceId);
+
+	List<Share> findBySourceId(Long sourceId);
 }
