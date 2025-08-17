@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
@@ -149,7 +150,7 @@ public class SurveyService {
 	}
 
 	private void validateProjectAccess(String authHeader, Long projectId, Long userId) {
-		validateProjectState(authHeader, projectId, userId);
+		validateProjectState(authHeader, projectId);
 		validateProjectMembership(authHeader, projectId, userId);
 	}
 
@@ -160,10 +161,10 @@ public class SurveyService {
 		}
 	}
 
-	private void validateProjectState(String authHeader, Long projectId, Long userId) {
-		ProjectValidDto projectValid = projectPort.getProjectMembers(authHeader, projectId, userId);
-		if (!projectValid.getValid()) {
-			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트에 참여하지 않은 사용자입니다.");
+	private void validateProjectState(String authHeader, Long projectId) {
+		ProjectStateDto projectState = projectPort.getProjectState(authHeader, projectId);
+		if (projectState.isClosed()) {
+			throw new CustomException(CustomErrorCode.INVALID_PERMISSION, "프로젝트가 종료되었습니다.");
 		}
 	}
 
