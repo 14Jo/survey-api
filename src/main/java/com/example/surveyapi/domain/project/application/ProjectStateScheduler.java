@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProjectStateScheduler {
 
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
 	@Scheduled(cron = "0 0 0 * * *") // 매일 00시 실행
 	@Transactional
