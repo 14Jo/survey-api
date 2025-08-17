@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.notification.entity.QNotification;
+import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.QShare;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -89,7 +90,7 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 
 		List<Notification> content = queryFactory
 			.selectFrom(notification)
-			.where(notification.recipientId.eq(userId))
+			.where(notification.recipientId.eq(userId), notification.status.eq(Status.SENT))
 			.orderBy(notification.sentAt.desc())
 			.offset(pageable.getOffset())
 			.limit(pageable.getPageSize())
@@ -98,7 +99,7 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 		long total = queryFactory
 			.select(notification.count())
 			.from(notification)
-			.where(notification.recipientId.eq(userId))
+			.where(notification.recipientId.eq(userId), notification.status.eq(Status.SENT))
 			.fetchOne();
 
 		List<NotificationResponse> responses = content.stream()
