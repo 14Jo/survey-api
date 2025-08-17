@@ -12,6 +12,9 @@ import org.springframework.util.Assert;
 
 import com.example.surveyapi.global.model.BaseEntity;
 
+import jakarta.persistence.MappedSuperclass;
+
+@MappedSuperclass
 public class AbstractRoot<A extends AbstractRoot<A>> extends BaseEntity {
 
 	private transient final @Transient List<Object> domainEvents = new ArrayList<>();
@@ -39,13 +42,13 @@ public class AbstractRoot<A extends AbstractRoot<A>> extends BaseEntity {
 
 		this.domainEvents.addAll(aggregate.domainEvents());
 
-		return (A) this;
+		return (A)this;
 	}
 
 	protected final A andEvent(Object event) {
 
 		registerEvent(event);
 
-		return (A) this;
+		return (A)this;
 	}
 }
