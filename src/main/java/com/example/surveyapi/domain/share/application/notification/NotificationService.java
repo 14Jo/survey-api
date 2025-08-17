@@ -36,8 +36,10 @@ public class NotificationService {
 	public Page<NotificationResponse> gets(
 		Long shareId,
 		Long requesterId,
-		Pageable pageable) {
+		Pageable pageable
+	) {
 		Page<NotificationResponse> notifications = notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable);
+
 		return notifications;
 	}
 
@@ -45,5 +47,14 @@ public class NotificationService {
 		boolean valid = notificationQueryRepository.isRecipient(sourceId, recipientId);
 
 		return new ShareValidationResponse(valid);
+	}
+
+	public Page<NotificationResponse> getMyNotifications(
+		Long currentId,
+		Pageable pageable
+	) {
+		Page<NotificationResponse> notifications = notificationQueryRepository.findPageByUserId(currentId, pageable);
+
+		return notifications;
 	}
 }
