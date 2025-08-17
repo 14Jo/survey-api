@@ -20,8 +20,9 @@ public class SurveyEventListener {
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handle(SurveyActivateEvent event) {
-		rabbitPublisher.publish(event, EventCode.SURVEY_ACTIVATED);
+	public void handle(ActivateEvent event) {
+		SurveyActivateEvent surveyActivateEvent = objectMapper.convertValue(event, SurveyActivateEvent.class);
+		rabbitPublisher.publish(surveyActivateEvent, EventCode.SURVEY_ACTIVATED);
 	}
 
 
