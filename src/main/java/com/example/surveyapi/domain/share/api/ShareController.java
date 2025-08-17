@@ -62,4 +62,15 @@ public class ShareController {
 
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
+
+	@GetMapping("/v2/notifications")
+	public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getMyNotifications(
+		@AuthenticationPrincipal Long currentId,
+		Pageable pageable
+	) {
+		Page<NotificationResponse> response =  notificationService.getMyNotifications(currentId, pageable);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("알림 조회 성공", response));
+	}
 }

@@ -26,4 +26,10 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
 
 		return dslRepository.isRecipient(sourceId, recipientId);
 	}
+
+	@Override
+	public Page<NotificationResponse> findPageByUserId(Long userId, Pageable pageable) {
+
+		return dslRepository.findByUserId(userId, pageable);
+	}
 }

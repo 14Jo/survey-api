@@ -82,4 +82,31 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 
 		return count != null && count > 0;
 	}
+
+	@Override
+	public Page<NotificationResponse> findByUserId(Long userId, Pageable pageable) {
+		QNotification notification = QNotification.notification;
+
+		List<Notification> content = queryFactory
+			.selectFrom(notification)
+			.where(notification.recipientId.eq(userId))
+			.orderBy(notification.sentAt.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
+
+		long total = queryFactory
+			.select(notification.count())
+			.from(notification)
+			.where(notification.recipientId.eq(userId))
+			.fetchOne();
+
+		List<NotificationResponse> responses = content.stream()
+			.map(NotificationResponse::from)
+			.collect(Collectors.toList());
+
+		Page<NotificationResponse> pageResult = new PageImpl<>(responses, pageable, Optional.ofNullable(total).orElse(0L));
+
+		return pageResult;
+	}
 }

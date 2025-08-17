@@ -9,4 +9,6 @@ public interface NotificationQueryRepository {
 	Page<NotificationResponse> findPageByShareId(Long shareId, Long requesterId, Pageable pageable);
 
 	boolean isRecipient(Long sourceId, Long recipientId);
+
+	Page<NotificationResponse> findPageByUserId(Long userId, Pageable pageable);
 }
