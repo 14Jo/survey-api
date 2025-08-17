@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.event;
+package com.example.surveyapi.domain.participation.domain.event;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
-import com.example.surveyapi.global.model.ParticipationEvent;
 
 import lombok.AccessLevel;
 import lombok.Getter;
