@@ -44,7 +44,7 @@ public interface OAuthApiClient {
 
     @GetExchange(url = "https://openapi.naver.com/v1/nid/me")
     NaverUserInfoResponse getNaverUserInfo(
-        @RequestHeader("Authorization") String access_token);
+        @RequestHeader("Authorization") String accessToken);
 
 
     @PostExchange(
