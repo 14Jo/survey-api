@@ -49,6 +49,7 @@ public enum CustomErrorCode {
     STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계입니다."),
     STATISTICS_NOT_FOUND(HttpStatus.NOT_FOUND, "통계를 찾을 수 없습니다."),
     ANSWER_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "올바르지 않은 응답 타입입니다."),
+    STATISTICS_ALERADY_DONE(HttpStatus.CONFLICT, "이미 종료된 통계입니다."),
 
     // 참여 에러
     NOT_FOUND_PARTICIPATION(HttpStatus.NOT_FOUND, "참여 응답이 존재하지 않습니다."),

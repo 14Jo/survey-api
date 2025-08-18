@@ -2,17 +2,16 @@ package com.example.surveyapi.global.config;
 
 import static org.springframework.amqp.core.AcknowledgeMode.*;
 
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.core.Queue;
-
 import com.example.surveyapi.global.constant.RabbitConst;
 
 import lombok.RequiredArgsConstructor;
@@ -40,6 +39,24 @@ public class RabbitMQConfig {
 			.bind(queue)
 			.to(exchange)
 			.with(RabbitConst.ROUTING_KEY);
+	}
+
+	@Bean TopicExchange participationExchange() {
+		return new TopicExchange(RabbitConst.PARTICIPATION_EXCHANGE_NAME);
+	}
+
+	@Bean
+	public Queue participationQueue() {
+		return new Queue(RabbitConst.PARTICIPATION_QUEUE_NAME, true);
+	}
+
+	@Bean
+	public Binding participationBinding(Queue participationQueue, TopicExchange participationExchange) {
+
+		return BindingBuilder
+			.bind(participationQueue)
+			.to(participationExchange)
+			.with(RabbitConst.PARTICIPATION_ROUTING_KEY);
 	}
 
 	@Bean
