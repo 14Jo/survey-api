@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
-import com.example.surveyapi.domain.participation.domain.participation.vo.Region;
 import com.example.surveyapi.global.model.ParticipationGlobalEvent;
 
 import lombok.Getter;
@@ -35,13 +33,25 @@ public class ParticipationCreatedGlobalEvent implements ParticipationGlobalEvent
 	public static class ParticipantInfoDto {
 
 		private final LocalDate birth;
-		private final Gender gender;
-		private final Region region;
+		private final String gender;
+		private final RegionDto region;
 
-		public ParticipantInfoDto(LocalDate birth, Gender gender, Region region) {
+		public ParticipantInfoDto(LocalDate birth, String gender, RegionDto region) {
 			this.birth = birth;
 			this.gender = gender;
 			this.region = region;
+		}
+	}
+
+	@Getter
+	public static class RegionDto {
+
+		private final String province;
+		private final String district;
+
+		public RegionDto(String province, String district) {
+			this.province = province;
+			this.district = district;
 		}
 	}
 
