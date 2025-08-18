@@ -7,9 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.statistic.application.client.ParticipationInfoDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
-import com.example.surveyapi.domain.statistic.domain.dto.StatisticCommand;
-import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
-import com.example.surveyapi.domain.statistic.domain.repository.StatisticRepository;
+import com.example.surveyapi.domain.statistic.domain.depri.StatisticCommand;
+import com.example.surveyapi.domain.statistic.domain.statistic.Statistic;
+import com.example.surveyapi.domain.statistic.domain.statistic.StatisticRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -31,7 +31,7 @@ public class StatisticService {
 		if (statisticRepository.existsById(surveyId)) {
 			throw new CustomException(CustomErrorCode.STATISTICS_ALREADY_EXISTS);
 		}
-		Statistic statistic = Statistic.create(surveyId);
+		Statistic statistic = Statistic.start(surveyId);
 		statisticRepository.save(statistic);
 	}
 
@@ -41,37 +41,37 @@ public class StatisticService {
 		//TODO : Survey 도메인으로 부터 진행중인 설문 Id List 받아오기
 		List<Long> surveyIds = List.of(1L, 2L, 3L);
 
-		List<ParticipationInfoDto> participationInfos =
-			participationServicePort.getParticipationInfos(authHeader, surveyIds);
-
-		log.info("participationInfos: {}", participationInfos);
-		participationInfos.forEach(info -> {
-			if(info.participations().isEmpty()){
-				return;
-			}
-			Statistic statistic = getStatistic(info.surveyId());
-
-			//TODO : 새로운거만 받아오는 방법 고민
-			List<ParticipationInfoDto.ParticipationDetailDto> newInfo = info.participations().stream()
-				.filter(p -> p.participationId() > statistic.getLastProcessedParticipationId())
-				.toList();
-
-			if (newInfo.isEmpty()) {
-				log.info("새로운 응답이 없습니다. surveyId: {}", info.surveyId());
-				return;
-			}
-
-			StatisticCommand command = toStatisticCommand(newInfo);
-			statistic.calculate(command);
-
-			Long maxId = newInfo.stream()
-				.map(ParticipationInfoDto.ParticipationDetailDto::participationId)
-				.max(Long::compareTo)
-				.orElse(null);
-
-			statistic.updateLastProcessedId(maxId);
-			statisticRepository.save(statistic);
-		});
+		// List<ParticipationInfoDto> participationInfos =
+		// 	participationServicePort.getParticipationInfos(authHeader, surveyIds);
+		//
+		// log.info("participationInfos: {}", participationInfos);
+		// participationInfos.forEach(info -> {
+		// 	if(info.participations().isEmpty()){
+		// 		return;
+		// 	}
+		// 	Statistic statistic = getStatistic(info.surveyId());
+		//
+		// 	//TODO : 새로운거만 받아오는 방법 고민
+		// 	List<ParticipationInfoDto.ParticipationDetailDto> newInfo = info.participations().stream()
+		// 		.filter(p -> p.participationId() > statistic.getLastProcessedParticipationId())
+		// 		.toList();
+		//
+		// 	if (newInfo.isEmpty()) {
+		// 		log.info("새로운 응답이 없습니다. surveyId: {}", info.surveyId());
+		// 		return;
+		// 	}
+		//
+		// 	StatisticCommand command = toStatisticCommand(newInfo);
+		// 	statistic.calculate(command);
+		//
+		// 	Long maxId = newInfo.stream()
+		// 		.map(ParticipationInfoDto.ParticipationDetailDto::participationId)
+		// 		.max(Long::compareTo)
+		// 		.orElse(null);
+		//
+		// 	statistic.updateLastProcessedId(maxId);
+		// 	statisticRepository.save(statistic);
+		// });
 	}
 
 	public Statistic getStatistic(Long surveyId) {

@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.statistic.domain.dto;
+package com.example.surveyapi.domain.statistic.domain.depri;
 
 import java.time.LocalDateTime;
 import java.util.List;
