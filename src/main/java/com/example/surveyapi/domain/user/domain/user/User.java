@@ -8,13 +8,10 @@ import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
-import com.example.surveyapi.global.event.UserWithdrawEvent;
+import com.example.surveyapi.domain.user.domain.user.event.UserAbstractRoot;
+import com.example.surveyapi.domain.user.domain.user.event.UserEvent;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.BaseEntity;
-
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
@@ -29,15 +26,16 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @NoArgsConstructor
 @Entity
 @Getter
 @Table(name = "users")
-public class User extends BaseEntity {
+public class User extends UserAbstractRoot<User> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -66,9 +64,6 @@ public class User extends BaseEntity {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Demographics demographics;
-
-    @Transient
-    private UserWithdrawEvent userWithdrawEvent;
 
     private User(Profile profile) {
         this.profile = profile;
@@ -131,16 +126,9 @@ public class User extends BaseEntity {
     }
 
     public void registerUserWithdrawEvent() {
-        this.userWithdrawEvent = new UserWithdrawEvent(this.id);
-    }
-
-    public UserWithdrawEvent pollUserWithdrawEvent() {
-        if (userWithdrawEvent == null) {
-            throw new CustomException(CustomErrorCode.SERVER_ERROR);
-        }
-        UserWithdrawEvent event = this.userWithdrawEvent;
-        this.userWithdrawEvent = null;
-        return event;
+        log.info("이벤트 등록 전");
+        registerEvent(new UserEvent(this.getId()));
+        log.info("이벤트 등록 후");
     }
 
     public void delete() {
@@ -154,11 +142,20 @@ public class User extends BaseEntity {
     }
 
     public void increasePoint() {
+        if (this.grade == Grade.MASTER && this.point == 99) {
+            return;
+        }
+
         this.point += 5;
         updatePointGrade();
     }
 
     private void updatePointGrade() {
+        if (this.grade == Grade.MASTER && this.point >= 100) {
+            this.point = 99;
+            return;
+        }
+
         if (this.point >= 100) {
             this.point -= 100;
             if (this.grade.next() != null) {
