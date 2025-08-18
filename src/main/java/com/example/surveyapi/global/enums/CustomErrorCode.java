@@ -46,6 +46,7 @@ public enum CustomErrorCode {
     PROJECT_MEMBER_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "프로젝트 최대 인원수를 초과하였습니다."),
     NOT_FOUND_MEMBER(HttpStatus.NOT_FOUND, "프로젝트에 참여한 이용자가 아닙니다."),
     CANNOT_TRANSFER_TO_SELF(HttpStatus.BAD_REQUEST, "자기 자신에게 소유권 이전 불가합니다."),
+    OPTIMISTIC_LOCK_CONFLICT(HttpStatus.CONFLICT, "데이터가 다른 사용자에 의해 수정되었습니다. 다시 시도해주세요."),
 
     // 통계 에러
     STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계입니다."),
