@@ -32,7 +32,6 @@ import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
 import com.example.surveyapi.domain.survey.application.command.SurveyService;
 import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
 import com.example.surveyapi.domain.survey.application.command.dto.request.SurveyRequest;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;

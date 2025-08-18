@@ -4,12 +4,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
-import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
@@ -30,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SurveyService {
 
-	private final SurveyReadSyncService surveyReadSyncService;
+	private final SurveyReadSyncPort surveyReadSync;
 	private final SurveyRepository surveyRepository;
 	private final ProjectPort projectPort;
 
@@ -53,7 +52,7 @@ public class SurveyService {
 		Survey save = surveyRepository.save(survey);
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
-		surveyReadSyncService.surveyReadSync(SurveySyncDto.from(survey), questionList);
+		surveyReadSync.surveyReadSync(SurveySyncDto.from(survey), questionList);
 
 		return save.getSurveyId();
 	}
@@ -94,8 +93,8 @@ public class SurveyService {
 		survey.updateFields(updateFields);
 		surveyRepository.update(survey);
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
-		surveyReadSyncService.updateSurveyRead(SurveySyncDto.from(survey));
-		surveyReadSyncService.questionReadSync(surveyId, questionList);
+		surveyReadSync.updateSurveyRead(SurveySyncDto.from(survey));
+		surveyReadSync.questionReadSync(surveyId, questionList);
 
 		return survey.getSurveyId();
 	}
@@ -113,7 +112,7 @@ public class SurveyService {
 
 		survey.delete();
 		surveyRepository.delete(survey);
-		surveyReadSyncService.deleteSurveyRead(surveyId);
+		surveyReadSync.deleteSurveyRead(surveyId);
 
 		return survey.getSurveyId();
 	}
@@ -170,6 +169,6 @@ public class SurveyService {
 	}
 
 	private void updateState(Long surveyId, SurveyStatus surveyStatus) {
-		surveyReadSyncService.updateSurveyStatus(surveyId, surveyStatus);
+		surveyReadSync.updateSurveyStatus(surveyId, surveyStatus);
 	}
 }

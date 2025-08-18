@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.qeury;
+package com.example.surveyapi.domain.survey.infra.query;
 
 import java.util.List;
 import java.util.Map;
@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
@@ -24,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SurveyReadSyncService {
+public class SurveyReadSync implements SurveyReadSyncPort {
 
 	private final SurveyReadRepository surveyReadRepository;
 	private final ParticipationPort partPort;
