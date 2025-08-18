@@ -1,7 +1,10 @@
 package com.example.surveyapi.global.config;
 
+import java.util.Map;
+
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.CustomExchange;
 import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +18,17 @@ public class RabbitMQBindingConfig {
 	@Bean
 	public TopicExchange exchange() {
 		return new TopicExchange(RabbitConst.EXCHANGE_NAME);
+	}
+
+	@Bean
+	public CustomExchange customExchange() {
+		return new CustomExchange(
+			RabbitConst.DELAYED_EXCHANGE_NAME,
+			"x-delayed-message",
+			true,
+			false,
+			Map.of("x-delayed-type", "topic")
+		);
 	}
 
 	@Bean
@@ -71,4 +85,21 @@ public class RabbitMQBindingConfig {
 			.with(RabbitConst.ROUTING_KEY_PROJECT_ACTIVE);
 	}
 
+	@Bean
+	public Binding bindingSurveyStartDue(Queue queueSurvey, CustomExchange delayedExchange) {
+		return BindingBuilder
+			.bind(queueSurvey)
+			.to(delayedExchange)
+			.with(RabbitConst.ROUTING_KEY_SURVEY_START_DUE)
+			.noargs();
+	}
+
+	@Bean
+	public Binding bindingSurveyEndDue(Queue queueSurvey, CustomExchange delayedExchange) {
+		return BindingBuilder
+			.bind(queueSurvey)
+			.to(delayedExchange)
+			.with(RabbitConst.ROUTING_KEY_SURVEY_END_DUE)
+			.noargs();
+	}
 }
