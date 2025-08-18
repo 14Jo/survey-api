@@ -36,7 +36,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "participations")
 public class Participation extends ParticipationAbstractRoot<Participation> {
-	// TODO: 현재 AbstractRoot Survey 도메인에 있음
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;

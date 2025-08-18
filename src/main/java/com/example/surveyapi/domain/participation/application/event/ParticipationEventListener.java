@@ -30,11 +30,13 @@ public class ParticipationEventListener {
 			ParticipationCreatedGlobalEvent createdGlobalEvent = objectMapper.convertValue(event,
 				new TypeReference<ParticipationCreatedGlobalEvent>() {
 				});
+
 			rabbitPublisher.publish(createdGlobalEvent, EventCode.PARTICIPATION_CREATED);
 		} else if (event instanceof ParticipationUpdatedEvent) {
 			ParticipationUpdatedGlobalEvent updatedGlobalEvent = objectMapper.convertValue(event,
 				new TypeReference<ParticipationUpdatedGlobalEvent>() {
 				});
+
 			rabbitPublisher.publish(updatedGlobalEvent, EventCode.PARTICIPATION_UPDATED);
 		}
 	}
