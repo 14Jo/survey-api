@@ -8,8 +8,8 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
-        format_sql: true
-        show_sql: false
+        format_sql: false
+        show_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
           batch_size: 50        # 배치 크기
@@ -46,6 +46,8 @@ spring:
       password: ${MONGODB_PASSWORD:survey_password}
       authentication-database: ${MONGODB_AUTHDB:admin}
 
+  elasticsearch:
+    uris: ${ELASTIC_HOST:http://localhost:9200}
 
 management:
   endpoints:
@@ -61,6 +63,9 @@ management:
         http.server.requests: true
       percentiles:
         http.server.requests: 0.5,0.95,0.99
+  health:
+    elasticsearch:
+      enabled: false
 
 ---
 # 개발(dev) 프로필 - 로컬 PostgreSQL DB 설정
@@ -107,6 +112,9 @@ logging:
   level:
     org.springframework.security: INFO
     com.example.surveyapi: INFO
+    org.elasticsearch.client.RestClient.level: DEBUG
+    org.elasticsearch.client.level: DEBUG
+    co.elastic.clients.transport.level: TRACE
     # 외부 API 관련 로그만 DEBUG로 설정
     com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
     com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
