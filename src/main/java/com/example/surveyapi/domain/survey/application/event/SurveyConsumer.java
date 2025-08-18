@@ -40,10 +40,15 @@ public class SurveyConsumer {
 
 	@RabbitHandler
 	@Transactional
-	public void handle(SurveyStartDueEvent event) {
+	public void handleSurveyStart(SurveyStartDueEvent event) {
 		log.info("SurveyStartDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
 		Survey survey = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+
+		if (survey.getDuration().getStartDate() == null ||
+			!survey.getDuration().getStartDate().isEqual(event.getScheduledAt())) {
+			return;
+		}
 
 		if (survey.getStatus() == SurveyStatus.PREPARING) {
 			survey.open();
@@ -53,10 +58,15 @@ public class SurveyConsumer {
 
 	@RabbitHandler
 	@Transactional
-	public void handle(SurveyEndDueEvent event) {
+	public void handleSurveyEnd(SurveyEndDueEvent event) {
 		log.info("SurveyEndDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
 		Survey survey = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId())
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+
+		if (survey.getDuration().getEndDate() == null ||
+			!survey.getDuration().getEndDate().isEqual(event.getScheduledAt())) {
+			return;
+		}
 
 		if (survey.getStatus() == SurveyStatus.IN_PROGRESS) {
 			survey.close();
