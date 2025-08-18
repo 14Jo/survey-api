@@ -50,6 +50,7 @@ public class SurveyService {
 		);
 
 		Survey save = surveyRepository.save(survey);
+		save.registerScheduledEvent();
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.surveyReadSync(SurveySyncDto.from(survey), questionList);
@@ -92,6 +93,8 @@ public class SurveyService {
 
 		survey.updateFields(updateFields);
 		surveyRepository.update(survey);
+		survey.registerScheduledEvent();
+
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.updateSurveyRead(SurveySyncDto.from(survey));
 		surveyReadSync.questionReadSync(surveyId, questionList);
