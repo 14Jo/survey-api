@@ -6,8 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ProjectStateChangedEvent {
-
 	private final Long projectId;
-	private final String newState;
-
+	private final String projectState;
 }

@@ -1,44 +1,51 @@
 package com.example.surveyapi.domain.survey.domain.survey.event;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import com.example.surveyapi.global.enums.EventCode;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.domain.AfterDomainEventPublication;
+import org.springframework.data.domain.DomainEvents;
+import org.springframework.util.Assert;
+
 import com.example.surveyapi.global.model.BaseEntity;
-import com.example.surveyapi.global.model.SurveyEvent;
 
-import jakarta.persistence.Transient;
+public class AbstractRoot<A extends AbstractRoot<A>> extends BaseEntity {
 
-public abstract class AbstractRoot extends BaseEntity {
+	private transient final @Transient List<Object> domainEvents = new ArrayList<>();
 
-	@Transient
-	private final Map<EventCode, List<SurveyEvent>> surveyEvents = new HashMap<>();
+	protected <T> void registerEvent(T event) {
 
-	protected void registerEvent(SurveyEvent event, EventCode key) {
-		if (!this.surveyEvents.containsKey(key)) {
-			this.surveyEvents.put(key, new ArrayList<>());
-		}
-		this.surveyEvents.get(key).add(event);
+		Assert.notNull(event, "Domain event must not be null");
+
+		this.domainEvents.add(event);
 	}
 
-	public Map<EventCode, List<SurveyEvent>> pollAllEvents() {
-		if (surveyEvents.isEmpty()) {
-			return Collections.emptyMap();
-		}
-		Map<EventCode, List<SurveyEvent>> events = new HashMap<>(this.surveyEvents);
-		this.surveyEvents.clear();
-		return events;
+	@AfterDomainEventPublication
+	protected void clearDomainEvents() {
+		this.domainEvents.clear();
 	}
 
-	public void setCreateEventId(Long surveyId) {
-		for (SurveyEvent event : this.surveyEvents.get(EventCode.SURVEY_CREATED)) {
-			if (event instanceof SurveyCreatedEvent createdEvent) {
-				createdEvent.setSurveyId(surveyId);
-				break;
-			}
-		}
+	@DomainEvents
+	protected Collection<Object> domainEvents() {
+		return Collections.unmodifiableList(domainEvents);
+	}
+
+	protected final A andEventsFrom(A aggregate) {
+
+		Assert.notNull(aggregate, "Aggregate must not be null");
+
+		this.domainEvents.addAll(aggregate.domainEvents());
+
+		return (A) this;
+	}
+
+	protected final A andEvent(Object event) {
+
+		registerEvent(event);
+
+		return (A) this;
 	}
 }

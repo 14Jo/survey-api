@@ -76,6 +76,8 @@ public class UserService {
             data.getDetailAddress(), data.getPostalCode()
         );
 
+        userRepository.save(user);
+
         return UpdateUserResponse.from(user);
     }
 
