@@ -9,13 +9,9 @@ import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.domain.user.domain.user.event.UserAbstractRoot;
-import com.example.surveyapi.global.event.UserWithdrawEvent;
+import com.example.surveyapi.domain.user.domain.user.event.UserEvent;
 import com.example.surveyapi.domain.user.domain.user.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.BaseEntity;
-
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
@@ -30,7 +26,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -131,9 +126,9 @@ public class User extends UserAbstractRoot<User> {
     }
 
     public void registerUserWithdrawEvent() {
-        log.info("이벤트 발행 전");
-        registerEvent(new UserWithdrawEvent(this.getId()));
-        log.info("이벤트 발행 후");
+        log.info("이벤트 등록 전");
+        registerEvent(new UserEvent(this.getId()));
+        log.info("이벤트 등록 후");
     }
 
     public void delete() {
@@ -147,7 +142,7 @@ public class User extends UserAbstractRoot<User> {
     }
 
     public void increasePoint() {
-        if(this.grade == Grade.MASTER && this.point == 99) {
+        if (this.grade == Grade.MASTER && this.point == 99) {
             return;
         }
 
@@ -156,7 +151,7 @@ public class User extends UserAbstractRoot<User> {
     }
 
     private void updatePointGrade() {
-        if(this.grade == Grade.MASTER && this.point >= 100){
+        if (this.grade == Grade.MASTER && this.point >= 100) {
             this.point = 99;
             return;
         }
