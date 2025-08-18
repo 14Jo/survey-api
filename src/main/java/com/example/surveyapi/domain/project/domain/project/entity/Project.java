@@ -14,6 +14,7 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
+import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
@@ -29,6 +30,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Transient;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,6 +49,8 @@ public class Project extends BaseEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+	@Version
+	private Long version;
 	@Column(nullable = false, unique = true)
 	private String name;
 	@Column(columnDefinition = "TEXT", nullable = false)
@@ -113,6 +117,7 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
+		registerEvent(new ProjectStateChangedEvent(this.id, newState.name()));
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {

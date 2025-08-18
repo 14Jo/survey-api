@@ -10,7 +10,6 @@ import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.domain.user.infra.annotation.UserWithdraw;
 import com.example.surveyapi.domain.user.infra.user.dsl.QueryDslRepository;
 import com.example.surveyapi.domain.user.infra.user.jpa.UserJpaRepository;
 
@@ -39,7 +38,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    @UserWithdraw
     public User withdrawSave(User user) {
         return userJpaRepository.save(user);
     }
