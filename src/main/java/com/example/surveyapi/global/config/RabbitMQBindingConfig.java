@@ -78,6 +78,22 @@ public class RabbitMQBindingConfig {
 	}
 
 	@Bean
+	public Binding bindingUser(Queue queueUser, TopicExchange exchange) {
+		return BindingBuilder
+			.bind(queueUser)
+			.to(exchange)
+			.with(RabbitConst.ROUTING_KEY_SURVEY_ACTIVE);
+	}
+
+	@Bean
+	public Binding bindingStatisticParticipation(Queue queueStatistic, TopicExchange exchange) {
+		return BindingBuilder
+			.bind(queueStatistic)
+			.to(exchange)
+			.with("participation.*");
+	}
+
+	@Bean
 	public Binding bindingSurveyFromProjectClosed(Queue queueSurvey, TopicExchange exchange) {
 		return BindingBuilder
 			.bind(queueSurvey)
