@@ -62,11 +62,9 @@ public class Survey extends AbstractRoot<Survey> {
 	@Column(name = "status", nullable = false)
 	private SurveyStatus status;
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "survey_option", nullable = false, columnDefinition = "jsonb")
+	@Enumerated
 	private SurveyOption option;
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "survey_duration", nullable = false, columnDefinition = "jsonb")
+	@Enumerated
 	private SurveyDuration duration;
 
 	@OneToMany(
