@@ -8,11 +8,12 @@ import java.util.Map;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
-import com.example.surveyapi.domain.survey.application.event.ActivateEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
+import com.example.surveyapi.domain.survey.domain.survey.event.SurveyScheduleRequestedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
@@ -100,6 +101,13 @@ public class Survey extends AbstractRoot<Survey> {
 		survey.duration = duration;
 		survey.option = option;
 		survey.addQuestion(questions);
+
+		survey.registerEvent(new SurveyScheduleRequestedEvent(
+			survey.getSurveyId(),
+			survey.getCreatorId(),
+			survey.getDuration().getStartDate(),
+			survey.getDuration().getEndDate()
+		));
 
 		return survey;
 	}

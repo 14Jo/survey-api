@@ -37,8 +37,8 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	}
 
 	@Override
-	public Optional<Survey> findBySurveyIdAndCreatorId(Long surveyId, Long creatorId) {
-		return jpaRepository.findBySurveyIdAndCreatorId(surveyId, creatorId);
+	public Optional<Survey> findBySurveyIdAndIsDeletedFalse(Long surveyId) {
+		return jpaRepository.findBySurveyIdAndIsDeletedFalse(surveyId);
 	}
 
 	@Override
