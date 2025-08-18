@@ -4,8 +4,8 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.example.surveyapi.domain.user.application.client.MyProjectRoleResponse;
-import com.example.surveyapi.domain.user.application.client.ProjectPort;
+import com.example.surveyapi.domain.user.application.client.response.MyProjectRoleResponse;
+import com.example.surveyapi.domain.user.application.client.port.ProjectPort;
 import com.example.surveyapi.global.config.client.ExternalApiResponse;
 import com.example.surveyapi.global.config.client.project.ProjectApiClient;
 import com.fasterxml.jackson.core.type.TypeReference;

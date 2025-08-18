@@ -80,6 +80,6 @@ public class Auth extends BaseEntity {
     }
 
     public void masking() {
-        this.email = MaskingUtils.maskEmail(email);
+        this.email = MaskingUtils.maskEmail(email, user.getId());
     }
 }

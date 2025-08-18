@@ -14,6 +14,7 @@ import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
+import com.example.surveyapi.global.model.ParticipationEvent;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -24,6 +25,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,6 +52,9 @@ public class Participation extends BaseEntity {
 
 	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "participation")
 	private List<Response> responses = new ArrayList<>();
+
+	@Transient
+	private final List<ParticipationEvent> participationEvents = new ArrayList<>();
 
 	public static Participation create(Long userId, Long surveyId, ParticipantInfo participantInfo,
 		List<ResponseData> responseDataList) {
@@ -94,5 +99,15 @@ public class Participation extends BaseEntity {
 				response.updateAnswer(newResponse.getAnswer());
 			}
 		}
+	}
+
+	public void registerEvent(ParticipationEvent event) {
+		this.participationEvents.add(event);
+	}
+
+	public List<ParticipationEvent> pollAllEvents() {
+		List<ParticipationEvent> events = new ArrayList<>(this.participationEvents);
+		this.participationEvents.clear();
+		return events;
 	}
 }

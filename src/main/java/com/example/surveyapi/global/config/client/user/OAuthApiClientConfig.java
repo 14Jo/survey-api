@@ -7,13 +7,13 @@ import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
 @Configuration
-public class KakoApiClientConfig {
+public class OAuthApiClientConfig {
 
     @Bean
-    public KakaoApiClient kakaoApiClient(RestClient restClient) {
+    public OAuthApiClient OAuthApiClient(RestClient restClient) {
         return HttpServiceProxyFactory
             .builderFor(RestClientAdapter.create(restClient))
             .build()
-            .createClient(KakaoApiClient.class);
+            .createClient(OAuthApiClient.class);
     }
 }

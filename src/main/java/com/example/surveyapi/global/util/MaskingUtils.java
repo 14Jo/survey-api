@@ -13,7 +13,7 @@ public class MaskingUtils {
         return name.substring(0, mid) + "*" + name.substring(mid + 1);
     }
 
-    public static String maskEmail(String email) {
+    public static String maskEmail(String email, Long userId) {
         int atIndex = email.indexOf("@");
         if (atIndex == -1) {
             return email;
@@ -25,7 +25,7 @@ public class MaskingUtils {
             prefix.length() < 3 ?
                 "*".repeat(prefix.length()) :
                 prefix.substring(0, 3) + "*".repeat(prefix.length() - 3);
-        return maskPrefix + domain;
+        return maskPrefix + "+" + userId  + domain;
     }
 
     public static String maskPhoneNumber(String phoneNumber) {

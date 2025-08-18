@@ -4,14 +4,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.project.domain.dto.ProjectManagerResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectMemberResult;
 import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
 import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
@@ -46,23 +47,13 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public Page<ProjectSearchResult> searchProjects(String keyword, Pageable pageable) {
-		return projectQuerydslRepository.searchProjects(keyword, pageable);
+	public Slice<ProjectSearchResult> searchProjectsNoOffset(String keyword, Long lastProjectId, Pageable pageable) {
+		return projectQuerydslRepository.searchProjectsNoOffset(keyword, lastProjectId, pageable);
 	}
 
 	@Override
 	public Optional<Project> findByIdAndIsDeletedFalse(Long projectId) {
 		return projectQuerydslRepository.findByIdAndIsDeletedFalse(projectId);
-	}
-
-	@Override
-	public List<Project> findProjectsByMember(Long userId) {
-		return projectQuerydslRepository.findProjectsByMember(userId);
-	}
-
-	@Override
-	public List<Project> findProjectsByManager(Long userId) {
-		return projectQuerydslRepository.findProjectsByManager(userId);
 	}
 
 	@Override
@@ -73,5 +64,20 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	@Override
 	public List<Project> findInProgressProjectsToClose(LocalDateTime now) {
 		return projectQuerydslRepository.findInProgressProjectsToClose(now);
+	}
+
+	@Override
+	public void updateStateByIds(List<Long> projectIds, ProjectState newState) {
+		projectQuerydslRepository.updateStateByIds(projectIds, newState);
+	}
+
+	@Override
+	public void removeMemberFromProjects(Long userId) {
+		projectQuerydslRepository.removeMemberFromProjects(userId);
+	}
+
+	@Override
+	public void removeManagerFromProjects(Long userId) {
+		projectQuerydslRepository.removeManagerFromProjects(userId);
 	}
 }
