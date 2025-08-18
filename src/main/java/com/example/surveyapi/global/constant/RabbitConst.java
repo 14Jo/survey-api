@@ -12,4 +12,6 @@ public class RabbitConst {
 
 	public static final String ROUTING_KEY_SURVEY_ACTIVE = "survey.activated";
 	public static final String ROUTING_KEY_USER_WITHDRAW = "survey.user.withdraw";
+	public static final String ROUTING_KEY_PARTICIPATION_CREATE = "participation.created";
+	public static final String ROUTING_KEY_PARTICIPATION_UPDATE = "participation.updated";
 }
