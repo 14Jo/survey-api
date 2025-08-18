@@ -10,7 +10,9 @@ import com.example.surveyapi.global.event.UserWithdrawEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class UserEventListener {
@@ -20,7 +22,9 @@ public class UserEventListener {
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handle(UserEvent domainEvent){
+        log.info("이벤트 발행 전 ");
         UserWithdrawEvent globalEvent = objectMapper.convertValue(domainEvent, UserWithdrawEvent.class);
         rabbitPublisher.publish(globalEvent, EventCode.USER_WITHDRAW);
+        log.info("이벤트 발행 후 ");
     }
 }
