@@ -9,4 +9,5 @@ import lombok.Setter;
 public class SearchProjectRequest {
 	@Size(min = 3, message = "검색어는 최소 3글자 이상이어야 합니다.")
 	private String keyword;
+	private Long lastProjectId;
 }
