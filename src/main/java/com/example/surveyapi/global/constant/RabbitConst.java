@@ -11,4 +11,6 @@ public class RabbitConst {
 	public static final String QUEUE_NAME_PARTICIPATION = "queue.participation";
 
 	public static final String ROUTING_KEY_SURVEY_ACTIVE = "survey.activated";
+
+	public static final String ROUTING_KEY_PROJECT_ACTIVE = "project.activated";
 }
