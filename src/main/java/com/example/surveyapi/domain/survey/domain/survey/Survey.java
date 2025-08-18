@@ -102,8 +102,6 @@ public class Survey extends AbstractRoot<Survey> {
 		survey.option = option;
 		survey.addQuestion(questions);
 
-		survey.registerScheduledEvent();
-
 		return survey;
 	}
 
@@ -121,7 +119,6 @@ public class Survey extends AbstractRoot<Survey> {
 				}
 			}
 		});
-		this.registerScheduledEvent();
 	}
 
 	public void open() {
@@ -163,7 +160,7 @@ public class Survey extends AbstractRoot<Survey> {
 		this.questions.forEach(Question::delete);
 	}
 
-	private void registerScheduledEvent() {
+	public void registerScheduledEvent() {
 		this.registerEvent(new SurveyScheduleRequestedEvent(
 			this.getSurveyId(),
 			this.getCreatorId(),
