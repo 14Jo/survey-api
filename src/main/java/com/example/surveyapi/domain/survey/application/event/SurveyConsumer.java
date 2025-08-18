@@ -9,6 +9,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.command.SurveyService;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -28,12 +29,20 @@ import lombok.extern.slf4j.Slf4j;
 public class SurveyConsumer {
 
 	private final SurveyRepository surveyRepository;
+	private final SurveyService surveyService;
 
 	//TODO 이벤트 객체 변환 및 기능 구현 필요
 	// @RabbitHandler
 	// public void handleProjectClosed(Object event) {
 	// 	try {
 	// 		log.info("이벤트 수신");
+	// 		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId());
+	//
+	// 		if (surveyOp.isEmpty())
+	// 			return;
+	//
+	// 		Survey survey = surveyOp.get();
+	// 		surveyService.surveyActivator(survey, SurveyStatus.CLOSED.name());
 	//
 	// 	} catch (Exception e) {
 	// 		log.error(e.getMessage(), e);

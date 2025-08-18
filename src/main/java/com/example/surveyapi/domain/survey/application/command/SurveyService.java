@@ -136,8 +136,7 @@ public class SurveyService {
 		validateProjectMembership(authHeader, survey.getProjectId(), userId);
 
 		survey.open();
-		surveyRepository.stateUpdate(survey);
-		updateState(surveyId, survey.getStatus());
+		surveyActivator(survey, SurveyStatus.IN_PROGRESS.name());
 	}
 
 	@Transactional
@@ -151,9 +150,7 @@ public class SurveyService {
 
 		validateProjectMembership(authHeader, survey.getProjectId(), userId);
 
-		survey.close();
-		surveyRepository.stateUpdate(survey);
-		updateState(surveyId, survey.getStatus());
+		surveyActivator(survey, SurveyStatus.CLOSED.name());
 	}
 
 	private void validateProjectAccess(String authHeader, Long projectId, Long userId) {
@@ -175,7 +172,14 @@ public class SurveyService {
 		}
 	}
 
-	private void updateState(Long surveyId, SurveyStatus surveyStatus) {
-		surveyReadSync.updateSurveyStatus(surveyId, surveyStatus);
+	public void surveyActivator(Survey survey, String activator) {
+		if (activator.equals(SurveyStatus.IN_PROGRESS.name())) {
+			survey.open();
+		}
+		if (activator.equals(SurveyStatus.CLOSED.name())) {
+			survey.close();
+		}
+		surveyRepository.stateUpdate(survey);
+		surveyReadSync.activateSurveyRead(survey.getSurveyId(), survey.getStatus());
 	}
 }

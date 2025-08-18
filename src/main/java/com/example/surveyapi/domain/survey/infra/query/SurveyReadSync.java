@@ -42,7 +42,7 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 
 			SurveyReadEntity surveyRead = SurveyReadEntity.create(
 				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
-				dto.getDescription(), dto.getStatus().name(), 0, surveyOptions
+				dto.getDescription(), dto.getStatus(), 0, surveyOptions
 			);
 
 			SurveyReadEntity save = surveyReadRepository.save(surveyRead);
@@ -68,7 +68,7 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 
 			SurveyReadEntity surveyRead = SurveyReadEntity.create(
 				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
-				dto.getDescription(), dto.getStatus().name(), 0, surveyOptions
+				dto.getDescription(), dto.getStatus(), 0, surveyOptions
 			);
 
 			surveyReadRepository.updateBySurveyId(surveyRead);
@@ -113,8 +113,12 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 
 	@Async
 	@Transactional
-	public void updateSurveyStatus(Long surveyId, SurveyStatus status) {
-		surveyReadRepository.updateStatusBySurveyId(surveyId, status.name());
+	public void activateSurveyRead(Long surveyId, SurveyStatus status) {
+		SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+
+		surveyRead.activate(status);
+		surveyReadRepository.save(surveyRead);
 	}
 
 	@Scheduled(fixedRate = 300000)
