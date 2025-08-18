@@ -61,6 +61,7 @@ public class ProjectService {
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
+		publishProjectEvents(project);
 	}
 
 	@Transactional

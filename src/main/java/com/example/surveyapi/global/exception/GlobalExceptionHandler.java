@@ -21,6 +21,7 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.util.ApiResponse;
 
 import io.jsonwebtoken.JwtException;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -58,6 +59,12 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<Void>> handleAccessDenied(AccessDeniedException e) {
 		return ResponseEntity.status(CustomErrorCode.ACCESS_DENIED.getHttpStatus())
 			.body(ApiResponse.error(CustomErrorCode.ACCESS_DENIED.getMessage()));
+	}
+
+	@ExceptionHandler(OptimisticLockException.class)
+	public ResponseEntity<ApiResponse<Void>> handleOptimisticLockException(OptimisticLockException e) {
+		return ResponseEntity.status(CustomErrorCode.OPTIMISTIC_LOCK_CONFLICT.getHttpStatus())
+			.body(ApiResponse.error(CustomErrorCode.OPTIMISTIC_LOCK_CONFLICT.getMessage()));
 	}
 
 	@ExceptionHandler(HttpMessageNotReadableException.class)
