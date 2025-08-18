@@ -168,4 +168,36 @@ public class Survey extends AbstractRoot<Survey> {
 			this.getDuration().getEndDate()
 		));
 	}
+
+	public void applyDurationChange(SurveyDuration newDuration, LocalDateTime now) {
+		this.duration = newDuration;
+
+		LocalDateTime startAt = this.duration.getStartDate();
+		LocalDateTime endAt   = this.duration.getEndDate();
+
+		if (startAt != null && startAt.isBefore(now) && this.status == SurveyStatus.PREPARING) {
+			openAt(startAt);
+		}
+
+		if (endAt != null && endAt.isBefore(now)) {
+			if (this.status == SurveyStatus.IN_PROGRESS) {
+				closeAt(endAt);
+			} else if (this.status == SurveyStatus.PREPARING) {
+				openAt(startAt != null ? startAt : now);
+				closeAt(endAt);
+			}
+		}
+	}
+
+	private void openAt(LocalDateTime startedAt) {
+		this.status = SurveyStatus.IN_PROGRESS;
+		this.duration = SurveyDuration.of(startedAt, this.duration.getEndDate());
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+	}
+
+	private void closeAt(LocalDateTime endedAt) {
+		this.status = SurveyStatus.CLOSED;
+		this.duration = SurveyDuration.of(this.duration.getStartDate(), endedAt);
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+	}
 }

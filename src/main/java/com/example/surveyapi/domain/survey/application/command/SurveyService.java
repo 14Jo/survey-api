@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.survey.application.command;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,7 @@ public class SurveyService {
 	public Long update(String authHeader, Long surveyId, Long userId, UpdateSurveyRequest request) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+		boolean durationFlag = false;
 
 		if (survey.getStatus() == SurveyStatus.IN_PROGRESS) {
 			throw new CustomException(CustomErrorCode.CONFLICT, "진행 중인 설문은 수정할 수 없습니다.");
@@ -82,6 +84,7 @@ public class SurveyService {
 		}
 		if (request.getSurveyDuration() != null) {
 			updateFields.put("duration", request.getSurveyDuration().toSurveyDuration());
+			durationFlag = true;
 		}
 		if (request.getSurveyOption() != null) {
 			updateFields.put("option", request.getSurveyOption().toSurveyOption());
@@ -92,8 +95,9 @@ public class SurveyService {
 		}
 
 		survey.updateFields(updateFields);
+		survey.applyDurationChange(survey.getDuration(), LocalDateTime.now());
 		surveyRepository.update(survey);
-		survey.registerScheduledEvent();
+		if (durationFlag) survey.registerScheduledEvent();
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.updateSurveyRead(SurveySyncDto.from(survey));
