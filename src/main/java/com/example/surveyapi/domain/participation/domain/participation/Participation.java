@@ -9,11 +9,11 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
+import com.example.surveyapi.domain.participation.domain.event.ParticipationAbstractRoot;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationCreatedEvent;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationUpdatedEvent;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
-import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -35,7 +35,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "participations")
-public class Participation extends AbstractRoot<Participation> {
+public class Participation extends ParticipationAbstractRoot<Participation> {
 	// TODO: 현재 AbstractRoot Survey 도메인에 있음
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,17 +53,6 @@ public class Participation extends AbstractRoot<Participation> {
 
 	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "participation")
 	private List<Response> responses = new ArrayList<>();
-
-	// @Transient
-	// private final List<ParticipationEvent> participationEvents = new ArrayList<>();
-
-	// @CreatedDate
-	// @Column(name = "created_at", updatable = false)
-	// private LocalDateTime createdAt;
-	//
-	// @LastModifiedDate
-	// @Column(name = "updated_at")
-	// private LocalDateTime updatedAt;
 
 	public static Participation create(Long userId, Long surveyId, ParticipantInfo participantInfo,
 		List<ResponseData> responseDataList) {
@@ -116,14 +105,4 @@ public class Participation extends AbstractRoot<Participation> {
 
 		registerEvent(ParticipationUpdatedEvent.from(this));
 	}
-
-	// public void registerEvent(ParticipationEvent event) {
-	// 	this.participationEvents.add(event);
-	// }
-	//
-	// public List<ParticipationEvent> pollAllEvents() {
-	// 	List<ParticipationEvent> events = new ArrayList<>(this.participationEvents);
-	// 	this.participationEvents.clear();
-	// 	return events;
-	// }
 }
