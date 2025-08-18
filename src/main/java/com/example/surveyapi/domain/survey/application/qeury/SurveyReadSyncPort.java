@@ -16,5 +16,5 @@ public interface SurveyReadSyncPort {
 
 	void deleteSurveyRead(Long surveyId);
 
-	void updateSurveyStatus(Long surveyId, SurveyStatus status);
+	void activateSurveyRead(Long surveyId, SurveyStatus status);
 }
