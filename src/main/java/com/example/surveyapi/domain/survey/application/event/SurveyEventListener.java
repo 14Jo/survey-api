@@ -57,7 +57,7 @@ public class SurveyEventListener {
 
 	private void publishDelayed(SurveyEvent event, String routingKey, long delayMs) {
 		Map<String, Object> headers = new HashMap<>();
-		headers.put("delay", delayMs);
+		headers.put("x-delay", delayMs);
 		rabbitTemplate.convertAndSend(RabbitConst.DELAYED_EXCHANGE_NAME, routingKey, event, message -> {
 			message.getMessageProperties().getHeaders().putAll(headers);
 			return message;
