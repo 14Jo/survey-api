@@ -14,6 +14,7 @@ import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
+import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
@@ -116,6 +117,7 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
+		registerEvent(new ProjectStateChangedEvent(this.id, newState.name()));
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
