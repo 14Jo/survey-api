@@ -17,7 +17,6 @@ import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.event.SurveyActivateEvent;
 import com.example.surveyapi.global.exception.CustomException;
 
 import jakarta.persistence.CascadeType;
@@ -135,6 +134,7 @@ public class Survey extends AbstractRoot<Survey> {
 
 	public void delete() {
 		this.status = SurveyStatus.DELETED;
+		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
 		this.isDeleted = true;
 		removeQuestions();
 	}
