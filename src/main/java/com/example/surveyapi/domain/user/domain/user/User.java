@@ -147,11 +147,20 @@ public class User extends UserAbstractRoot<User> {
     }
 
     public void increasePoint() {
+        if(this.grade == Grade.MASTER && this.point == 99) {
+            return;
+        }
+
         this.point += 5;
         updatePointGrade();
     }
 
     private void updatePointGrade() {
+        if(this.grade == Grade.MASTER && this.point >= 100){
+            this.point = 99;
+            return;
+        }
+
         if (this.point >= 100) {
             this.point -= 100;
             if (this.grade.next() != null) {
