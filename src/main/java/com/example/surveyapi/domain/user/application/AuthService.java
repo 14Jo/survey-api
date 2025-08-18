@@ -116,6 +116,7 @@ public class AuthService {
         }
 
         user.delete();
+        user.registerUserWithdrawEvent();
         userRepository.withdrawSave(user);
 
         String accessToken = jwtUtil.subStringToken(authHeader);

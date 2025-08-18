@@ -63,4 +63,12 @@ public class RabbitMQBindingConfig {
 			.with(RabbitConst.ROUTING_KEY_SURVEY_ACTIVE);
 	}
 
+	@Bean
+	public Binding bindingUser(Queue queueUser, TopicExchange exchange) {
+		return BindingBuilder
+			.bind(queueUser)
+			.to(exchange)
+			.with(RabbitConst.ROUTING_KEY_SURVEY_ACTIVE);
+	}
+
 }
