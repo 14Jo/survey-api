@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
-import com.example.surveyapi.domain.statistic.domain.repository.StatisticRepository;
+import com.example.surveyapi.domain.statistic.domain.statistic.Statistic;
+import com.example.surveyapi.domain.statistic.domain.statistic.StatisticRepository;
 import com.example.surveyapi.domain.statistic.infra.jpa.JpaStatisticRepository;
 
 import lombok.RequiredArgsConstructor;

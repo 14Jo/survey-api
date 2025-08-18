@@ -1,8 +1,6 @@
-package com.example.surveyapi.domain.statistic.domain.repository;
+package com.example.surveyapi.domain.statistic.domain.statistic;
 
 import java.util.Optional;
-
-import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
 
 public interface StatisticRepository {
 

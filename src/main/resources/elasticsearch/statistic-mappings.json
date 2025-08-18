@@ -1,0 +1,56 @@
+{
+  "properties": {
+    "responseId": {
+      "type": "keyword"
+    },
+    "surveyId": {
+      "type": "keyword"
+    },
+    "questionId": {
+      "type": "keyword"
+    },
+    "questionText": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "questionType": {
+      "type": "keyword"
+    },
+    "choiceId": {
+      "type": "keyword"
+    },
+    "choiceText": {
+      "type": "text",
+      "analyzer": "nori",
+      "fields": {
+        "keyword": {
+          "type": "keyword"
+        }
+      }
+    },
+    "responseText": {
+      "type": "text",
+      "analyzer": "nori"
+    },
+    "userId": {
+      "type": "keyword"
+    },
+    "userGender": {
+      "type": "keyword"
+    },
+    "userBirthDate": {
+      "type": "date",
+      "format": "yyyy-MM-dd"
+    },
+    "userAge": {
+      "type": "integer"
+    },
+    "userAgeGroup": {
+      "type": "keyword"
+    },
+    "submittedAt": {
+      "type": "date",
+      "format": "strict_date_optional_time||epoch_millis"
+    }
+  }
+}
