@@ -80,4 +80,9 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	public void removeManagerFromProjects(Long userId) {
 		projectQuerydslRepository.removeManagerFromProjects(userId);
 	}
+
+	@Override
+	public void removeProjects(Long userId) {
+		projectQuerydslRepository.removeProjects(userId);
+	}
 }

@@ -36,4 +36,6 @@ public interface ProjectRepository {
 	void removeMemberFromProjects(Long userId);
 
 	void removeManagerFromProjects(Long userId);
+
+	void removeProjects(Long userId);
 }
