@@ -102,19 +102,19 @@ public class RabbitMQBindingConfig {
 	}
 
 	@Bean
-	public Binding bindingSurveyStartDue(Queue queueSurvey, CustomExchange delayedExchange) {
+	public Binding bindingSurveyStartDue(Queue queueSurvey, CustomExchange customExchange) {
 		return BindingBuilder
 			.bind(queueSurvey)
-			.to(delayedExchange)
+			.to(customExchange)
 			.with(RabbitConst.ROUTING_KEY_SURVEY_START_DUE)
 			.noargs();
 	}
 
 	@Bean
-	public Binding bindingSurveyEndDue(Queue queueSurvey, CustomExchange delayedExchange) {
+	public Binding bindingSurveyEndDue(Queue queueSurvey, CustomExchange customExchange) {
 		return BindingBuilder
 			.bind(queueSurvey)
-			.to(delayedExchange)
+			.to(customExchange)
 			.with(RabbitConst.ROUTING_KEY_SURVEY_END_DUE)
 			.noargs();
 	}
