@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.project.infra.project;
+package com.example.surveyapi.domain.project.infra.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,8 +14,8 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
-import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
-import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
+import com.example.surveyapi.domain.project.infra.repository.jpa.ProjectJpaRepository;
+import com.example.surveyapi.domain.project.infra.repository.querydsl.ProjectQuerydslRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +29,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	@Override
 	public void save(Project project) {
 		projectJpaRepository.save(project);
+	}
+
+	@Override
+	public void saveAll(List<Project> projects) {
+		projectJpaRepository.saveAll(projects);
 	}
 
 	@Override
@@ -79,5 +84,10 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	@Override
 	public void removeManagerFromProjects(Long userId) {
 		projectQuerydslRepository.removeManagerFromProjects(userId);
+	}
+
+	@Override
+	public void removeProjects(Long userId) {
+		projectQuerydslRepository.removeProjects(userId);
 	}
 }

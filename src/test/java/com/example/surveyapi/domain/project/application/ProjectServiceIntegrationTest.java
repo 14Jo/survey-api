@@ -20,7 +20,7 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.Pr
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
+import com.example.surveyapi.domain.project.infra.repository.jpa.ProjectJpaRepository;
 
 /**
  * DB에 정상적으로 반영되는지 확인하기 위한 통합 테스트

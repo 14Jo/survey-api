@@ -1,29 +1,30 @@
 package com.example.surveyapi.domain.project.application.event;
 
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
+import com.example.surveyapi.global.constant.RabbitConst;
 import com.example.surveyapi.global.event.UserWithdrawEvent;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
 @RequiredArgsConstructor
-public class UserEventHandler {
+@RabbitListener(
+	queues = RabbitConst.QUEUE_NAME_PROJECT
+)
+public class ProjectConsumer {
 
 	private final ProjectRepository projectRepository;
 
-	@TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+	@RabbitHandler
+	@Transactional
 	public void handleUserWithdrawEvent(UserWithdrawEvent event) {
-		log.debug("회원 탈퇴 이벤트 수신 userId: {}", event.getUserId());
-
 		projectRepository.removeMemberFromProjects(event.getUserId());
 		projectRepository.removeManagerFromProjects(event.getUserId());
-
-		log.debug("회원 탈퇴 처리 완료 userId: {}", event.getUserId());
+		projectRepository.removeProjects(event.getUserId());
 	}
 }
