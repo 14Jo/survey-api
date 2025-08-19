@@ -2,8 +2,6 @@ package com.example.surveyapi.global.model;
 
 import java.time.LocalDateTime;
 
-import org.springframework.data.domain.AbstractAggregateRoot;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;

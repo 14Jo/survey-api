@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.project.infra.project.querydsl;
+package com.example.surveyapi.domain.project.infra.repository.querydsl;
 
 import static com.example.surveyapi.domain.project.domain.participant.manager.entity.QProjectManager.*;
 import static com.example.surveyapi.domain.project.domain.participant.member.entity.QProjectMember.*;
@@ -208,6 +208,18 @@ public class ProjectQuerydslRepository {
 			.set(projectManager.isDeleted, true)
 			.set(projectManager.updatedAt, now)
 			.where(projectManager.userId.eq(userId), projectManager.isDeleted.eq(false))
+			.execute();
+	}
+
+	public void removeProjects(Long userId) {
+		LocalDateTime now = LocalDateTime.now();
+
+		query.update(project)
+			.set(project.isDeleted, true)
+			.set(project.updatedAt, now)
+			.set(project.period.periodEnd, now)
+			.set(project.state, ProjectState.CLOSED)
+			.where(project.ownerId.eq(userId), isProjectActive())
 			.execute();
 	}
 
