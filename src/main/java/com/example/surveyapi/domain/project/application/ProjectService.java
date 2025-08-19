@@ -9,8 +9,8 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
+import com.example.surveyapi.domain.project.application.event.ProjectDomainEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ProjectService {
 
 	private final ProjectRepository projectRepository;
-	private final ProjectEventPublisher projectEventPublisher;
+	private final ProjectDomainEventPublisher publisher;
 
 	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
@@ -123,7 +123,7 @@ public class ProjectService {
 	}
 
 	private void publishProjectEvents(Project project) {
-		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+		project.pullDomainEvents().forEach(publisher::publish);
 	}
 
 	private Project findByIdOrElseThrow(Long projectId) {
