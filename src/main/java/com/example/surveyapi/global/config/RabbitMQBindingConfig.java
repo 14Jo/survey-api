@@ -80,11 +80,10 @@ public class RabbitMQBindingConfig {
 	}
 
 	@Bean
-	public Binding bindingProject(Queue queueProject, TopicExchange exchange) {
+	public Binding bindingUserWithdrawToProjectQueue(Queue queueProject, TopicExchange exchange) {
 		return BindingBuilder
 			.bind(queueProject)
 			.to(exchange)
-			.with("project.*");
+			.with(RabbitConst.ROUTING_KEY_USER_WITHDRAW);
 	}
-
 }
