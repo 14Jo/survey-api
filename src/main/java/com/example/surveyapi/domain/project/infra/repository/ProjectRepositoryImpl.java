@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.project.infra.project;
+package com.example.surveyapi.domain.project.infra.repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,8 +14,8 @@ import com.example.surveyapi.domain.project.domain.dto.ProjectSearchResult;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
-import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
-import com.example.surveyapi.domain.project.infra.project.querydsl.ProjectQuerydslRepository;
+import com.example.surveyapi.domain.project.infra.repository.jpa.ProjectJpaRepository;
+import com.example.surveyapi.domain.project.infra.repository.querydsl.ProjectQuerydslRepository;
 
 import lombok.RequiredArgsConstructor;
 

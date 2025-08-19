@@ -8,6 +8,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ProjectStateChangedDomainEvent {
-    private final Long projectId;
-    private final ProjectState projectState;
+	private final Long projectId;
+	private final ProjectState projectState;
 }

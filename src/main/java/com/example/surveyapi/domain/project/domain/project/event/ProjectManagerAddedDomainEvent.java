@@ -8,8 +8,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class ProjectManagerAddedDomainEvent {
-    private final Long userId;
-    private final LocalDateTime periodEnd;
-    private final Long projectOwnerId;
-    private final Long projectId;
+	private final Long userId;
+	private final LocalDateTime periodEnd;
+	private final Long projectOwnerId;
+	private final Long projectId;
 }
