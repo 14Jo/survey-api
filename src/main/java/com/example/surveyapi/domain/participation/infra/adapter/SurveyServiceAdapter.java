@@ -22,7 +22,7 @@ public class SurveyServiceAdapter implements SurveyServicePort {
 	private final SurveyApiClient surveyApiClient;
 	private final ObjectMapper objectMapper;
 
-	@Cacheable(value = "surveyDetails", key = "#surveyId", sync = true)
+	@Cacheable(value = "surveyDetails", key = "#surveyId", unless = "#result == null", sync = true)
 	@Override
 	public SurveyDetailDto getSurveyDetail(String authHeader, Long surveyId) {
 		ExternalApiResponse surveyDetail = surveyApiClient.getSurveyDetail(authHeader, surveyId);
