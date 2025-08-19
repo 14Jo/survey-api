@@ -10,6 +10,10 @@ import com.example.surveyapi.global.event.UserWithdrawEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+// TODO : 이벤트 컨슈머
+// TODO : 이벤트 컨슈머
+// TODO : 이벤트 컨슈머
+// TODO : 이벤트 컨슈머
 @Slf4j
 @Component
 @RequiredArgsConstructor
