@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.project.infra.project;
+package com.example.surveyapi.domain.project.infra.event;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
