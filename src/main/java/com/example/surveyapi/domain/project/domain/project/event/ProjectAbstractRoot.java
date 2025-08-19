@@ -1,8 +1,13 @@
 package com.example.surveyapi.domain.project.domain.project.event;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+
+import org.springframework.data.domain.AfterDomainEventPublication;
+import org.springframework.data.domain.DomainEvents;
+import org.springframework.util.Assert;
 
 import com.example.surveyapi.global.model.BaseEntity;
 
@@ -15,15 +20,18 @@ public abstract class ProjectAbstractRoot extends BaseEntity {
 	@Transient
 	private final List<Object> domainEvents = new ArrayList<>();
 
-	// 도메인 메서드(addManager 등)에서 이벤트 적재
-	protected void registerEvent(Object event) {
-		domainEvents.add(Objects.requireNonNull(event, "requireNonNull"));
+	protected <T> void registerEvent(T event) {
+		Assert.notNull(event, "Domain event must not be null");
+		this.domainEvents.add(event);
 	}
 
-	// 이벤트 등록/ 관리
-	public List<Object> pullDomainEvents() {
-		List<Object> events = new ArrayList<>(domainEvents);
-		domainEvents.clear();
-		return events;
+	@AfterDomainEventPublication
+	protected void clearDomainEvents() {
+		this.domainEvents.clear();
+	}
+
+	@DomainEvents
+	protected Collection<Object> domainEvents() {
+		return Collections.unmodifiableList(this.domainEvents);
 	}
 }

@@ -9,7 +9,6 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
-import com.example.surveyapi.domain.project.application.event.ProjectDomainEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -24,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 public class ProjectService {
 
 	private final ProjectRepository projectRepository;
-	private final ProjectDomainEventPublisher publisher;
 
 	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
@@ -55,33 +53,35 @@ public class ProjectService {
 			request.getName(), request.getDescription(),
 			request.getPeriodStart(), request.getPeriodEnd()
 		);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
-		publishProjectEvents(project);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void updateOwner(Long projectId, UpdateProjectOwnerRequest request, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateOwner(currentUserId, request.getNewOwnerId());
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void deleteProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.softDelete(currentUserId);
-		publishProjectEvents(project);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void joinProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addManager(currentUserId);
-		publishProjectEvents(project);
+		projectRepository.save(project);
 	}
 
 	@Transactional
@@ -89,41 +89,41 @@ public class ProjectService {
 		Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void deleteManager(Long projectId, Long managerId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.deleteManager(currentUserId, managerId);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void joinProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.addMember(currentUserId);
-		publishProjectEvents(project);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void leaveProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeManager(currentUserId);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void leaveProjectMember(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
+		projectRepository.save(project);
 	}
 
 	private void validateDuplicateName(String name) {
 		if (projectRepository.existsByNameAndIsDeletedFalse(name)) {
 			throw new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME);
 		}
-	}
-
-	private void publishProjectEvents(Project project) {
-		project.pullDomainEvents().forEach(publisher::publish);
 	}
 
 	private Project findByIdOrElseThrow(Long projectId) {

@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.event;
+package com.example.surveyapi.domain.project.application.event;
 
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.constant.RabbitConst;
+import com.example.surveyapi.global.event.UserWithdrawEvent;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,5 +25,6 @@ public class ProjectConsumer {
 	public void handleUserWithdrawEvent(UserWithdrawEvent event) {
 		projectRepository.removeMemberFromProjects(event.getUserId());
 		projectRepository.removeManagerFromProjects(event.getUserId());
+		projectRepository.removeProjects(event.getUserId());
 	}
 }

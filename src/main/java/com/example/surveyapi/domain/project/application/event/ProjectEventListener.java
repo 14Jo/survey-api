@@ -13,6 +13,7 @@ import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,45 +24,33 @@ import lombok.extern.slf4j.Slf4j;
 public class ProjectEventListener {
 
 	private final ProjectEventPublisher projectEventPublisher;
+	private final ObjectMapper objectMapper;
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleProjectStateChanged(ProjectStateChangedDomainEvent internalEvent) {
-		projectEventPublisher.convertAndSend(new ProjectStateChangedEvent(
-			internalEvent.getProjectId(),
-			internalEvent.getProjectState().name()
-		));
+		ProjectStateChangedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectStateChangedEvent.class);
+		projectEventPublisher.convertAndSend(globalEvent);
 	}
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleProjectDeleted(ProjectDeletedDomainEvent internalEvent) {
-		projectEventPublisher.convertAndSend(new ProjectDeletedEvent(
-			internalEvent.getProjectId(),
-			internalEvent.getProjectName(),
-			internalEvent.getDeleterId()
-		));
+		ProjectDeletedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectDeletedEvent.class);
+		projectEventPublisher.convertAndSend(globalEvent);
 	}
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleManagerAdded(ProjectManagerAddedDomainEvent internalEvent) {
-		projectEventPublisher.convertAndSend(new ProjectManagerAddedEvent(
-			internalEvent.getUserId(),
-			internalEvent.getPeriodEnd(),
-			internalEvent.getProjectOwnerId(),
-			internalEvent.getProjectId()
-		));
+		ProjectManagerAddedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectManagerAddedEvent.class);
+		projectEventPublisher.convertAndSend(globalEvent);
 	}
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleMemberAdded(ProjectMemberAddedDomainEvent internalEvent) {
-		projectEventPublisher.convertAndSend(new ProjectMemberAddedEvent(
-			internalEvent.getUserId(),
-			internalEvent.getPeriodEnd(),
-			internalEvent.getProjectOwnerId(),
-			internalEvent.getProjectId()
-		));
+		ProjectMemberAddedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectMemberAddedEvent.class);
+		projectEventPublisher.convertAndSend(globalEvent);
 	}
 }
