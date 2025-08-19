@@ -7,9 +7,9 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.project.application.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 
@@ -40,7 +40,7 @@ public class ProjectStateScheduler {
 		projectRepository.updateStateByIds(projectIds, ProjectState.IN_PROGRESS);
 
 		pendingProjects.forEach(project ->
-			projectEventPublisher.publish(
+			projectEventPublisher.convertAndSend(
 				new ProjectStateChangedEvent(project.getId(), ProjectState.IN_PROGRESS.name()))
 		);
 	}
@@ -55,7 +55,8 @@ public class ProjectStateScheduler {
 		projectRepository.updateStateByIds(projectIds, ProjectState.CLOSED);
 
 		inProgressProjects.forEach(project ->
-			projectEventPublisher.publish(new ProjectStateChangedEvent(project.getId(), ProjectState.CLOSED.name()))
+			projectEventPublisher.convertAndSend(
+				new ProjectStateChangedEvent(project.getId(), ProjectState.CLOSED.name()))
 		);
 	}
 }
