@@ -79,4 +79,12 @@ public class RabbitMQBindingConfig {
 			.with("participation.*");
 	}
 
+	@Bean
+	public Binding bindingUserParticipation(Queue queueUser, TopicExchange exchange) {
+		return BindingBuilder
+			.bind(queueUser)
+			.to(exchange)
+			.with(RabbitConst.ROUTING_KEY_PARTICIPATION_CREATE);
+	}
+
 }
