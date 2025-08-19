@@ -23,13 +23,6 @@ public interface ParticipationApiClient {
 		@RequestParam List<Long> surveyIds
 	);
 
-    @GetExchange("/api/v1/members/me/participations")
-    ExternalApiResponse getSurveyStatus(
-        @RequestHeader("Authorization") String authHeader,
-        @RequestParam Long userId,
-        @RequestParam("page") int page,
-        @RequestParam("size") int size);
-
 	@GetExchange("/api/v2/participations/answers")
 	ExternalApiResponse getParticipationAnswers(
 		@RequestHeader("Authorization") String authHeader,
