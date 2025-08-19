@@ -116,6 +116,7 @@ public class AuthService {
         }
 
         user.delete();
+        user.registerUserWithdrawEvent();
         userRepository.withdrawSave(user);
 
         String accessToken = jwtUtil.subStringToken(authHeader);
@@ -355,6 +356,7 @@ public class AuthService {
         try {
             return OAuthPort.getKakaoUserInfo("Bearer " + accessToken);
         } catch (Exception e) {
+            log.error("카카오 사용자 정보 조회 실패, accessToken: {}", accessToken, e);
             throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
         }
     }
@@ -378,6 +380,7 @@ public class AuthService {
         try {
             return OAuthPort.getNaverUserInfo("Bearer " + accessToken);
         } catch (Exception e) {
+            log.error("네이버 사용자 정보 조회 실패, accessToken: {}", accessToken, e);
             throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
         }
     }
@@ -402,6 +405,7 @@ public class AuthService {
 
             return OAuthPort.getGoogleUserInfo("Bearer " + accessToken);
         } catch (Exception e) {
+            log.error("구글 사용자 정보 조회 실패, accessToken: {}", accessToken, e);
             throw new CustomException(CustomErrorCode.PROVIDER_ID_NOT_FOUNT);
         }
     }
