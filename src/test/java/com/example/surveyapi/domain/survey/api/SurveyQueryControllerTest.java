@@ -172,7 +172,7 @@ class SurveyQueryControllerTest {
         
         SurveyReadEntity entity = SurveyReadEntity.create(
             1L, 1L, "테스트 설문", "테스트 설문 설명", 
-            SurveyStatus.PREPARING.name(), 5, options
+            SurveyStatus.PREPARING, 5, options
         );
         
         return SearchSurveyDetailResponse.from(entity, 5);
@@ -186,7 +186,7 @@ class SurveyQueryControllerTest {
         
         SurveyReadEntity entity = SurveyReadEntity.create(
             1L, 1L, "테스트 설문", "테스트 설문 설명", 
-            SurveyStatus.PREPARING.name(), 5, options
+            SurveyStatus.PREPARING, 5, options
         );
         
         return SearchSurveyTitleResponse.from(entity);
