@@ -6,16 +6,20 @@ import java.util.Optional;
 
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Recover;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.application.command.SurveyService;
+import com.example.surveyapi.domain.survey.domain.dlq.DeadLetterQueue;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.constant.RabbitConst;
 import com.example.surveyapi.global.event.SurveyEndDueEvent;
 import com.example.surveyapi.global.event.SurveyStartDueEvent;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SurveyConsumer {
 
 	private final SurveyRepository surveyRepository;
-	private final SurveyService surveyService;
+	private final ObjectMapper objectMapper;
 
 	//TODO 이벤트 객체 변환 및 기능 구현 필요
 	// @RabbitHandler
@@ -51,8 +55,22 @@ public class SurveyConsumer {
 
 	@RabbitHandler
 	@Transactional
+	@Retryable(
+		retryFor = {Exception.class},
+		maxAttempts = 3,
+		backoff = @Backoff(delay = 1000, multiplier = 2.0)
+	)
 	public void handleSurveyStart(SurveyStartDueEvent event) {
-		log.info("SurveyStartDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
+		try {
+			log.info("SurveyStartDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
+			processSurveyStart(event);
+		} catch (Exception e) {
+			log.error("SurveyStartDueEvent 처리 실패: surveyId={}, error={}", event.getSurveyId(), e.getMessage());
+			throw e;
+		}
+	}
+
+	private void processSurveyStart(SurveyStartDueEvent event) {
 		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId());
 
 		if (surveyOp.isEmpty())
@@ -72,8 +90,22 @@ public class SurveyConsumer {
 
 	@RabbitHandler
 	@Transactional
+	@Retryable(
+		retryFor = {Exception.class},
+		maxAttempts = 3,
+		backoff = @Backoff(delay = 1000, multiplier = 2.0)
+	)
 	public void handleSurveyEnd(SurveyEndDueEvent event) {
-		log.info("SurveyEndDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
+		try {
+			log.info("SurveyEndDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
+			processSurveyEnd(event);
+		} catch (Exception e) {
+			log.error("SurveyEndDueEvent 처리 실패: surveyId={}, error={}", event.getSurveyId(), e.getMessage());
+			throw e;
+		}
+	}
+
+	private void processSurveyEnd(SurveyEndDueEvent event) {
 		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId());
 
 		if (surveyOp.isEmpty())
@@ -88,6 +120,28 @@ public class SurveyConsumer {
 		if (survey.getStatus() == SurveyStatus.IN_PROGRESS) {
 			survey.close();
 			surveyRepository.stateUpdate(survey);
+		}
+	}
+
+	@Recover
+	public void recoverSurveyStart(Exception ex, SurveyStartDueEvent event) {
+		log.error("SurveyStartDueEvent 최종 실패 - DLQ 저장: surveyId={}, error={}", event.getSurveyId(), ex.getMessage());
+		saveToDlq("survey.start.due", "SurveyStartDueEvent", event, ex.getMessage(), 3);
+	}
+
+	@Recover
+	public void recoverSurveyEnd(Exception ex, SurveyEndDueEvent event) {
+		log.error("SurveyEndDueEvent 최종 실패 - DLQ 저장: surveyId={}, error={}", event.getSurveyId(), ex.getMessage());
+		saveToDlq("survey.end.due", "SurveyEndDueEvent", event, ex.getMessage(), 3);
+	}
+
+	private void saveToDlq(String routingKey, String queueName, Object event, String errorMessage, Integer retryCount) {
+		try {
+			String messageBody = objectMapper.writeValueAsString(event);
+			DeadLetterQueue dlq = DeadLetterQueue.create(queueName, routingKey, messageBody, errorMessage, retryCount);
+			log.info("DLQ 저장 완료: routingKey={}, queueName={}", routingKey, queueName);
+		} catch (Exception e) {
+			log.error("DLQ 저장 실패: routingKey={}, error={}", routingKey, e.getMessage());
 		}
 	}
 
