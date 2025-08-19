@@ -32,6 +32,11 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
+	public void saveAll(List<Project> projects) {
+		projectJpaRepository.saveAll(projects);
+	}
+
+	@Override
 	public boolean existsByNameAndIsDeletedFalse(String name) {
 		return projectJpaRepository.existsByNameAndIsDeletedFalse(name);
 	}
