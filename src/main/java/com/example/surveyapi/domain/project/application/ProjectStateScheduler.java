@@ -9,9 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
-import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,7 +19,6 @@ import lombok.RequiredArgsConstructor;
 public class ProjectStateScheduler {
 
 	private final ProjectRepository projectRepository;
-	private final ProjectEventPublisher projectEventPublisher;
 
 	@Scheduled(cron = "0 0 0 * * *") // 매일 00시 실행
 	@Transactional
@@ -39,10 +37,10 @@ public class ProjectStateScheduler {
 		List<Long> projectIds = pendingProjects.stream().map(Project::getId).toList();
 		projectRepository.updateStateByIds(projectIds, ProjectState.IN_PROGRESS);
 
-		pendingProjects.forEach(project ->
-			projectEventPublisher.publish(
-				new ProjectStateChangedEvent(project.getId(), ProjectState.IN_PROGRESS.name()))
-		);
+		for (Project project : pendingProjects) {
+			project.registerEvent(new ProjectStateChangedDomainEvent(project.getId(), project.getState()));
+		}
+		projectRepository.saveAll(pendingProjects);
 	}
 
 	private void updateInProgressProjects(LocalDateTime now) {
@@ -54,8 +52,9 @@ public class ProjectStateScheduler {
 		List<Long> projectIds = inProgressProjects.stream().map(Project::getId).toList();
 		projectRepository.updateStateByIds(projectIds, ProjectState.CLOSED);
 
-		inProgressProjects.forEach(project ->
-			projectEventPublisher.publish(new ProjectStateChangedEvent(project.getId(), ProjectState.CLOSED.name()))
-		);
+		for (Project project : inProgressProjects) {
+			project.registerEvent(new ProjectStateChangedDomainEvent(project.getId(), project.getState()));
+		}
+		projectRepository.saveAll(inProgressProjects);
 	}
 }

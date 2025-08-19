@@ -29,6 +29,7 @@ public enum CustomErrorCode {
     PROVIDER_ID_NOT_FOUNT(HttpStatus.NOT_FOUND,"해당 providerId로 가입된 사용자가 존재하지 않습니다"),
     OAUTH_ACCESS_TOKEN_FAILED(HttpStatus.BAD_REQUEST,"소셜 로그인 인증에 실패했습니다"),
     EXTERNAL_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"외부 API 오류 발생했습니다."),
+    NOT_FOUND_ROUTING_KEY(HttpStatus.NOT_FOUND,"라우팅키를 찾을 수 없습니다."),
 
     // 프로젝트 에러
     START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
