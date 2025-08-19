@@ -11,7 +11,6 @@ import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
-import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 
 import lombok.RequiredArgsConstructor;
 

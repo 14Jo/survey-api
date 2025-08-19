@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.project.infra.project.querydsl;
+package com.example.surveyapi.domain.project.infra.repository.querydsl;
 
 import static com.example.surveyapi.domain.project.domain.participant.manager.entity.QProjectManager.*;
 import static com.example.surveyapi.domain.project.domain.participant.member.entity.QProjectMember.*;
