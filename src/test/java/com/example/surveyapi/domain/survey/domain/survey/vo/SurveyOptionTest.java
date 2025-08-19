@@ -61,7 +61,7 @@ class SurveyOptionTest {
         SurveyOption option3 = SurveyOption.of(false, true);
         SurveyOption option4 = SurveyOption.of(true, false);
         
-        // then - 필드 값으로 비교
+        // then
         assertThat(option1.isAnonymous()).isEqualTo(option2.isAnonymous());
         assertThat(option1.isAllowResponseUpdate()).isEqualTo(option2.isAllowResponseUpdate());
         assertThat(option1.isAnonymous()).isNotEqualTo(option3.isAnonymous());

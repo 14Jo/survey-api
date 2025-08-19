@@ -85,14 +85,14 @@ class SurveyDurationTest {
     @Test
     @DisplayName("SurveyDuration - 시작일이 종료일보다 늦은 경우 (허용)")
     void createSurveyDuration_startAfterEnd() {
-        // given - 비즈니스 로직에서 검증하므로 VO에서는 단순 생성만 담당
+        // given
         LocalDateTime startDate = LocalDateTime.of(2025, 1, 31, 18, 0);
         LocalDateTime endDate = LocalDateTime.of(2025, 1, 1, 9, 0);
         
         // when
         SurveyDuration duration = SurveyDuration.of(startDate, endDate);
         
-        // then - VO는 단순히 값을 저장만 함
+        // then
         assertThat(duration.getStartDate()).isEqualTo(startDate);
         assertThat(duration.getEndDate()).isEqualTo(endDate);
     }
@@ -108,7 +108,7 @@ class SurveyDurationTest {
         SurveyDuration duration2 = SurveyDuration.of(startDate, endDate);
         SurveyDuration duration3 = SurveyDuration.of(startDate, endDate.plusDays(1));
         
-        // then - 필드 값으로 비교
+        // then
         assertThat(duration1.getStartDate()).isEqualTo(duration2.getStartDate());
         assertThat(duration1.getEndDate()).isEqualTo(duration2.getEndDate());
         assertThat(duration1.getEndDate()).isNotEqualTo(duration3.getEndDate());
@@ -125,7 +125,7 @@ class SurveyDurationTest {
         SurveyDuration duration3 = SurveyDuration.of(null, null);
         SurveyDuration duration4 = SurveyDuration.of(null, null);
         
-        // then - 필드 값으로 비교
+        // then
         assertThat(duration1.getStartDate()).isEqualTo(duration2.getStartDate());
         assertThat(duration1.getEndDate()).isEqualTo(duration2.getEndDate());
         assertThat(duration3.getStartDate()).isEqualTo(duration4.getStartDate());

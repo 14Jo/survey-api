@@ -58,12 +58,12 @@ class SurveyTest {
         LocalDateTime startDate = LocalDateTime.now().plusDays(1);
         LocalDateTime endDate = LocalDateTime.now().plusDays(10);
 
-        // when - null 대신 빈 리스트 사용
+        // when
         Survey survey = Survey.create(
             1L, 1L, "설문 제목", "설문 설명", SurveyType.VOTE,
             SurveyDuration.of(startDate, endDate),
             SurveyOption.of(true, true),
-            List.of() // null 대신 빈 리스트
+            List.of()
         );
 
         // then
@@ -71,7 +71,7 @@ class SurveyTest {
         assertThat(survey.getTitle()).isEqualTo("설문 제목");
         assertThat(survey.getType()).isEqualTo(SurveyType.VOTE);
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.PREPARING);
-        assertThat(survey.getQuestions()).isEmpty(); // 빈 리스트 확인
+        assertThat(survey.getQuestions()).isEmpty();
     }
 
     @Test
@@ -90,7 +90,6 @@ class SurveyTest {
 
         // then
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.IN_PROGRESS);
-        // Domain events are handled by AbstractRoot
     }
 
     @Test
@@ -110,7 +109,6 @@ class SurveyTest {
 
         // then
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.CLOSED);
-        // Domain events are handled by AbstractRoot
     }
 
     @Test
@@ -233,7 +231,7 @@ class SurveyTest {
 
         // then
         assertThat(survey).isNotNull();
-        assertThat(survey.getQuestions()).hasSize(2); // 질문 개수 확인
+        assertThat(survey.getQuestions()).hasSize(2);
     }
 
     @Test
