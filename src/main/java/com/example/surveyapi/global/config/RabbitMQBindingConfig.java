@@ -79,4 +79,19 @@ public class RabbitMQBindingConfig {
 			.with("participation.*");
 	}
 
+	@Bean
+	public Binding bindingUserWithdrawToProjectQueue(Queue queueProject, TopicExchange exchange) {
+		return BindingBuilder
+			.bind(queueProject)
+			.to(exchange)
+			.with(RabbitConst.ROUTING_KEY_USER_WITHDRAW);
+	}
+
+	@Bean
+	public Binding bindingProject(Queue queueProject, TopicExchange exchange) {
+		return BindingBuilder
+			.bind(queueProject)
+			.to(exchange)
+			.with("project.*");
+	}
 }
