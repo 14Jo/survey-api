@@ -51,7 +51,11 @@ public class SurveyService {
 		);
 
 		Survey save = surveyRepository.save(survey);
+		log.info("설문 저장 완료: surveyId={}", save.getSurveyId());
 		save.registerScheduledEvent();
+		log.info("스케줄 이벤트 등록 완료: surveyId={}", save.getSurveyId());
+		surveyRepository.save(save);
+		log.info("최종 저장 완료: surveyId={}", save.getSurveyId());
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.surveyReadSync(SurveySyncDto.from(survey), questionList);

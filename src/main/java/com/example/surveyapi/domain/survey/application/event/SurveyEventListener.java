@@ -49,6 +49,11 @@ public class SurveyEventListener {
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handle(SurveyScheduleRequestedEvent event) {
+		log.info("=== SurveyScheduleRequestedEvent 수신 ===");
+		log.info("surveyId: {}", event.getSurveyId());
+		log.info("startAt: {}", event.getStartAt());
+		log.info("endAt: {}", event.getEndAt());
+		log.info("=== 이벤트 처리 시작 ===");
 		LocalDateTime now = LocalDateTime.now();
 		if (event.getStartAt() != null && event.getStartAt().isAfter(now)) {
 			long delayMs = Duration.between(now, event.getStartAt()).toMillis();
