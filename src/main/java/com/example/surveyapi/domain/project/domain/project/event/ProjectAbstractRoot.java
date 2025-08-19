@@ -20,7 +20,7 @@ public abstract class ProjectAbstractRoot extends BaseEntity {
 	@Transient
 	private final List<Object> domainEvents = new ArrayList<>();
 
-	protected <T> void registerEvent(T event) {
+	public <T> void registerEvent(T event) {
 		Assert.notNull(event, "Domain event must not be null");
 		this.domainEvents.add(event);
 	}

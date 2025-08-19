@@ -17,6 +17,8 @@ public interface ProjectRepository {
 
 	void save(Project project);
 
+	void saveAll(List<Project> projects);
+
 	boolean existsByNameAndIsDeletedFalse(String name);
 
 	List<ProjectManagerResult> findMyProjectsAsManager(Long currentUserId);
