@@ -1,7 +1,7 @@
 package com.example.surveyapi.domain.project.domain.participant.manager.entity;
 
-import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.participant.ProjectParticipant;
+import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 
 import jakarta.persistence.Column;
