@@ -22,6 +22,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.context.annotation.Bean;
@@ -64,7 +65,7 @@ class SurveyControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockitoBean
     private SurveyService surveyService;
 
     @Autowired
