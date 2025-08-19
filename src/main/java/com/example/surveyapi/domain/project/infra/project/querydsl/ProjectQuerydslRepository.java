@@ -211,6 +211,18 @@ public class ProjectQuerydslRepository {
 			.execute();
 	}
 
+	public void removeProjects(Long userId) {
+		LocalDateTime now = LocalDateTime.now();
+
+		query.update(project)
+			.set(project.isDeleted, true)
+			.set(project.updatedAt, now)
+			.set(project.period.periodEnd, now)
+			.set(project.state, ProjectState.CLOSED)
+			.where(project.ownerId.eq(userId), isProjectActive())
+			.execute();
+	}
+
 	// 내부 메소드
 
 	private BooleanExpression isProjectActive() {
