@@ -50,9 +50,32 @@ public class ParticipationService {
 
 	@Transactional
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
-		validateParticipationDuplicated(surveyId, userId);
+		log.info("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
+		long totalStartTime = System.currentTimeMillis();
 
+		// validateParticipationDuplicated(surveyId, userId);
+
+		long surveyApiStartTime = System.currentTimeMillis();
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, surveyId);
+		long surveyApiEndTime = System.currentTimeMillis();
+		log.info("Survey API 호출 소요 시간: {}ms", (surveyApiEndTime - surveyApiStartTime));
+
+		// rest api 통신대신 넣을 더미데이터
+		// List<SurveyDetailDto.QuestionValidationInfo> questionValidationInfos = List.of(
+		// 	new SurveyDetailDto.QuestionValidationInfo(1L, false, SurveyApiQuestionType.SINGLE_CHOICE),
+		// 	new SurveyDetailDto.QuestionValidationInfo(2L, false, SurveyApiQuestionType.SHORT_ANSWER),
+		// 	new SurveyDetailDto.QuestionValidationInfo(3L, false, SurveyApiQuestionType.LONG_ANSWER),
+		// 	new SurveyDetailDto.QuestionValidationInfo(4L, false, SurveyApiQuestionType.SINGLE_CHOICE),
+		// 	new SurveyDetailDto.QuestionValidationInfo(5L, false, SurveyApiQuestionType.MULTIPLE_CHOICE),
+		// 	new SurveyDetailDto.QuestionValidationInfo(6L, false, SurveyApiQuestionType.SINGLE_CHOICE),
+		// 	new SurveyDetailDto.QuestionValidationInfo(7L, false, SurveyApiQuestionType.MULTIPLE_CHOICE),
+		// 	new SurveyDetailDto.QuestionValidationInfo(8L, false, SurveyApiQuestionType.SHORT_ANSWER),
+		// 	new SurveyDetailDto.QuestionValidationInfo(9L, false, SurveyApiQuestionType.SHORT_ANSWER),
+		// 	new SurveyDetailDto.QuestionValidationInfo(10L, false, SurveyApiQuestionType.LONG_ANSWER)
+		// );
+		// SurveyDetailDto surveyDetail = new SurveyDetailDto(1L, SurveyApiStatus.IN_PROGRESS,
+		// 	new SurveyDetailDto.Duration(LocalDateTime.now().plusWeeks(1)), new SurveyDetailDto.Option(true),
+		// 	questionValidationInfos);
 
 		validateSurveyActive(surveyDetail);
 
@@ -60,13 +83,26 @@ public class ParticipationService {
 		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
 
 		// 문항과 답변 유효성 검증
-		validateQuestionsAndAnswers(responseDataList, questions);
+		// validateQuestionsAndAnswers(responseDataList, questions);
 
+		long userApiStartTime = System.currentTimeMillis();
 		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, userId);
+		long userApiEndTime = System.currentTimeMillis();
+		log.info("User API 호출 소요 시간: {}ms", (userApiEndTime - userApiStartTime));
+
+		// rest api 통신대신 넣을 더미데이터
+		// ParticipantInfo participantInfo = ParticipantInfo.of(String.valueOf(LocalDateTime.now()), Gender.MALE, "서울",
+		// 	"어딘가");
 
 		Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 
+		long dbStartTime = System.currentTimeMillis();
 		Participation savedParticipation = participationRepository.save(participation);
+		long dbEndTime = System.currentTimeMillis();
+		log.info("DB 저장 소요 시간: {}ms", (dbEndTime - dbStartTime));
+
+		long totalEndTime = System.currentTimeMillis();
+		log.info("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
 
 		return savedParticipation.getId();
 	}
@@ -147,11 +183,17 @@ public class ParticipationService {
 	@Transactional
 	public void update(String authHeader, Long userId, Long participationId,
 		CreateParticipationRequest request) {
+		log.info("설문 참여 수정 시작. participationId: {}, userId: {}", participationId, userId);
+		long totalStartTime = System.currentTimeMillis();
+
 		Participation participation = getParticipationOrThrow(participationId);
 
 		participation.validateOwner(userId);
 
+		long surveyApiStartTime = System.currentTimeMillis();
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, participation.getSurveyId());
+		long surveyApiEndTime = System.currentTimeMillis();
+		log.info("Survey API 호출 소요 시간: {}ms", (surveyApiEndTime - surveyApiStartTime));
 
 		validateSurveyActive(surveyDetail);
 		validateAllowUpdate(surveyDetail);
@@ -163,6 +205,9 @@ public class ParticipationService {
 		validateQuestionsAndAnswers(responseDataList, questions);
 
 		participation.update(responseDataList);
+
+		long totalEndTime = System.currentTimeMillis();
+		log.info("설문 참여 수정 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
 	}
 
 	@Transactional(readOnly = true)
@@ -232,10 +277,10 @@ public class ParticipationService {
 			Map<String, Object> answer = response.getAnswer();
 
 			boolean validatedAnswerValue = validateAnswerValue(answer, question.getQuestionType());
-			log.info("is_required: {}", question.isRequired());
 
 			if (!validatedAnswerValue && !isEmpty(answer)) {
-				log.info("INVALID_ANSWER_TYPE questionId : {}", questionId);
+				log.info("INVALID_ANSWER_TYPE questionId: {}, questionnType: {}", questionId,
+					question.getQuestionType());
 				throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 			}
 

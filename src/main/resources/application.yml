@@ -115,7 +115,10 @@ logging:
     com.example.surveyapi: INFO
     # 외부 API 관련 로그만 DEBUG로 설정
     com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
+    #    com.example.surveyapi.domain.participation.application.ParticipationService: DEBUG
     com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
+    #    com.example.surveyapi.domain.participation.infra.adapter.SurveyServiceAdapter: DEBUG
+    #    com.example.surveyapi.domain.participation.infra.adapter.UserServiceAdapter: DEBUG
     com.example.surveyapi.domain.survey.api.SurveyQueryController: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
