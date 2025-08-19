@@ -21,6 +21,5 @@ public class UserEventPublisher implements UserEventPublisherPort {
         if(key.equals(EventCode.USER_WITHDRAW)){
             rabbitTemplate.convertAndSend(RabbitConst.EXCHANGE_NAME, RabbitConst.ROUTING_KEY_USER_WITHDRAW, event);
         }
-
     }
 }
