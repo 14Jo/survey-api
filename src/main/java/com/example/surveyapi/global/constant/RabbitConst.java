@@ -20,4 +20,9 @@ public class RabbitConst {
 	public static final String ROUTING_KEY_USER_WITHDRAW = "survey.user.withdraw";
 	public static final String ROUTING_KEY_PARTICIPATION_CREATE = "participation.created";
 	public static final String ROUTING_KEY_PARTICIPATION_UPDATE = "participation.updated";
+	
+	// DLQ 관련 상수
+	public static final String DEAD_LETTER_EXCHANGE = "domain.event.exchange.dlq";
+	public static final String DEAD_LETTER_QUEUE_SURVEY = "queue.survey.dlq";
+	public static final String ROUTING_KEY_SURVEY_DLQ = "survey.dlq";
 }
