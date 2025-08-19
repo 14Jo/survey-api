@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.domain.survey.event;
+package com.example.surveyapi.domain.participation.domain.event;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -12,7 +12,10 @@ import org.springframework.util.Assert;
 
 import com.example.surveyapi.global.model.BaseEntity;
 
-public class AbstractRoot<A extends AbstractRoot<A>> extends BaseEntity {
+import jakarta.persistence.MappedSuperclass;
+
+@MappedSuperclass
+public class ParticipationAbstractRoot<A extends ParticipationAbstractRoot<A>> extends BaseEntity {
 
 	private transient final @Transient List<Object> domainEvents = new ArrayList<>();
 
