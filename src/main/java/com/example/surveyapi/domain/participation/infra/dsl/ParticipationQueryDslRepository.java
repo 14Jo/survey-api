@@ -1,7 +1,6 @@
 package com.example.surveyapi.domain.participation.infra.dsl;
 
 import static com.example.surveyapi.domain.participation.domain.participation.QParticipation.*;
-import static com.example.surveyapi.domain.participation.domain.response.QResponse.*;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -65,17 +63,5 @@ public class ParticipationQueryDslRepository {
 		}
 
 		return map;
-	}
-
-	public List<QuestionAnswer> getAnswersByQuestionIds(List<Long> questionIds) {
-		return queryFactory
-			.select(Projections.constructor(
-				QuestionAnswer.class,
-				response.questionId,
-				response.answer
-			))
-			.from(response)
-			.where(response.questionId.in(questionIds))
-			.fetch();
 	}
 }

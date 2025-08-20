@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -22,15 +21,14 @@ import com.example.surveyapi.domain.participation.application.client.UserSnapsho
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
-import com.example.surveyapi.domain.participation.application.dto.response.AnswerGroupResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationGroupResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
+import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -46,7 +44,6 @@ public class ParticipationService {
 	private final ParticipationRepository participationRepository;
 	private final SurveyServicePort surveyPort;
 	private final UserServicePort userPort;
-	private final RabbitTemplate rabbitTemplate;
 
 	@Transactional
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
@@ -86,13 +83,12 @@ public class ParticipationService {
 		// validateQuestionsAndAnswers(responseDataList, questions);
 
 		long userApiStartTime = System.currentTimeMillis();
-		ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, userId);
+		// ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, userId);
+		// rest api 통신대신 넣을 더미데이터
+		ParticipantInfo participantInfo = ParticipantInfo.of(String.valueOf(LocalDateTime.now()), Gender.MALE, "서울",
+			"어딘가");
 		long userApiEndTime = System.currentTimeMillis();
 		log.info("User API 호출 소요 시간: {}ms", (userApiEndTime - userApiStartTime));
-
-		// rest api 통신대신 넣을 더미데이터
-		// ParticipantInfo participantInfo = ParticipantInfo.of(String.valueOf(LocalDateTime.now()), Gender.MALE, "서울",
-		// 	"어딘가");
 
 		Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 
@@ -154,15 +150,9 @@ public class ParticipationService {
 			List<Participation> participationGroup = participationGroupBySurveyId.getOrDefault(surveyId,
 				Collections.emptyList());
 
-			List<ParticipationDetailResponse> participationDtos = new ArrayList<>();
-
-			for (Participation p : participationGroup) {
-				List<ParticipationDetailResponse.AnswerDetail> answerDetails = p.getResponses().stream()
-					.map(ParticipationDetailResponse.AnswerDetail::from)
-					.toList();
-
-				participationDtos.add(ParticipationDetailResponse.from(p));
-			}
+			List<ParticipationDetailResponse> participationDtos = participationGroup.stream()
+				.map(ParticipationDetailResponse::from)
+				.toList();
 
 			result.add(ParticipationGroupResponse.of(surveyId, participationDtos));
 		}
@@ -213,24 +203,6 @@ public class ParticipationService {
 	@Transactional(readOnly = true)
 	public Map<Long, Long> getCountsBySurveyIds(List<Long> surveyIds) {
 		return participationRepository.countsBySurveyIds(surveyIds);
-	}
-
-	@Transactional(readOnly = true)
-	public List<AnswerGroupResponse> getAnswers(List<Long> questionIds) {
-		List<QuestionAnswer> questionAnswers = participationRepository.getAnswers(questionIds);
-
-		Map<Long, List<QuestionAnswer>> listMap = questionAnswers.stream()
-			.collect(Collectors.groupingBy(QuestionAnswer::getQuestionId));
-
-		return questionIds.stream()
-			.map(questionId -> {
-				List<Map<String, Object>> answers = listMap.getOrDefault(questionId, Collections.emptyList()).stream()
-					.map(QuestionAnswer::getAnswer)
-					.toList();
-
-				return AnswerGroupResponse.of(questionId, answers);
-			})
-			.toList();
 	}
 
 	/*

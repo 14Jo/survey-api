@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
-import com.example.surveyapi.domain.participation.domain.response.Response;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -32,7 +32,7 @@ public class ParticipationCreatedEvent implements ParticipationEvent {
 		createdEvent.userId = participation.getUserId();
 		createdEvent.demographic = participation.getParticipantInfo();
 		createdEvent.completedAt = participation.getUpdatedAt();
-		createdEvent.answers = Answer.from(participation.getResponses());
+		createdEvent.answers = Answer.from(participation.getAnswers());
 
 		return createdEvent;
 	}
@@ -44,7 +44,7 @@ public class ParticipationCreatedEvent implements ParticipationEvent {
 		private List<Integer> choiceIds = new ArrayList<>();
 		private String responseText;
 
-		private static List<Answer> from(List<Response> responses) {
+		private static List<Answer> from(List<ResponseData> responses) {
 			return responses.stream()
 				.map(response -> {
 					Answer answerDto = new Answer();

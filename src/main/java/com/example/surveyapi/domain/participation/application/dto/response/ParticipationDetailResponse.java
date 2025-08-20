@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
-import com.example.surveyapi.domain.participation.domain.response.Response;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class ParticipationDetailResponse {
 	private List<AnswerDetail> responses;
 
 	public static ParticipationDetailResponse from(Participation participation) {
-		List<ParticipationDetailResponse.AnswerDetail> responses = participation.getResponses()
+		List<ParticipationDetailResponse.AnswerDetail> responses = participation.getAnswers()
 			.stream()
 			.map(AnswerDetail::from)
 			.toList();
@@ -40,7 +40,7 @@ public class ParticipationDetailResponse {
 		private Long questionId;
 		private Map<String, Object> answer;
 
-		public static AnswerDetail from(Response response) {
+		public static AnswerDetail from(ResponseData response) {
 			AnswerDetail answerDetail = new AnswerDetail();
 			answerDetail.questionId = response.getQuestionId();
 			answerDetail.answer = response.getAnswer();
