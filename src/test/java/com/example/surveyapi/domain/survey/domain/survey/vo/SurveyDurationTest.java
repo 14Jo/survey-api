@@ -1,15 +1,11 @@
 package com.example.surveyapi.domain.survey.domain.survey.vo;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.exception.CustomException;
 
 class SurveyDurationTest {
 
