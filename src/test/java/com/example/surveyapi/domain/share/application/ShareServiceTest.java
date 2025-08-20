@@ -97,7 +97,7 @@ class ShareServiceTest {
 		ShareResponse response = shareService.getShare(savedShareId, 1L);
 
 		assertThat(response.getId()).isEqualTo(savedShareId);
-		assertThat(response.getShareMethod()).isEqualTo(ShareMethod.EMAIL);
+		// assertThat(response.getShareMethod()).isEqualTo(ShareMethod.EMAIL); // shareMethod 필드 주석 처리됨
 	}
 
 	@Test

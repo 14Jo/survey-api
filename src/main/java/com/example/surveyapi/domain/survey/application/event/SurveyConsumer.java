@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.survey.application.event;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
@@ -12,6 +13,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.command.SurveyService;
 import com.example.surveyapi.domain.survey.domain.dlq.DeadLetterQueue;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
@@ -19,6 +21,7 @@ import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.constant.RabbitConst;
 import com.example.surveyapi.global.event.SurveyEndDueEvent;
 import com.example.surveyapi.global.event.SurveyStartDueEvent;
+import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -32,26 +35,27 @@ import lombok.extern.slf4j.Slf4j;
 )
 public class SurveyConsumer {
 
+	private final SurveyService surveyService;
 	private final SurveyRepository surveyRepository;
 	private final ObjectMapper objectMapper;
 
-	//TODO 이벤트 객체 변환 및 기능 구현 필요
-	// @RabbitHandler
-	// public void handleProjectClosed(Object event) {
-	// 	try {
-	// 		log.info("이벤트 수신");
-	// 		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId());
-	//
-	// 		if (surveyOp.isEmpty())
-	// 			return;
-	//
-	// 		Survey survey = surveyOp.get();
-	// 		surveyService.surveyActivator(survey, SurveyStatus.CLOSED.name());
-	//
-	// 	} catch (Exception e) {
-	// 		log.error(e.getMessage(), e);
-	// 	}
-	// }
+	@RabbitHandler
+	public void handleProjectClosed(ProjectDeletedEvent event) {
+		try {
+			log.info("이벤트 수신");
+			List<Survey> surveyOp = surveyRepository.findAllByProjectId(event.getProjectId());
+
+			if (surveyOp.isEmpty())
+				return;
+
+			for (Survey survey : surveyOp) {
+				surveyService.surveyDeleter(survey, survey.getSurveyId());
+			}
+
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
 
 	@RabbitHandler
 	@Transactional
@@ -62,7 +66,8 @@ public class SurveyConsumer {
 	)
 	public void handleSurveyStart(SurveyStartDueEvent event) {
 		try {
-			log.info("SurveyStartDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
+			log.info("SurveyStartDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(),
+				event.getScheduledAt());
 			processSurveyStart(event);
 		} catch (Exception e) {
 			log.error("SurveyStartDueEvent 처리 실패: surveyId={}, error={}", event.getSurveyId(), e.getMessage());
