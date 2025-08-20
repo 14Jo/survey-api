@@ -36,7 +36,7 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 
 	@Override
 	public Optional<Participation> findById(Long participationId) {
-		return jpaParticipationRepository.findWithResponseByIdAndIsDeletedFalse(participationId);
+		return jpaParticipationRepository.findByIdAndIsDeletedFalse(participationId);
 	}
 
 	@Override
@@ -54,8 +54,5 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 		return participationQueryRepository.countsBySurveyIds(surveyIds);
 	}
 
-	@Override
-	public List<QuestionAnswer> getAnswers(List<Long> questionIds) {
-		return participationQueryRepository.getAnswersByQuestionIds(questionIds);
-	}
+	
 }

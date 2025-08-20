@@ -44,13 +44,5 @@ public class ParticipationInternalController {
 			.body(ApiResponse.success("참여 count 성공", counts));
 	}
 
-	@GetMapping("/v2/participations/answers")
-	public ResponseEntity<ApiResponse<List<AnswerGroupResponse>>> getAnswers(
-		@RequestParam List<Long> questionIds
-	) {
-		List<AnswerGroupResponse> result = participationService.getAnswers(questionIds);
-
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("질문 목록 별 답변 조회 성공", result));
-	}
+	
 }
