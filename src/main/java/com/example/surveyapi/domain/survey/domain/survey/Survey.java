@@ -8,15 +8,17 @@ import java.util.Map;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
+import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
+import org.springframework.data.domain.AbstractAggregateRoot;
+import com.example.surveyapi.domain.survey.domain.survey.event.SurveyScheduleRequestedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.event.SurveyActivateEvent;
 import com.example.surveyapi.global.exception.CustomException;
 
 import jakarta.persistence.CascadeType;
@@ -61,11 +63,9 @@ public class Survey extends AbstractRoot<Survey> {
 	@Column(name = "status", nullable = false)
 	private SurveyStatus status;
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "survey_option", nullable = false, columnDefinition = "jsonb")
+	@Enumerated
 	private SurveyOption option;
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "survey_duration", nullable = false, columnDefinition = "jsonb")
+	@Enumerated
 	private SurveyDuration duration;
 
 	@OneToMany(
@@ -123,17 +123,18 @@ public class Survey extends AbstractRoot<Survey> {
 	public void open() {
 		this.status = SurveyStatus.IN_PROGRESS;
 		this.duration = SurveyDuration.of(LocalDateTime.now(), this.duration.getEndDate());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 
 	public void close() {
 		this.status = SurveyStatus.CLOSED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
-		registerEvent(new SurveyActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 
 	public void delete() {
 		this.status = SurveyStatus.DELETED;
+		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
 		this.isDeleted = true;
 		removeQuestions();
 	}
@@ -156,5 +157,46 @@ public class Survey extends AbstractRoot<Survey> {
 
 	private void removeQuestions() {
 		this.questions.forEach(Question::delete);
+	}
+
+	public void registerScheduledEvent() {
+		this.registerEvent(new SurveyScheduleRequestedEvent(
+			this.getSurveyId(),
+			this.getCreatorId(),
+			this.getDuration().getStartDate(),
+			this.getDuration().getEndDate()
+		));
+	}
+
+	public void applyDurationChange(SurveyDuration newDuration, LocalDateTime now) {
+		this.duration = newDuration;
+
+		LocalDateTime startAt = this.duration.getStartDate();
+		LocalDateTime endAt   = this.duration.getEndDate();
+
+		if (startAt != null && startAt.isBefore(now) && this.status == SurveyStatus.PREPARING) {
+			openAt(startAt);
+		}
+
+		if (endAt != null && endAt.isBefore(now)) {
+			if (this.status == SurveyStatus.IN_PROGRESS) {
+				closeAt(endAt);
+			} else if (this.status == SurveyStatus.PREPARING) {
+				openAt(startAt != null ? startAt : now);
+				closeAt(endAt);
+			}
+		}
+	}
+
+	private void openAt(LocalDateTime startedAt) {
+		this.status = SurveyStatus.IN_PROGRESS;
+		this.duration = SurveyDuration.of(startedAt, this.duration.getEndDate());
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+	}
+
+	private void closeAt(LocalDateTime endedAt) {
+		this.status = SurveyStatus.CLOSED;
+		this.duration = SurveyDuration.of(this.duration.getStartDate(), endedAt);
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 }
