@@ -117,8 +117,12 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 		SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
-		surveyRead.activate(status);
-		surveyReadRepository.save(surveyRead);
+		if (status.equals(SurveyStatus.DELETED)) {
+			surveyReadRepository.deleteBySurveyId(surveyId);
+		} else {
+			surveyRead.activate(status);
+			surveyReadRepository.save(surveyRead);
+		}
 	}
 
 	@Scheduled(fixedRate = 300000)

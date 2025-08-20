@@ -119,9 +119,7 @@ public class SurveyService {
 
 		validateProjectAccess(authHeader, survey.getProjectId(), userId);
 
-		survey.delete();
-		surveyRepository.delete(survey);
-		surveyReadSync.deleteSurveyRead(surveyId);
+		surveyDeleter(survey, surveyId);
 
 		return survey.getSurveyId();
 	}
@@ -183,5 +181,11 @@ public class SurveyService {
 		}
 		surveyRepository.stateUpdate(survey);
 		surveyReadSync.activateSurveyRead(survey.getSurveyId(), survey.getStatus());
+	}
+
+	public void surveyDeleter(Survey survey, Long surveyId) {
+		survey.delete();
+		surveyRepository.delete(survey);
+		surveyReadSync.deleteSurveyRead(surveyId);
 	}
 }

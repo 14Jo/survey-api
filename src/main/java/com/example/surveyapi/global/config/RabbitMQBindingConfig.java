@@ -108,12 +108,13 @@ public class RabbitMQBindingConfig {
 			.to(exchange)
 			.with("project.*");
 	}
+
 	@Bean
 	public Binding bindingSurveyFromProjectClosed(Queue queueSurvey, TopicExchange exchange) {
 		return BindingBuilder
 			.bind(queueSurvey)
 			.to(exchange)
-			.with(RabbitConst.ROUTING_KEY_PROJECT_ACTIVE);
+			.with(RabbitConst.ROUTING_KEY_PROJECT_DELETED);
 	}
 
 	@Bean
