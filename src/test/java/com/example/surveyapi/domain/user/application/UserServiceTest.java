@@ -359,16 +359,6 @@ public class UserServiceTest {
 
         String authHeader = jwtUtil.createAccessToken(user.getId(), user.getRole());
 
-        ExternalApiResponse fakeProjectResponse = fakeProjectResponse();
-
-        ExternalApiResponse fakeParticipationResponse = fakeParticipationResponse();
-
-        when(projectApiClient.getProjectMyRole(anyString(), anyLong()))
-            .thenReturn(fakeProjectResponse);
-
-        when(participationApiClient.getSurveyStatus(anyString(), anyLong(), anyInt(), anyInt()))
-            .thenReturn(fakeParticipationResponse);
-
         // when
         authService.withdraw(user.getId(), userWithdrawRequest, authHeader);
 
