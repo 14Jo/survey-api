@@ -17,7 +17,6 @@ import com.example.surveyapi.domain.participation.application.client.SurveyDetai
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
 import com.example.surveyapi.domain.participation.application.client.UserServicePort;
-import com.example.surveyapi.domain.participation.application.client.UserSnapshotDto;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
@@ -27,7 +26,6 @@ import com.example.surveyapi.domain.participation.application.dto.response.Parti
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
-import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.global.enums.CustomErrorCode;
@@ -50,29 +48,12 @@ public class ParticipationService {
 		log.info("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
 		long totalStartTime = System.currentTimeMillis();
 
-		// validateParticipationDuplicated(surveyId, userId);
+		validateParticipationDuplicated(surveyId, userId);
 
 		long surveyApiStartTime = System.currentTimeMillis();
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, surveyId);
 		long surveyApiEndTime = System.currentTimeMillis();
-		log.info("Survey API 호출 소요 시간: {}ms", (surveyApiEndTime - surveyApiStartTime));
-
-		// rest api 통신대신 넣을 더미데이터
-		// List<SurveyDetailDto.QuestionValidationInfo> questionValidationInfos = List.of(
-		// 	new SurveyDetailDto.QuestionValidationInfo(1L, false, SurveyApiQuestionType.SINGLE_CHOICE),
-		// 	new SurveyDetailDto.QuestionValidationInfo(2L, false, SurveyApiQuestionType.SHORT_ANSWER),
-		// 	new SurveyDetailDto.QuestionValidationInfo(3L, false, SurveyApiQuestionType.LONG_ANSWER),
-		// 	new SurveyDetailDto.QuestionValidationInfo(4L, false, SurveyApiQuestionType.SINGLE_CHOICE),
-		// 	new SurveyDetailDto.QuestionValidationInfo(5L, false, SurveyApiQuestionType.MULTIPLE_CHOICE),
-		// 	new SurveyDetailDto.QuestionValidationInfo(6L, false, SurveyApiQuestionType.SINGLE_CHOICE),
-		// 	new SurveyDetailDto.QuestionValidationInfo(7L, false, SurveyApiQuestionType.MULTIPLE_CHOICE),
-		// 	new SurveyDetailDto.QuestionValidationInfo(8L, false, SurveyApiQuestionType.SHORT_ANSWER),
-		// 	new SurveyDetailDto.QuestionValidationInfo(9L, false, SurveyApiQuestionType.SHORT_ANSWER),
-		// 	new SurveyDetailDto.QuestionValidationInfo(10L, false, SurveyApiQuestionType.LONG_ANSWER)
-		// );
-		// SurveyDetailDto surveyDetail = new SurveyDetailDto(1L, SurveyApiStatus.IN_PROGRESS,
-		// 	new SurveyDetailDto.Duration(LocalDateTime.now().plusWeeks(1)), new SurveyDetailDto.Option(true),
-		// 	questionValidationInfos);
+		log.debug("Survey API 호출 소요 시간: {}ms", (surveyApiEndTime - surveyApiStartTime));
 
 		validateSurveyActive(surveyDetail);
 
@@ -80,25 +61,25 @@ public class ParticipationService {
 		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
 
 		// 문항과 답변 유효성 검증
-		// validateQuestionsAndAnswers(responseDataList, questions);
+		validateQuestionsAndAnswers(responseDataList, questions);
 
-		long userApiStartTime = System.currentTimeMillis();
-		// ParticipantInfo participantInfo = getParticipantInfoByUser(authHeader, userId);
-		// rest api 통신대신 넣을 더미데이터
-		ParticipantInfo participantInfo = ParticipantInfo.of(String.valueOf(LocalDateTime.now()), Gender.MALE, "서울",
-			"어딘가");
-		long userApiEndTime = System.currentTimeMillis();
-		log.info("User API 호출 소요 시간: {}ms", (userApiEndTime - userApiStartTime));
+		ParticipantInfo participantInfo = ParticipantInfo.of(
+			request.getBirth(),
+			request.getGender(),
+			request.getRegion()
+		);
 
 		Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 
 		long dbStartTime = System.currentTimeMillis();
 		Participation savedParticipation = participationRepository.save(participation);
 		long dbEndTime = System.currentTimeMillis();
-		log.info("DB 저장 소요 시간: {}ms", (dbEndTime - dbStartTime));
+		log.debug("DB 저장 소요 시간: {}ms", (dbEndTime - dbStartTime));
 
 		long totalEndTime = System.currentTimeMillis();
-		log.info("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
+		log.debug("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
+
+		savedParticipation.registerCreatedEvent();
 
 		return savedParticipation.getId();
 	}
@@ -319,14 +300,4 @@ public class ParticipationService {
 		return false;
 	}
 
-	private ParticipantInfo getParticipantInfoByUser(String authHeader, Long userId) {
-		UserSnapshotDto userSnapshot = userPort.getParticipantInfo(authHeader, userId);
-
-		return ParticipantInfo.of(
-			userSnapshot.getBirth(),
-			userSnapshot.getGender(),
-			userSnapshot.getRegion().getProvince(),
-			userSnapshot.getRegion().getDistrict()
-		);
-	}
 }
