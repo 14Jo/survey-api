@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.qeury;
+package com.example.surveyapi.domain.survey.infra.query;
 
 import java.util.List;
 import java.util.Map;
@@ -8,6 +8,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
@@ -24,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SurveyReadSyncService {
+public class SurveyReadSync implements SurveyReadSyncPort {
 
 	private final SurveyReadRepository surveyReadRepository;
 	private final ParticipationPort partPort;
@@ -41,7 +42,7 @@ public class SurveyReadSyncService {
 
 			SurveyReadEntity surveyRead = SurveyReadEntity.create(
 				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
-				dto.getDescription(), dto.getStatus().name(), 0, surveyOptions
+				dto.getDescription(), dto.getStatus(), 0, surveyOptions
 			);
 
 			SurveyReadEntity save = surveyReadRepository.save(surveyRead);
@@ -67,7 +68,7 @@ public class SurveyReadSyncService {
 
 			SurveyReadEntity surveyRead = SurveyReadEntity.create(
 				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
-				dto.getDescription(), dto.getStatus().name(), 0, surveyOptions
+				dto.getDescription(), dto.getStatus(), 0, surveyOptions
 			);
 
 			surveyReadRepository.updateBySurveyId(surveyRead);
@@ -112,8 +113,16 @@ public class SurveyReadSyncService {
 
 	@Async
 	@Transactional
-	public void updateSurveyStatus(Long surveyId, SurveyStatus status) {
-		surveyReadRepository.updateStatusBySurveyId(surveyId, status.name());
+	public void activateSurveyRead(Long surveyId, SurveyStatus status) {
+		SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+
+		if (status.equals(SurveyStatus.DELETED)) {
+			surveyReadRepository.deleteBySurveyId(surveyId);
+		} else {
+			surveyRead.activate(status);
+			surveyReadRepository.save(surveyRead);
+		}
 	}
 
 	@Scheduled(fixedRate = 300000)
