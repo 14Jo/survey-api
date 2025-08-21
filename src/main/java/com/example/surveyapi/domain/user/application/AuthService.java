@@ -117,10 +117,10 @@ public class AuthService {
         String saveBlackListKey = userRedisRepository.getRedisKey(blackListKey);
 
         if (saveBlackListKey != null) {
-            throw new CustomException(CustomErrorCode.BLACKLISTED_TOKEN);
+            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
         }
 
-        if (jwtUtil.isTokenExpired(accessToken)) {
+        if (!jwtUtil.isTokenExpired(accessToken)) {
             throw new CustomException(CustomErrorCode.ACCESS_TOKEN_NOT_EXPIRED);
         }
 

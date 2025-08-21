@@ -19,7 +19,7 @@ public enum CustomErrorCode {
     INVALID_PERMISSION(HttpStatus.FORBIDDEN, "작성 권한이 없습니다"),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     CONFLICT(HttpStatus.CONFLICT, "요청이 충돌합니다."),
-    BLACKLISTED_TOKEN(HttpStatus.NOT_FOUND,"블랙리스트 토큰입니다."),
+    INVALID_TOKEN(HttpStatus.NOT_FOUND,"유효하지 않은 토큰입니다."),
     INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST,"토큰 타입이 잘못되었습니다."),
     ACCESS_TOKEN_NOT_EXPIRED(HttpStatus.BAD_REQUEST,"아직 액세스 토큰이 만료되지 않았습니다."),
     NOT_FOUND_REFRESH_TOKEN(HttpStatus.NOT_FOUND,"리프레쉬 토큰이 없습니다."),
