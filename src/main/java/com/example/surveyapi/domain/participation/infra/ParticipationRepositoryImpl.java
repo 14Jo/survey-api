@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 import com.example.surveyapi.domain.participation.infra.dsl.ParticipationQueryDslRepository;
 import com.example.surveyapi.domain.participation.infra.jpa.JpaParticipationRepository;
 
@@ -54,5 +54,10 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 		return participationQueryRepository.countsBySurveyIds(surveyIds);
 	}
 
-	
+	@Override
+	public List<ParticipationProjection> findParticipationProjectionsBySurveyIds(
+		List<Long> surveyIds) {
+		return participationQueryRepository.findParticipationProjectionsBySurveyIds(surveyIds);
+	}
+
 }

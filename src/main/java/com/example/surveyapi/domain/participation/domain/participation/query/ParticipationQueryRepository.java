@@ -11,4 +11,6 @@ public interface ParticipationQueryRepository {
 	Page<ParticipationInfo> findParticipationInfos(Long userId, Pageable pageable);
 
 	Map<Long, Long> countsBySurveyIds(List<Long> surveyIds);
+
+	List<ParticipationProjection> findParticipationProjectionsBySurveyIds(List<Long> surveyIds);
 }
