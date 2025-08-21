@@ -7,7 +7,7 @@ import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
-import com.example.surveyapi.domain.user.domain.user.vo.Address;
+import com.example.surveyapi.domain.user.domain.demographics.vo.Address;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;

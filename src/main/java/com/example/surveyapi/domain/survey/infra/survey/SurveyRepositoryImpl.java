@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.survey.infra.survey;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
@@ -37,8 +38,8 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	}
 
 	@Override
-	public Optional<Survey> findBySurveyIdAndCreatorId(Long surveyId, Long creatorId) {
-		return jpaRepository.findBySurveyIdAndCreatorId(surveyId, creatorId);
+	public Optional<Survey> findBySurveyIdAndIsDeletedFalse(Long surveyId) {
+		return jpaRepository.findBySurveyIdAndIsDeletedFalse(surveyId);
 	}
 
 	@Override
@@ -49,6 +50,11 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	@Override
 	public Optional<Survey> findById(Long surveyId) {
 		return jpaRepository.findById(surveyId);
+	}
+
+	@Override
+	public List<Survey> findAllByProjectId(Long projectId) {
+		return jpaRepository.findAllByProjectId(projectId);
 	}
 }
 
