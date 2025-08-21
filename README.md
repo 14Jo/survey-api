@@ -106,3 +106,47 @@
 
 ## 🛠 기술 스택
 ![img.png](images/기술스택.png)
+
+
+## 기술적 의사결정
+
+- [스케줄링 방식 vs 개별 처리 방식 의사 결정 방식](https://www.notion.so/teamsparta/vs-2542dc3ef51480d18141d940af62388e?source=copy_link)
+
+
+- [조회 모델을 위한 기술적 의사 결정 → MongoDB](https://www.notion.so/teamsparta/MongoDB-2542dc3ef514802389aff6fb59470acb?source=copy_link)
+
+
+- [외부 API 호출로 인한 스레드 병목 현상 개선](https://www.notion.so/teamsparta/API-2542dc3ef5148037ac82e307365c1f72?source=copy_link)
+
+
+- [EC2 vs ECS](https://www.notion.so/teamsparta/EC2-vs-ECS-2542dc3ef51480b18997ca8eeb090a88?source=copy_link)
+
+
+- [전략 패턴 도입](https://www.notion.so/teamsparta/EC2-vs-ECS-2542dc3ef51480b18997ca8eeb090a88?source=copy_link)
+
+
+- [웹 PUSH 알림 웹 소켓](https://www.notion.so/teamsparta/2552dc3ef51480b4abfac5763b3ffe05?source=copy_link)
+
+## 성능 최적화
+
+- [설문 응답 제출 성능 최적화](https://www.notion.so/teamsparta/Redis-2542dc3ef514809bbd55c5fae2e1e08a?source=copy_link)
+
+
+- [프로젝트 검색 API 성능 검증 및 NoOffset 도입](https://www.notion.so/teamsparta/API-NoOffset-2542dc3ef51480afaf75f539d821afe4?source=copy_link)
+
+
+- [테이블 비정규화로 설문 제출 성능 개선](https://www.notion.so/teamsparta/2542dc3ef51480609d96d9cd20ab9d8c?source=copy_link)
+
+
+- [회원탈퇴 구조적 문제 개선](https://www.notion.so/teamsparta/2542dc3ef51480dca912c246719869bf?source=copy_link)
+
+
+- [PostgreSQL의 GIN Index를 통한 검색성능 향상](https://www.notion.so/teamsparta/PostgreSQL-GIN-Index-2542dc3ef5148058b9bfef04a4864633?source=copy_link)
+
+## 트러블 슈팅
+
+- [스케줄링 시 데이터가 누락되는 문제 해결](https://www.notion.so/teamsparta/2542dc3ef51480dea65dcc813544ca12?source=copy_link)
+
+
+- [공유 구조 변경](https://www.notion.so/teamsparta/2552dc3ef51480a997dbd8965800621e?source=copy_link)
+
