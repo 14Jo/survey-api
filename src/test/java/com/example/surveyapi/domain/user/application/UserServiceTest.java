@@ -97,7 +97,8 @@ public class UserServiceTest {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired private EntityManager em;
+    @Autowired
+    private EntityManager em;
 
     @MockitoBean
     private ProjectApiClient projectApiClient;
@@ -112,7 +113,8 @@ public class UserServiceTest {
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest request = createSignupRequest(email, password);
+        String nickName = "홍길동1234";
+        SignupRequest request = createSignupRequest(email, password, nickName);
 
         // when
         SignupResponse signup = authService.signup(request);
@@ -159,7 +161,8 @@ public class UserServiceTest {
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest request = createSignupRequest(email, password);
+        String nickName = "홍길동1234";
+        SignupRequest request = createSignupRequest(email, password, nickName);
 
         // when
         SignupResponse signup = authService.signup(request);
@@ -176,7 +179,8 @@ public class UserServiceTest {
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest request = createSignupRequest(email, password);
+        String nickName = "홍길동1234";
+        SignupRequest request = createSignupRequest(email, password, nickName);
 
         // when
         SignupResponse signup = authService.signup(request);
@@ -193,8 +197,10 @@ public class UserServiceTest {
         // given
         String email = "user@example.com";
         String password = "Password123";
-        SignupRequest rq1 = createSignupRequest(email, password);
-        SignupRequest rq2 = createSignupRequest(email, password);
+        String nickName1 = "홍길동1234";
+        String nickName2 = "홍길동123";
+        SignupRequest rq1 = createSignupRequest(email, password, nickName1);
+        SignupRequest rq2 = createSignupRequest(email, password, nickName2);
 
         // when
         authService.signup(rq1);
@@ -208,8 +214,8 @@ public class UserServiceTest {
     @DisplayName("모든 회원 조회 - 성공")
     void getAllUsers_success() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
-        SignupRequest rq2 = createSignupRequest("user@example1.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
+        SignupRequest rq2 = createSignupRequest("user@example1.com", "Password123", "홍길동1234");
 
         authService.signup(rq1);
         authService.signup(rq2);
@@ -228,7 +234,7 @@ public class UserServiceTest {
     @DisplayName("회원조회 - 성공 (프로필 조회)")
     void get_profile() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
 
         SignupResponse signup = authService.signup(rq1);
 
@@ -248,7 +254,7 @@ public class UserServiceTest {
     @DisplayName("회원조회 - 실패 (프로필 조회)")
     void get_profile_fail() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
 
         authService.signup(rq1);
 
@@ -264,7 +270,7 @@ public class UserServiceTest {
     @DisplayName("등급 조회 - 성공")
     void grade_success() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
 
         SignupResponse signup = authService.signup(rq1);
 
@@ -284,7 +290,7 @@ public class UserServiceTest {
     @DisplayName("등급 조회 - 실패 (다른사람, 탈퇴한 회원)")
     void grade_fail() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
 
         authService.signup(rq1);
 
@@ -300,7 +306,7 @@ public class UserServiceTest {
     @DisplayName("회원 정보 수정 - 성공")
     void update_success() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
 
         SignupResponse signup = authService.signup(rq1);
 
@@ -347,7 +353,7 @@ public class UserServiceTest {
     @DisplayName("회원 탈퇴 - 성공")
     void withdraw_success() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
 
         SignupResponse signup = authService.signup(rq1);
 
@@ -373,7 +379,7 @@ public class UserServiceTest {
     @DisplayName("회원 탈퇴 - 실패 (탈퇴한 회원 = 존재하지 않은 ID)")
     void withdraw_fail() {
         // given
-        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123");
+        SignupRequest rq1 = createSignupRequest("user@example.com", "Password123", "홍길동123");
 
         SignupResponse signup = authService.signup(rq1);
 
@@ -394,7 +400,7 @@ public class UserServiceTest {
             .hasMessageContaining("유저를 찾을 수 없습니다");
     }
 
-    private SignupRequest createSignupRequest(String email, String password) {
+    private SignupRequest createSignupRequest(String email, String password, String nickName) {
         SignupRequest.AuthRequest authRequest = new SignupRequest.AuthRequest();
         SignupRequest.ProfileRequest profileRequest = new SignupRequest.ProfileRequest();
         SignupRequest.AddressRequest addressRequest = new SignupRequest.AddressRequest();
@@ -406,11 +412,10 @@ public class UserServiceTest {
 
         ReflectionTestUtils.setField(profileRequest, "name", "홍길동");
         ReflectionTestUtils.setField(profileRequest, "phoneNumber", "010-1234-5678");
-        ReflectionTestUtils.setField(profileRequest, "nickName", "길동이123");
+        ReflectionTestUtils.setField(profileRequest, "nickName", nickName);
         ReflectionTestUtils.setField(profileRequest, "birthDate", LocalDateTime.parse("1990-01-01T09:00:00"));
         ReflectionTestUtils.setField(profileRequest, "gender", Gender.MALE);
         ReflectionTestUtils.setField(profileRequest, "address", addressRequest);
-
 
         ReflectionTestUtils.setField(authRequest, "email", email);
         ReflectionTestUtils.setField(authRequest, "password", password);
@@ -425,7 +430,6 @@ public class UserServiceTest {
 
     private UpdateUserRequest updateRequest(String name) {
         UpdateUserRequest updateUserRequest = new UpdateUserRequest();
-
 
         ReflectionTestUtils.setField(updateUserRequest, "password", null);
         ReflectionTestUtils.setField(updateUserRequest, "name", name);
