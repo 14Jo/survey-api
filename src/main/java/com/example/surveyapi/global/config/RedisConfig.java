@@ -1,22 +1,20 @@
 package com.example.surveyapi.global.config;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.cache.RedisCacheManagerBuilderCustomizer;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
-import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+@EnableCaching
 @Configuration
 public class RedisConfig {
 
@@ -43,19 +41,16 @@ public class RedisConfig {
 	}
 
 	@Bean
-	public RedisCacheManager cacheManager(RedisConnectionFactory factory) {
-		RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-			.serializeKeysWith(
-				RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
-			.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
-				new GenericJackson2JsonRedisSerializer()));
+	public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
+		return (builder) -> {
+			RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl(Duration.ofMinutes(5));
 
-		Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-		cacheConfigurations.put("surveyDetails", defaultConfig.entryTtl(Duration.ofMinutes(1)));
+			RedisCacheConfiguration surveyDetailsConfig = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl(Duration.ofMinutes(1));
 
-		return RedisCacheManager.builder(factory)
-			.cacheDefaults(defaultConfig)
-			.withInitialCacheConfigurations(cacheConfigurations)
-			.build();
+			builder.cacheDefaults(defaultConfig)
+				.withCacheConfiguration("surveyDetails", surveyDetailsConfig);
+		};
 	}
 }
