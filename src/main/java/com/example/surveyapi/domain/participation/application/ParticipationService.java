@@ -140,12 +140,10 @@ public class ParticipationService {
 	}
 
 	@Transactional(readOnly = true)
-	public ParticipationDetailResponse get(Long loginUserId, Long participationId) {
-		Participation participation = getParticipationOrThrow(participationId);
-
-		participation.validateOwner(loginUserId);
-
-		return ParticipationDetailResponse.fromEntity(participation);
+	public ParticipationDetailResponse get(Long userId, Long participationId) {
+		return participationRepository.findParticipationProjectionByIdAndUserId(participationId, userId)
+			.map(ParticipationDetailResponse::fromProjection)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
 	}
 
 	@Transactional
