@@ -24,11 +24,11 @@ public class ParticipantInfo {
 
 	private Region region;
 
-	public static ParticipantInfo of(String birth, Gender gender, String province, String district) {
+	public static ParticipantInfo of(String birth, Gender gender, Region region) {
 		ParticipantInfo participantInfo = new ParticipantInfo();
 		participantInfo.birth = LocalDateTime.parse(birth).toLocalDate();
 		participantInfo.gender = gender;
-		participantInfo.region = Region.of(province, district);
+		participantInfo.region = region;
 
 		return participantInfo;
 	}
