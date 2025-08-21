@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -63,5 +64,19 @@ public class ParticipationQueryDslRepository {
 		}
 
 		return map;
+	}
+
+	public List<ParticipationProjection> findParticipationProjectionsBySurveyIds(List<Long> surveyIds) {
+		return queryFactory
+			.select(Projections.constructor(
+				ParticipationProjection.class,
+				participation.surveyId,
+				participation.id,
+				participation.updatedAt,
+				participation.answers
+			))
+			.from(participation)
+			.where(participation.surveyId.in(surveyIds))
+			.fetch();
 	}
 }

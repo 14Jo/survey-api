@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +20,7 @@ public class ParticipationDetailResponse {
 	private LocalDateTime participatedAt;
 	private List<AnswerDetail> responses;
 
-	public static ParticipationDetailResponse from(Participation participation) {
+	public static ParticipationDetailResponse fromEntity(Participation participation) {
 		List<ParticipationDetailResponse.AnswerDetail> responses = participation.getAnswers()
 			.stream()
 			.map(AnswerDetail::from)
@@ -31,6 +32,21 @@ public class ParticipationDetailResponse {
 		participationDetail.responses = responses;
 
 		return participationDetail;
+	}
+
+	public static ParticipationDetailResponse fromProjection(ParticipationProjection projection) {
+		List<AnswerDetail> responses = projection.getResponses()
+			.stream()
+			.map(AnswerDetail::from)
+			.toList();
+
+		ParticipationDetailResponse participationDetail = new ParticipationDetailResponse();
+		participationDetail.participationId = projection.getParticipationId();
+		participationDetail.participatedAt = projection.getParticipatedAt();
+		participationDetail.responses = responses;
+
+		return participationDetail;
+
 	}
 
 	@Getter

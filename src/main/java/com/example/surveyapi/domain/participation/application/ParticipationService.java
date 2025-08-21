@@ -16,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
-import com.example.surveyapi.domain.participation.application.client.UserServicePort;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
@@ -27,6 +26,7 @@ import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -41,7 +41,6 @@ public class ParticipationService {
 
 	private final ParticipationRepository participationRepository;
 	private final SurveyServicePort surveyPort;
-	private final UserServicePort userPort;
 
 	@Transactional
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
@@ -109,7 +108,6 @@ public class ParticipationService {
 				surveyInfo -> surveyInfo
 			));
 
-		// TODO: stream 한번만 사용하여서 map 수정
 		return participationInfos.map(p -> {
 			ParticipationInfoResponse.SurveyInfoOfParticipation surveyInfo = surveyInfoMap.get(p.getSurveyId());
 
@@ -119,20 +117,21 @@ public class ParticipationService {
 
 	@Transactional(readOnly = true)
 	public List<ParticipationGroupResponse> getAllBySurveyIds(List<Long> surveyIds) {
-		List<Participation> participationList = participationRepository.findAllBySurveyIdIn(surveyIds);
+		List<ParticipationProjection> projections = participationRepository.findParticipationProjectionsBySurveyIds(
+			surveyIds);
 
 		// surveyId 기준으로 참여 기록을 Map 으로 그룹핑
-		Map<Long, List<Participation>> participationGroupBySurveyId = participationList.stream()
-			.collect(Collectors.groupingBy(Participation::getSurveyId));
+		Map<Long, List<ParticipationProjection>> participationGroupBySurveyId = projections.stream()
+			.collect(Collectors.groupingBy(ParticipationProjection::getSurveyId));
 
 		List<ParticipationGroupResponse> result = new ArrayList<>();
 
 		for (Long surveyId : surveyIds) {
-			List<Participation> participationGroup = participationGroupBySurveyId.getOrDefault(surveyId,
+			List<ParticipationProjection> participationGroup = participationGroupBySurveyId.getOrDefault(surveyId,
 				Collections.emptyList());
 
 			List<ParticipationDetailResponse> participationDtos = participationGroup.stream()
-				.map(ParticipationDetailResponse::from)
+				.map(ParticipationDetailResponse::fromProjection)
 				.toList();
 
 			result.add(ParticipationGroupResponse.of(surveyId, participationDtos));
@@ -146,9 +145,7 @@ public class ParticipationService {
 
 		participation.validateOwner(loginUserId);
 
-		// TODO: 상세 조회에서 수정가능한지 확인하기 위해 Response에 surveyStatus, endDate, allowResponseUpdate을 추가해야하는가 고려
-
-		return ParticipationDetailResponse.from(participation);
+		return ParticipationDetailResponse.fromEntity(participation);
 	}
 
 	@Transactional
@@ -164,7 +161,7 @@ public class ParticipationService {
 		long surveyApiStartTime = System.currentTimeMillis();
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, participation.getSurveyId());
 		long surveyApiEndTime = System.currentTimeMillis();
-		log.info("Survey API 호출 소요 시간: {}ms", (surveyApiEndTime - surveyApiStartTime));
+		log.debug("Survey API 호출 소요 시간: {}ms", (surveyApiEndTime - surveyApiStartTime));
 
 		validateSurveyActive(surveyDetail);
 		validateAllowUpdate(surveyDetail);
@@ -178,7 +175,7 @@ public class ParticipationService {
 		participation.update(responseDataList);
 
 		long totalEndTime = System.currentTimeMillis();
-		log.info("설문 참여 수정 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
+		log.debug("설문 참여 수정 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
 	}
 
 	@Transactional(readOnly = true)
@@ -232,17 +229,15 @@ public class ParticipationService {
 			boolean validatedAnswerValue = validateAnswerValue(answer, question.getQuestionType());
 
 			if (!validatedAnswerValue && !isEmpty(answer)) {
-				log.info("INVALID_ANSWER_TYPE questionId: {}, questionnType: {}", questionId,
+				log.error("INVALID_ANSWER_TYPE questionId: {}, questionType: {}", questionId,
 					question.getQuestionType());
 				throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 			}
 
 			if (question.isRequired() && (isEmpty(answer))) {
-				log.info("REQUIRED_QUESTION_NOT_ANSWERED questionId : {}", questionId);
+				log.error("REQUIRED_QUESTION_NOT_ANSWERED questionId : {}", questionId);
 				throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
 			}
-
-			// TODO: choice도 유효성 검사
 		}
 	}
 
@@ -296,8 +291,6 @@ public class ParticipationService {
 		if (value instanceof List) {
 			return ((List<?>)value).isEmpty();
 		}
-
 		return false;
 	}
-
 }
