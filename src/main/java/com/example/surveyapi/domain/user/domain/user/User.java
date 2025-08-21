@@ -10,7 +10,7 @@ import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.domain.user.domain.user.event.UserAbstractRoot;
 import com.example.surveyapi.domain.user.domain.user.event.UserEvent;
-import com.example.surveyapi.domain.user.domain.user.vo.Address;
+import com.example.surveyapi.domain.user.domain.demographics.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
