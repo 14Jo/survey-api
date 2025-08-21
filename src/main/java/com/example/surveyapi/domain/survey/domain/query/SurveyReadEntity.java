@@ -46,7 +46,7 @@ public class SurveyReadEntity {
 
 	public static SurveyReadEntity create(
 		Long surveyId, Long projectId, String title,
-		String description, String status, Integer participationCount,
+		String description, SurveyStatus status, Integer participationCount,
 		SurveyOptions options
 
 	) {
@@ -55,11 +55,15 @@ public class SurveyReadEntity {
 		surveyRead.projectId = projectId;
 		surveyRead.title = title;
 		surveyRead.description = description;
-		surveyRead.status = status;
+		surveyRead.status = status.name();
 		surveyRead.participationCount = participationCount;
 		surveyRead.options = options;
 
 		return surveyRead;
+	}
+
+	public void activate(SurveyStatus status) {
+		this.status = status.name();
 	}
 
 	@Getter

@@ -2,6 +2,7 @@ package com.example.surveyapi.global.constant;
 
 public class RabbitConst {
 	public static final String EXCHANGE_NAME = "domain.event.exchange";
+	public static final String DELAYED_EXCHANGE_NAME = "domain.event.exchange.delayed";
 
 	public static final String QUEUE_NAME_USER = "queue.user";
 	public static final String QUEUE_NAME_SURVEY = "queue.survey";
@@ -11,6 +12,11 @@ public class RabbitConst {
 	public static final String QUEUE_NAME_PARTICIPATION = "queue.participation";
 
 	public static final String ROUTING_KEY_SURVEY_ACTIVE = "survey.activated";
+	public static final String ROUTING_KEY_SURVEY_START_DUE = "survey.start.due";
+	public static final String ROUTING_KEY_SURVEY_END_DUE = "survey.end.due";
+
+	public static final String ROUTING_KEY_PROJECT_ACTIVE = "project.activated";
+
 	public static final String ROUTING_KEY_USER_WITHDRAW = "survey.user.withdraw";
 	public static final String ROUTING_KEY_PARTICIPATION_CREATE = "participation.created";
 	public static final String ROUTING_KEY_PARTICIPATION_UPDATE = "participation.updated";
@@ -18,4 +24,9 @@ public class RabbitConst {
 	public static final String ROUTING_KEY_PROJECT_DELETED = "project.deleted";
 	public static final String ROUTING_KEY_ADD_MANAGER = "project.manager";
 	public static final String ROUTING_KEY_ADD_MEMBER = "project.member";
+
+	// DLQ 관련 상수
+	public static final String DEAD_LETTER_EXCHANGE = "domain.event.exchange.dlq";
+	public static final String DEAD_LETTER_QUEUE_SURVEY = "queue.survey.dlq";
+	public static final String ROUTING_KEY_SURVEY_DLQ = "survey.dlq";
 }
