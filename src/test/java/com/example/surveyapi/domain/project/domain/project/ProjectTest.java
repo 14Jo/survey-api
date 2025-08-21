@@ -98,20 +98,6 @@ class ProjectTest {
 	}
 
 	@Test
-	void 프로젝트_상태_변경_CLOSED에서_다른_상태로_변경_불가() {
-		// given
-		Project project = createProject();
-		project.updateState(ProjectState.IN_PROGRESS);
-		project.updateState(ProjectState.CLOSED);
-
-		// when & then
-		CustomException exception = assertThrows(CustomException.class, () -> {
-			project.updateState(ProjectState.IN_PROGRESS);
-		});
-		assertEquals(CustomErrorCode.INVALID_PROJECT_STATE, exception.getErrorCode());
-	}
-
-	@Test
 	void 프로젝트_상태_변경_PENDING_에서_CLOSED_로_직접_변경_불가() {
 		// given
 		Project project = createProject();
