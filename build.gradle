@@ -32,7 +32,7 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     annotationProcessor 'org.projectlombok:lombok'
-    testRuntimeOnly 'com.h2database:h2'
+    // testRuntimeOnly 'com.h2database:h2'  // PostgreSQL Testcontainers 사용으로 H2 비활성화
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'

@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.user.domain.user.vo;
+package com.example.surveyapi.domain.user.domain.demographics.vo;
 
 import com.example.surveyapi.global.util.MaskingUtils;
 

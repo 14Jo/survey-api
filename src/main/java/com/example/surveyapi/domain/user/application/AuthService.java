@@ -1,10 +1,7 @@
 package com.example.surveyapi.domain.user.application;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,12 +13,8 @@ import com.example.surveyapi.domain.user.application.client.response.GoogleAcces
 import com.example.surveyapi.domain.user.application.client.response.GoogleUserInfoResponse;
 import com.example.surveyapi.domain.user.application.client.response.KakaoAccessResponse;
 import com.example.surveyapi.domain.user.application.client.response.KakaoUserInfoResponse;
-import com.example.surveyapi.domain.user.application.client.response.MyProjectRoleResponse;
-import com.example.surveyapi.domain.user.application.client.port.ParticipationPort;
-import com.example.surveyapi.domain.user.application.client.port.ProjectPort;
 import com.example.surveyapi.domain.user.application.client.response.NaverAccessResponse;
 import com.example.surveyapi.domain.user.application.client.response.NaverUserInfoResponse;
-import com.example.surveyapi.domain.user.application.client.response.UserSurveyStatusResponse;
 import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
@@ -51,8 +44,6 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final ProjectPort projectPort;
-    private final ParticipationPort participationPort;
     private final OAuthPort OAuthPort;
     private final KakaoOAuthProperties kakaoOAuthProperties;
     private final NaverOAuthProperties naverOAuthProperties;
@@ -88,33 +79,6 @@ public class AuthService {
             throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
         }
 
-        CompletableFuture<List<MyProjectRoleResponse>> projectFuture = getMyProjectRoleAsync(authHeader, userId);
-        CompletableFuture<List<UserSurveyStatusResponse>> surveyStatusFuture = getSurveyStatusAsync(authHeader, userId);
-
-        try {
-            CompletableFuture.allOf(projectFuture, surveyStatusFuture).join();
-
-            List<MyProjectRoleResponse> myRoleList = projectFuture.get();
-            List<UserSurveyStatusResponse> surveyStatus = surveyStatusFuture.get();
-
-            for (MyProjectRoleResponse myRole : myRoleList) {
-                log.info("권한 : {}", myRole.getMyRole());
-                if ("OWNER".equals(myRole.getMyRole())) {
-                    throw new CustomException(CustomErrorCode.PROJECT_ROLE_OWNER);
-                }
-            }
-
-            for (UserSurveyStatusResponse survey : surveyStatus) {
-                log.info("설문 상태: {}", survey.getSurveyStatus());
-                if ("IN_PROGRESS".equals(survey.getSurveyStatus())) {
-                    throw new CustomException(CustomErrorCode.SURVEY_IN_PROGRESS);
-                }
-            }
-
-        } catch (Exception e) {
-            throw new CustomException(CustomErrorCode.EXTERNAL_API_ERROR);
-        }
-
         user.delete();
         user.registerUserWithdrawEvent();
         userRepository.withdrawSave(user);
@@ -134,7 +98,6 @@ public class AuthService {
         String accessToken = jwtUtil.subStringToken(authHeader);
 
         validateTokenType(accessToken, "access");
-
         addBlackLists(accessToken);
 
         userRedisRepository.delete(userId);
@@ -154,10 +117,10 @@ public class AuthService {
         String saveBlackListKey = userRedisRepository.getRedisKey(blackListKey);
 
         if (saveBlackListKey != null) {
-            throw new CustomException(CustomErrorCode.BLACKLISTED_TOKEN);
+            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
         }
 
-        if (jwtUtil.isTokenExpired(accessToken)) {
+        if (!jwtUtil.isTokenExpired(accessToken)) {
             throw new CustomException(CustomErrorCode.ACCESS_TOKEN_NOT_EXPIRED);
         }
 
@@ -293,33 +256,6 @@ public class AuthService {
         userRedisRepository.saveRedisKey(redisKey, newRefreshToken, Duration.ofDays(7));
 
         return LoginResponse.of(newAccessToken, newRefreshToken, user);
-    }
-
-    @Async
-    public CompletableFuture<List<MyProjectRoleResponse>> getMyProjectRoleAsync(String authHeader, Long userId) {
-        try {
-            List<MyProjectRoleResponse> myRoleList = projectPort.getProjectMyRole(authHeader, userId);
-            log.info("프로젝트 조회 : {}", myRoleList.size());
-
-            return CompletableFuture.completedFuture(myRoleList);
-        } catch (Exception e) {
-            log.error("프로젝트 조회 실패 (비동기): {}", e.getMessage());
-            return CompletableFuture.failedFuture(e);
-        }
-    }
-
-    @Async
-    public CompletableFuture<List<UserSurveyStatusResponse>> getSurveyStatusAsync(String authHeader, Long userId) {
-        try {
-            List<UserSurveyStatusResponse> surveyStatus =
-                participationPort.getParticipationSurveyStatus(authHeader, userId, 0, 20);
-            log.info("참여중인 설문  : {}", surveyStatus.size());
-
-            return CompletableFuture.completedFuture(surveyStatus);
-        } catch (Exception e) {
-            log.error("설문 참여 상태 조회 실패 (비동기): {}", e.getMessage());
-            return CompletableFuture.failedFuture(e);
-        }
     }
 
     private void addBlackLists(String accessToken) {
