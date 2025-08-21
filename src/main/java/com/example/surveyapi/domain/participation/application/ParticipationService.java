@@ -16,6 +16,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
+import com.example.surveyapi.domain.participation.application.client.UserServicePort;
+import com.example.surveyapi.domain.participation.application.client.UserSnapshotDto;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
@@ -41,6 +43,7 @@ public class ParticipationService {
 
 	private final ParticipationRepository participationRepository;
 	private final SurveyServicePort surveyPort;
+	private final UserServicePort userPort;
 
 	@Transactional
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
@@ -62,11 +65,12 @@ public class ParticipationService {
 		// 문항과 답변 유효성 검증
 		validateQuestionsAndAnswers(responseDataList, questions);
 
-		ParticipantInfo participantInfo = ParticipantInfo.of(
-			request.getBirth(),
-			request.getGender(),
-			request.getRegion()
-		);
+		UserSnapshotDto userSnapshotDto = userPort.getParticipantInfo(authHeader, userId);
+		ParticipantInfo participantInfo = ParticipantInfo.of(userSnapshotDto.getBirth(), userSnapshotDto.getGender(),
+			userSnapshotDto.getRegion());
+
+		// ParticipantInfo participantInfo = ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE,
+		// 	Region.of("서울", "강남"));
 
 		Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 
