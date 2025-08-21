@@ -33,5 +33,11 @@ public class SurveyDetailDto implements Serializable {
 		private Long questionId;
 		private boolean isRequired;
 		private SurveyApiQuestionType questionType;
+		private List<ChoiceNum> choices;
+	}
+
+	@Getter
+	public static class ChoiceNum implements Serializable {
+		private Integer choiceId;
 	}
 }

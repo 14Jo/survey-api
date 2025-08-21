@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -80,7 +79,7 @@ public class ParticipationService {
 			List<ResponseData> responseDataList = request.getResponseDataList();
 			List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
 
-			validateQuestionsAndAnswers(responseDataList, questions);
+			validateResponses(responseDataList, questions);
 
 			ParticipantInfo participantInfo = ParticipantInfo.of(userSnapshotDto.getBirth(),
 				userSnapshotDto.getGender(),
@@ -195,7 +194,7 @@ public class ParticipationService {
 		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
 
 		// 문항과 답변 유효성 검사
-		validateQuestionsAndAnswers(responseDataList, questions);
+		validateResponses(responseDataList, questions);
 
 		participation.update(responseDataList);
 
@@ -236,69 +235,74 @@ public class ParticipationService {
 		}
 	}
 
-	private void validateQuestionsAndAnswers(
-		List<ResponseData> responseDataList,
-		List<SurveyDetailDto.QuestionValidationInfo> questions
-	) {
+	private void validateResponses(List<ResponseData> responses,
+		List<SurveyDetailDto.QuestionValidationInfo> questions) {
+		Map<Long, ResponseData> responseMap = responses.stream()
+			.collect(Collectors.toMap(ResponseData::getQuestionId, r -> r));
+
 		// 응답한 questionIds와 설문의 questionIds가 일치하는지 검증, answer = null 이여도 questionId는 존재해야 한다.
-		validateQuestionIds(responseDataList, questions);
-
-		Map<Long, SurveyDetailDto.QuestionValidationInfo> questionMap = questions.stream()
-			.collect(Collectors.toMap(SurveyDetailDto.QuestionValidationInfo::getQuestionId, q -> q));
-
-		for (ResponseData response : responseDataList) {
-			Long questionId = response.getQuestionId();
-			SurveyDetailDto.QuestionValidationInfo question = questionMap.get(questionId);
-			Map<String, Object> answer = response.getAnswer();
-
-			boolean validatedAnswerValue = validateAnswerValue(answer, question.getQuestionType());
-
-			if (!validatedAnswerValue && !isEmpty(answer)) {
-				log.error("INVALID_ANSWER_TYPE questionId: {}, questionType: {}", questionId,
-					question.getQuestionType());
-				throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
-			}
-
-			if (question.isRequired() && (isEmpty(answer))) {
-				log.error("REQUIRED_QUESTION_NOT_ANSWERED questionId : {}", questionId);
-				throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
-			}
-		}
-	}
-
-	private void validateQuestionIds(
-		List<ResponseData> responseDataList,
-		List<SurveyDetailDto.QuestionValidationInfo> questions
-	) {
-		Set<Long> surveyQuestionIds = questions.stream()
-			.map(SurveyDetailDto.QuestionValidationInfo::getQuestionId)
-			.collect(Collectors.toSet());
-
-		Set<Long> responseQuestionIds = responseDataList.stream()
-			.map(ResponseData::getQuestionId)
-			.collect(Collectors.toSet());
-
-		if (!surveyQuestionIds.equals(responseQuestionIds)) {
+		if (responseMap.size() != questions.size() || !responseMap.keySet().equals(
+			questions.stream()
+				.map(SurveyDetailDto.QuestionValidationInfo::getQuestionId)
+				.collect(Collectors.toSet()))) {
 			throw new CustomException(CustomErrorCode.INVALID_SURVEY_QUESTION);
 		}
+
+		for (SurveyDetailDto.QuestionValidationInfo question : questions) {
+			ResponseData response = responseMap.get(question.getQuestionId());
+			boolean isAnswerEmpty = isEmpty(response.getAnswer());
+
+			if (question.isRequired() && isAnswerEmpty) {
+				throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
+			}
+
+			if (!isAnswerEmpty) {
+				validateAnswer(response.getAnswer(), question);
+			}
+		}
 	}
 
-	private boolean validateAnswerValue(Map<String, Object> answer, SurveyApiQuestionType questionType) {
-		if (answer == null || answer.isEmpty()) {
-			return true;
-		}
+	private void validateAnswer(Map<String, Object> answer, SurveyDetailDto.QuestionValidationInfo question) {
+		SurveyApiQuestionType questionType = question.getQuestionType();
 
-		Object value = answer.values().iterator().next();
-		if (value == null) {
-			return true;
-		}
+		switch (questionType) {
+			case SINGLE_CHOICE -> {
+				if (!(answer.containsKey("choice") && answer.get("choice") instanceof List<?> choiceList
+					&& choiceList.size() < 2)) {
+					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+				}
 
-		return switch (questionType) {
-			case SINGLE_CHOICE -> answer.containsKey("choice") && value instanceof List;
-			case MULTIPLE_CHOICE -> answer.containsKey("choices") && value instanceof List;
-			case SHORT_ANSWER, LONG_ANSWER -> answer.containsKey("textAnswer") && value instanceof String;
-			default -> false;
-		};
+				for (Object choice : choiceList) {
+					if (!(choice instanceof Integer choiceId)) {
+						throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+					}
+				}
+
+				if (question.getChoices().size() != choiceList.size()) {
+					throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+				}
+			}
+			case MULTIPLE_CHOICE -> {
+				if (!(answer.containsKey("choices") && answer.get("choices") instanceof List<?> choiceList)) {
+					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+				}
+
+				for (Object choice : choiceList) {
+					if (!(choice instanceof Integer choiceId)) {
+						throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+					}
+				}
+
+				if (question.getChoices().size() != choiceList.size()) {
+					throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+				}
+			}
+			case SHORT_ANSWER, LONG_ANSWER -> {
+				if (!(answer.containsKey("textAnswer") && answer.get("textAnswer") instanceof String)) {
+					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+				}
+			}
+		}
 	}
 
 	private boolean isEmpty(Map<String, Object> answer) {
