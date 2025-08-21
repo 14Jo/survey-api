@@ -9,13 +9,12 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
-import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
+import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
 import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
@@ -100,9 +99,9 @@ public class SurveyService {
 
 		survey.updateFields(updateFields);
 		survey.applyDurationChange(survey.getDuration(), LocalDateTime.now());
-		if (durationFlag) survey.registerScheduledEvent();
+		if (durationFlag)
+			survey.registerScheduledEvent();
 		surveyRepository.update(survey);
-
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.updateSurveyRead(SurveySyncDto.from(survey));
