@@ -4,6 +4,7 @@ import static com.example.surveyapi.domain.participation.domain.participation.QP
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -78,5 +79,23 @@ public class ParticipationQueryDslRepository {
 			.from(participation)
 			.where(participation.surveyId.in(surveyIds))
 			.fetch();
+	}
+
+	public Optional<ParticipationProjection> findParticipationProjectionByIdAndUserId(Long participationId, Long userId) {
+		ParticipationProjection projection = queryFactory
+			.select(Projections.constructor(
+				ParticipationProjection.class,
+				participation.surveyId,
+				participation.id,
+				participation.updatedAt,
+				participation.answers
+			))
+			.from(participation)
+			.where(
+				participation.id.eq(participationId),
+				participation.userId.eq(userId)
+			)
+			.fetchOne();
+		return Optional.ofNullable(projection);
 	}
 }
