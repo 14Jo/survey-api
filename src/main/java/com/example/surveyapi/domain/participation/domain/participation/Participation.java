@@ -7,12 +7,12 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
-import com.example.surveyapi.domain.participation.domain.event.ParticipationAbstractRoot;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationCreatedEvent;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationUpdatedEvent;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
+import com.example.surveyapi.global.model.AbstractRoot;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "participations")
-public class Participation extends ParticipationAbstractRoot<Participation> {
+public class Participation extends AbstractRoot<Participation> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
