@@ -62,7 +62,6 @@ public class UserService {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-
         String encryptedPassword = Optional.ofNullable(request.getPassword())
             .map(passwordEncoder::encode)
             .orElseGet(() -> user.getAuth().getPassword());
@@ -87,5 +86,13 @@ public class UserService {
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         return UserSnapShotResponse.from(user);
+    }
+
+    public void updatePoint(Long userId) {
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        user.increasePoint();
+        userRepository.save(user);
     }
 }
