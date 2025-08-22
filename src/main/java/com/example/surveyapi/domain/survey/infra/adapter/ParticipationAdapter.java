@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.survey.application.client.ParticipationCountDto;
 import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
-import com.example.surveyapi.global.config.client.ExternalApiResponse;
-import com.example.surveyapi.global.config.client.participation.ParticipationApiClient;
+import com.example.surveyapi.global.dto.ExternalApiResponse;
+import com.example.surveyapi.global.client.ParticipationApiClient;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

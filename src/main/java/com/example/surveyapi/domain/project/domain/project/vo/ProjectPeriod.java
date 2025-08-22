@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.project.domain.project.vo;
 
 import java.time.LocalDateTime;
 
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import jakarta.persistence.Embeddable;

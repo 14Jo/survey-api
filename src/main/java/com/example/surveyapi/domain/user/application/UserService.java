@@ -13,10 +13,10 @@ import com.example.surveyapi.domain.user.application.dto.response.UserGradeRespo
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserSnapShotResponse;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
-import com.example.surveyapi.global.config.security.PasswordEncoder;
+import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
@@ -62,7 +62,6 @@ public class UserService {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-
         String encryptedPassword = Optional.ofNullable(request.getPassword())
             .map(passwordEncoder::encode)
             .orElseGet(() -> user.getAuth().getPassword());
@@ -87,5 +86,13 @@ public class UserService {
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         return UserSnapShotResponse.from(user);
+    }
+
+    public void updatePoint(Long userId) {
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        user.increasePoint();
+        userRepository.save(user);
     }
 }

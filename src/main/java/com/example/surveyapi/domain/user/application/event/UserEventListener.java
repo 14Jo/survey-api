@@ -5,8 +5,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.domain.user.domain.user.event.UserEvent;
-import com.example.surveyapi.global.enums.EventCode;
-import com.example.surveyapi.global.event.UserWithdrawEvent;
+import com.example.surveyapi.global.event.EventCode;
+import com.example.surveyapi.global.event.user.UserWithdrawEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;

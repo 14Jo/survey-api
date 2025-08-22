@@ -17,6 +17,8 @@ public interface ProjectRepository {
 
 	void save(Project project);
 
+	void saveAll(List<Project> projects);
+
 	boolean existsByNameAndIsDeletedFalse(String name);
 
 	List<ProjectManagerResult> findMyProjectsAsManager(Long currentUserId);
@@ -36,4 +38,6 @@ public interface ProjectRepository {
 	void removeMemberFromProjects(Long userId);
 
 	void removeManagerFromProjects(Long userId);
+
+	void removeProjects(Long userId);
 }
