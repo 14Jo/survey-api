@@ -1,179 +1,220 @@
-# [Survey Link](https://www.notion.so/teamsparta/14-Survey-Link-2492dc3ef514801b87c0cf81781f6d0a#2532dc3ef51480318f67d79381813058)
-
-![img.png](images/surveylink.png)
-
----
 # Survey Link
 
-## 왜 Survey Link를 만들었나요?
-
-많은 사람들이 구글 폼이나 네이버 폼 같은 도구로 설문을 진행합니다.  
-편리하지만 실제로는 이런 한계가 있습니다:
-
-- 참여자는 매번 이름·이메일 같은 개인정보를 입력해야 해서 번거롭습니다.
-- 설문 결과를 확인하려면 데이터를 내려받아 직접 가공해야 하므로 실시간 분석이 어렵습니다.
-
-우리는 고민했습니다.  
-**“설문을 만드는 사람도, 참여하는 사람도 더 쉽고 재미있게 접근할 수는 없을까?”**
-
-그 답이 바로 **Survey Link**입니다.
+![Survey Link Logo](images/surveylink.png)
 
 ---
 
-## Survey Link는 어떤 플랫폼인가요?
+## 목차
 
-Survey Link는 **설문 참여를 게임처럼 즐길 수 있는 웹 기반 설문 플랫폼**입니다.
+- [1. 프로젝트 소개](#1-프로젝트-소개)
+    - [1.1. 개발 배경](#11-개발-배경)
+    - [1.2. 핵심 기능](#12-핵심-기능)
+    - [1.3. 사용자 경험](#13-사용자-경험)
+- [2. 팀원 소개](#2-팀원-소개)
+- [3. 협업 문화](#3-협업-문화)
+    - [3.1. 이슈 및 PR 기반 워크플로우](#31-이슈-및-pr-기반-워크플로우)
+    - [3.2. 정기 스크럼](#32-정기-스크럼)
+- [4. 핵심 서비스 플로우](#4-핵심-서비스-플로우)
+- [5. 도메인별 주요 기능](#5-도메인별-주요-기능)
+    - [5.1. 사용자 시스템](#51-사용자-시스템)
+    - [5.2. 프로젝트 시스템](#52-프로젝트-시스템)
+    - [5.3. 설문 시스템](#53-설문-시스템)
+    - [5.4. 공유 시스템](#54-공유-시스템)
+    - [5.5. 참여 시스템](#55-참여-시스템)
+    - [5.6. 통계 시스템](#56-통계-시스템)
+- [6. 모니터링](#6-모니터링)
+- [7. 기술 스택](#7-기술-스택)
+- [8. 기술적 의사결정](#8-기술적-의사결정)
+- [9. 성능 최적화](#9-성능-최적화)
+- [10. 트러블 슈팅](#10-트러블-슈팅)
 
--  **참여자가 응답할 때, 설문 생성자는 설문을 생성 • 종료할 때마다 포인트를 얻고, 등급을 올리며 성취감을 느낄 수 있습니다.**
--  **설문 생성자는 등록된 유저 프로필(연령대·관심사 등)을 기반으로 원하는 타깃에게 효과적으로 설문을 배포할 수 있습니다.**
--  **수집된 데이터는 자동으로 통계에 반영되어, 실시간 분석과 빠른 의사결정을 지원합니다.**
+---
+
+## 1. 프로젝트 소개
+
+### 1.1. 개발 배경
+
+기존의 구글 폼, 네이버 폼과 같은 설문 도구들은 편리하지만 다음과 같은 한계를 가지고 있습니다.
+
+- **참여자:** 이름, 이메일 등 개인정보를 매번 입력해야 하는 번거로움이 존재합니다.
+- **설문 생성자:** 설문 결과를 실시간으로 분석하기 어렵고, 데이터를 수동으로 가공해야 합니다.
+
+이러한 문제의식에서 출발하여, **"설문 생성자와 참여자 모두가 더 쉽고 즐겁게 설문을 경험할 방법은 없을까?"** 라는 질문에 대한 해답으로 **Survey Link**를 개발하게 되었습니다.
+
+### 1.2. 핵심 기능
+
+**Survey Link**는 **설문 참여를 게임처럼 즐길 수 있는 웹 기반 설문 플랫폼**입니다.
+
+- **게이미피케이션:** 설문 생성, 참여, 종료 등 활동마다 포인트를 지급하고 등급을 부여하여 사용자의 성취감을 높입니다.
+- **타겟팅 설문:** 등록된 사용자 프로필(연령, 성별, 지역 등)을 기반으로 원하는 대상에게 정교한 설문 배포가 가능합니다.
+- **실시간 데이터 분석:** 수집된 데이터는 통계에 즉시 반영되어 실시간 분석과 신속한 의사결정을 지원합니다.
+
+### 1.3. 사용자 경험
+
+Survey Link는 단순한 설문 도구를 넘어, **참여자에게는 성장과 성취의 경험을, 설문 발행자에게는 효율적인 데이터 수집 및 분석 환경**을 제공하는 것을 목표로 합니다.
+
+**더 쉽고, 더 빠르고, 더 즐겁게.** Survey Link는 설문의 새로운 패러다임을 제시합니다.
 
 ---
 
-## Survey Link가 만드는 경험
+## 2. 팀원 소개
 
-Survey Link는 단순히 “설문을 만드는 도구”를 넘어,  
-**참여자에게는 성장과 성취의 경험을, 설문 발행자에게는 효율적인 데이터 수집과 분석 환경**을 제공합니다.
-
-✨ **더 쉽고, 더 빠르고, 더 즐겁게.**  
-Survey Link는 설문의 새로운 방식을 제안합니다.
-
----
-## 👥 팀원 소개
-
-<div align="center">
-
-| 이름 | 역할 | 담당                                       | GitHub |
-|------|------|------------------------------------------|--------|
-| **유진원** | 팀장 | 통계 도메인<br>아키텍처 설계<br>클라우드 인프라 구축         | [GitHub](https://github.com/Jindnjs) |
-| **이동근** | 팀원 | 유저 도메인<br>Spring Security + JWT<br>OAuth | [GitHub](https://github.com/DG0702) |
-| **장경혁** | 팀원 | 참여 도메인                                   | [GitHub](https://github.com/kcc5107) |
-| **이준영** | 부팀장 | 설문 도메인<br>인프라 구축                         | [GitHub](https://github.com/LJY981008) |
-| **최태웅** | 팀원 | 프로젝트 도메인                                 | [GitHub](https://github.com/taeung515) |
-| **김도연** | 팀원 | 공유 도메인                                   | [GitHub](https://github.com/easter1201) |
-
-</div>
+| 이름      | 역할  | 담당                                   | GitHub                                  |
+|:--------|:----|:-------------------------------------|:----------------------------------------|
+| **유진원** | 팀장  | 통계 도메인, 아키텍처 설계, 클라우드 인프라 구축         | [GitHub](https://github.com/Jindnjs)    |
+| **이동근** | 팀원  | 유저 도메인, Spring Security + JWT, OAuth | [GitHub](https://github.com/DG0702)     |
+| **장경혁** | 팀원  | 참여 도메인                               | [GitHub](https://github.com/kcc5107)    |
+| **이준영** | 부팀장 | 설문 도메인, 인프라 구축                       | [GitHub](https://github.com/LJY981008)  |
+| **최태웅** | 팀원  | 프로젝트 도메인                             | [GitHub](https://github.com/taeung515)  |
+| **김도연** | 팀원  | 공유 도메인                               | [GitHub](https://github.com/easter1201) |
 
 ---
-## 핵심 서비스 플로우
-![img_1.png](images/핵심서비스플로우.png)
+
+## 3. 협업 문화
+
+### 3.1. 이슈 및 PR 기반 워크플로우
+
+- **자동화된 브랜치 및 PR 생성:** 이슈를 생성하면 해당 이슈 제목으로 원격 브랜치와 PR이 자동으로 생성되어, 개발자가 즉시 작업에 착수할 수 있습니다.
+- **코드 리뷰 의무화:** 모든 PR은 팀원 2명 이상의 승인을 받아야만 병합(merge)할 수 있도록 하여 코드 품질을 유지하고 동료 검증을 강화합니다.
+- **자동화된 브랜치 및 이슈 관리:** PR이 병합되면 관련 브랜치는 자동으로 삭제되고 이슈는 종료(close) 처리됩니다. 이를 통해 저장소를 깔끔하게 유지하고 팀원들이 프로젝트 진행 상황을 쉽게 파악할 수
+  있습니다.
+- **실시간 리뷰 알림:** 코드 리뷰를 요청하면 팀 슬랙(Slack) 채널에 알림이 전송되며, 리뷰 댓글이나 PR 수정 시에도 추가 알림이 발생하여 원활한 피드백 사이클을 지원합니다.
+
+### 3.2. 정기 스크럼
+
+매일 세 차례 정기 스크럼을 통해 팀의 진행 상황을 공유하고 이슈를 해결합니다.
+
+- **아침 (계획 공유):** 당일 작업 계획을 공유합니다.
+- **점심 (중간 점검):** 진행 상황을 점검하고 발생한 문제를 논의합니다.
+- **저녁 (회고 및 마무리):** 일일 작업 성과를 회고하고 다음 단계를 논의합니다.
+
+이러한 정기적인 소통을 통해 팀은 공동의 목표를 명확히 인지하고, 신속한 피드백을 바탕으로 효율적인 협업을 지속할 수 있었습니다.
 
 ---
-# 도메인별 주요 기능
+
+## 4. 핵심 서비스 플로우
+
+![핵심 서비스 플로우](images/핵심서비스플로우.png)
+
+---
+
+## 5. 도메인별 주요 기능
+
 <details>
-<summary>사용자 시스템</summary>
+<summary>5.1. 사용자 시스템</summary>
 
 #### ✨ 로그인 플로우
-![img.png](images/로그인플로우.png)
 
-- 사용자가 서비스를 이용하기 위해 로그인을 하는 기능
-- 로컬 로그인과 OAuth(카카오, 네이버, 구글) 로그인으로 나누어져 있음
+![로그인 플로우](images/로그인플로우.png)
 
-</details>
-
----
-<details>
-<summary>프로젝트 시스템</summary>
-
-#### ✨ 프로젝트 생성, 검색 플로우
-![img.png](images/프로젝트_플로우.png)
-- 프로젝트를 생성
-    - Period 주기에 따라 상태변경 스케줄링
-- 프로젝트 검색
-    - trigram Index를 통한 빠른 keyword 검색
-    - NoOffset 페이지네이션
+- **기능:** 사용자가 서비스에 접근하기 위한 인증 절차를 담당합니다.
+- **특징:** 자체 회원가입 및 로그인(Local)과 OAuth 2.0(카카오, 네이버, 구글)을 이용한 소셜 로그인을 모두 지원합니다.
 
 </details>
 
----
 <details>
-<summary>설문 시스템</summary>
+<summary>5.2. 프로젝트 시스템</summary>
 
-#### ✨ 설문 생성, 조회 플로우
-![img.png](images/설문_플로우.png)
+#### ✨ 프로젝트 생성 및 검색 플로우
 
-- 프로젝트의 담당자 또는 작성 권한 보유자가 설문을 생성하는 서비스
-    - 설문 생성 시 읽기모델 동기화
-    - 지연 이벤트를 통한 설문 시작/종료 컨트롤
-- 읽기 모델을 사용한 빠른 조회 서비스
-- 스케줄링을 통한 참여자 수 갱신
+![프로젝트 플로우](images/프로젝트_플로우.png)
+
+- **프로젝트 생성:** 신규 프로젝트를 생성하며, 설정된 기간(Period)에 따라 상태가 자동으로 변경되도록 스케줄링합니다.
+- **프로젝트 검색:** Trigram 인덱스를 활용하여 키워드 검색 속도를 높였으며, No-Offset 페이지네이션을 적용하여 대용량 데이터 조회 성능을 개선했습니다.
 
 </details>
 
----
 <details>
-<summary>공유 시스템</summary>
+<summary>5.3. 설문 시스템</summary>
+
+#### ✨ 설문 생성 및 조회 플로우
+
+![설문 플로우](images/설문_플로우.png)
+
+- **설문 생성:** 프로젝트 담당자 또는 권한을 가진 사용자가 설문을 생성합니다. 생성 시 읽기 모델(Read Model)을 동기화하고, 지연 이벤트(Delayed Event)를 통해 설문 시작 및 종료를
+  제어합니다.
+- **설문 조회:** 읽기 모델을 사용하여 조회 성능을 최적화했으며, 스케줄링을 통해 참여자 수를 주기적으로 갱신합니다.
 
 </details>
 
----
 <details>
-<summary>참여 시스템</summary>
+<summary>5.4. 공유 시스템</summary>
+
+- (내용 추가 필요)
+
+</details>
+
+<details>
+<summary>5.5. 참여 시스템</summary>
 
 #### ✨ 설문 응답 제출 플로우
-![img.png](images/설문_응답제출_플로우.png)
 
-- 사용자가 특정 설문에 대한 답변을 제출하는 핵심 기능
-- 설문 응답을 저장하면 설문 제출 이벤트를 발행
+![설문 응답 제출 플로우](images/설문_응답제출_플로우.png)
+
+- **기능:** 사용자가 특정 설문에 대한 답변을 제출하는 핵심 기능입니다.
+- **동작:** 설문 응답이 저장되면, 관련 처리를 위해 `ParticipationCreated` 이벤트를 발행(publish)합니다.
+
+</details>
+
+<details>
+<summary>5.6. 통계 시스템</summary>
+
+#### ✨ 통계 집계 및 조회 플로우
+
+![통계 플로우](images/통계_플로우.png)
+
+- **통계 집계:** 이벤트 기반으로 통계 데이터를 수신하여 Elasticsearch에 색인합니다.
+- **통계 조회:** Elasticsearch의 Aggregation 기능을 활용하여 집계된 데이터를 효율적으로 조회하고 반환합니다.
 
 </details>
 
 ---
-<details>
-<summary>통계 시스템</summary>
 
-#### ✨ 통계 집계, 조회 플로우
-![img.png](images/통계_플로우.png)
+## 6. 모니터링
 
-- 통계 집계시, 이벤트로부터 통계 데이터 → Elastic 색인
-- 통계 조회시 ElasticSearch Aggregation으로 데이터 반환
+![모니터링 대시보드 1](images/monitoring1.png)
+![모니터링 대시보드 2](images/monitoring2.png)
 
-</details>
+- Spring Boot Actuator를 통해 애플리케이션의 상태와 메트릭을 외부에 노출하고, Prometheus가 이를 주기적으로 수집합니다.
+- 수집된 데이터는 Grafana 대시보드에서 시각화하여 요청 지연, 에러율, 리소스 사용량(JVM, CPU, 스레드, DB 커넥션 풀 등)을 실시간으로 모니터링합니다.
 
+---
 
-## 🛠 기술 스택
-![img.png](images/기술스택.png)
+## 7. 기술 스택
 
+![기술 스택](images/기술스택.png)
 
-## 기술적 의사결정
+- **[기술 선택 근거 확인하기](https://www.notion.so/teamsparta/2322dc3ef51480f8b74ff6455fca4917)**
 
-- [스케줄링 방식 vs 개별 처리 방식 의사 결정 방식](https://www.notion.so/teamsparta/vs-2542dc3ef51480d18141d940af62388e?source=copy_link)
+---
 
+## 8. 기술적 의사결정
 
-- [조회 모델을 위한 기술적 의사 결정 → MongoDB](https://www.notion.so/teamsparta/MongoDB-2542dc3ef514802389aff6fb59470acb?source=copy_link)
+- [스케줄링 방식 vs 개별 처리 방식 의사 결정](https://www.notion.so/teamsparta/vs-2542dc3ef51480d18141d940af62388e)
+- [조회 모델을 위한 기술적 의사 결정: MongoDB 채택](https://www.notion.so/teamsparta/MongoDB-2542dc3ef514802389aff6fb59470acb)
+- [외부 API 호출로 인한 스레드 병목 현상 개선](https://www.notion.so/teamsparta/API-2542dc3ef5148037ac82e307365c1f72)
+- [배포 환경 결정: EC2 vs ECS](https://www.notion.so/teamsparta/EC2-vs-ECS-2542dc3ef51480b18997ca8eeb090a88)
+- [전략 패턴(Strategy Pattern) 도입](https://www.notion.so/teamsparta/EC2-vs-ECS-2542dc3ef51480b18997ca8eeb090a88)
+- [웹 PUSH 알림: 웹 소켓(WebSocket) 도입 검토](https://www.notion.so/teamsparta/2552dc3ef51480b4abfac5763b3ffe05)
 
+---
 
-- [외부 API 호출로 인한 스레드 병목 현상 개선](https://www.notion.so/teamsparta/API-2542dc3ef5148037ac82e307365c1f72?source=copy_link)
+## 9. 성능 최적화
 
+- [설문 응답 제출 성능 최적화 (Redis 활용)](https://www.notion.so/teamsparta/Redis-2542dc3ef514809bbd55c5fae2e1e08a)
+- [프로젝트 검색 API 성능 검증 및 No-Offset 페이지네이션 도입](https://www.notion.so/teamsparta/API-NoOffset-2542dc3ef51480afaf75f539d821afe4)
+- [테이블 비정규화를 통한 설문 제출 성능 개선](https.notion.so/teamsparta/2542dc3ef51480609d96d9cd20ab9d8c)
+- [회원 탈퇴 로직의 구조적 문제 개선](https://www.notion.so/teamsparta/2542dc3ef51480dca912c246719869bf)
+- [PostgreSQL의 GIN 인덱스를 활용한 검색 성능 향상](https://www.notion.so/teamsparta/PostgreSQL-GIN-Index-2542dc3ef5148058b9bfef04a4864633)
 
-- [EC2 vs ECS](https://www.notion.so/teamsparta/EC2-vs-ECS-2542dc3ef51480b18997ca8eeb090a88?source=copy_link)
+---
 
+## 10. 트러블 슈팅
 
-- [전략 패턴 도입](https://www.notion.so/teamsparta/EC2-vs-ECS-2542dc3ef51480b18997ca8eeb090a88?source=copy_link)
+- [스케줄링 시 데이터가 누락되는 문제 해결](https://www.notion.so/teamsparta/2542dc3ef51480dea65dcc813544ca12)
+- [공유 도메인 구조 변경 및 개선](https://www.notion.so/teamsparta/2552dc3ef51480a997dbd8965800621e)
 
+---
 
-- [웹 PUSH 알림 웹 소켓](https://www.notion.so/teamsparta/2552dc3ef51480b4abfac5763b3ffe05?source=copy_link)
-
-## 성능 최적화
-
-- [설문 응답 제출 성능 최적화](https://www.notion.so/teamsparta/Redis-2542dc3ef514809bbd55c5fae2e1e08a?source=copy_link)
-
-
-- [프로젝트 검색 API 성능 검증 및 NoOffset 도입](https://www.notion.so/teamsparta/API-NoOffset-2542dc3ef51480afaf75f539d821afe4?source=copy_link)
-
-
-- [테이블 비정규화로 설문 제출 성능 개선](https://www.notion.so/teamsparta/2542dc3ef51480609d96d9cd20ab9d8c?source=copy_link)
-
-
-- [회원탈퇴 구조적 문제 개선](https://www.notion.so/teamsparta/2542dc3ef51480dca912c246719869bf?source=copy_link)
-
-
-- [PostgreSQL의 GIN Index를 통한 검색성능 향상](https://www.notion.so/teamsparta/PostgreSQL-GIN-Index-2542dc3ef5148058b9bfef04a4864633?source=copy_link)
-
-## 트러블 슈팅
-
-- [스케줄링 시 데이터가 누락되는 문제 해결](https://www.notion.so/teamsparta/2542dc3ef51480dea65dcc813544ca12?source=copy_link)
-
-
-- [공유 구조 변경](https://www.notion.so/teamsparta/2552dc3ef51480a997dbd8965800621e?source=copy_link)
+## 11. 시연 영상
 
