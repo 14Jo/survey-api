@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.survey.domain.survey;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface SurveyRepository {
@@ -11,9 +12,11 @@ public interface SurveyRepository {
 
 	void stateUpdate(Survey survey);
 
-	Optional<Survey> findBySurveyIdAndCreatorId(Long surveyId, Long creatorId);
+	Optional<Survey> findBySurveyIdAndIsDeletedFalse(Long surveyId);
 
 	Optional<Survey> findBySurveyIdAndCreatorIdAndIsDeletedFalse(Long surveyId, Long creatorId);
 
 	Optional<Survey> findById(Long surveyId);
+
+	List<Survey> findAllByProjectId(Long projectId);
 }

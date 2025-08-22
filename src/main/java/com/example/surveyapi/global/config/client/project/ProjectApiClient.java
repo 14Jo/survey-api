@@ -22,9 +22,4 @@ public interface ProjectApiClient {
 		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long projectId
 	);
-
-	@GetExchange("/api/v2/projects/me/managers")
-	ExternalApiResponse getProjectMyRole(
-		@RequestHeader("Authorization") String authHeader,
-		@RequestParam Long userId);
 }
