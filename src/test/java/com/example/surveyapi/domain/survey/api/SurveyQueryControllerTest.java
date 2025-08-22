@@ -26,7 +26,7 @@ import com.example.surveyapi.domain.survey.application.command.dto.response.Sear
 import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
@@ -51,13 +51,10 @@ class SurveyQueryControllerTest {
             .setControllerAdvice(new GlobalExceptionHandler())
             .build();
 
-        // 설문 상세 응답 생성
         surveyDetailResponse = createSurveyDetailResponse();
 
-        // 설문 목록 응답 생성
         surveyTitleResponse = createSurveyTitleResponse();
 
-        // 설문 상태 응답 생성
         surveyStatusResponse = SearchSurveyStatusResponse.from(List.of(1L, 2L, 3L));
     }
 
@@ -165,28 +162,26 @@ class SurveyQueryControllerTest {
     }
 
     private SearchSurveyDetailResponse createSurveyDetailResponse() {
-        // SurveyReadEntity를 사용하여 테스트 데이터 생성
         SurveyReadEntity.SurveyOptions options = new SurveyReadEntity.SurveyOptions(
             true, true, LocalDateTime.now(), LocalDateTime.now().plusDays(7)
         );
         
         SurveyReadEntity entity = SurveyReadEntity.create(
             1L, 1L, "테스트 설문", "테스트 설문 설명", 
-            SurveyStatus.PREPARING.name(), 5, options
+            SurveyStatus.PREPARING, 5, options
         );
         
         return SearchSurveyDetailResponse.from(entity, 5);
     }
 
     private SearchSurveyTitleResponse createSurveyTitleResponse() {
-        // SurveyReadEntity를 사용하여 테스트 데이터 생성
         SurveyReadEntity.SurveyOptions options = new SurveyReadEntity.SurveyOptions(
             true, true, LocalDateTime.now(), LocalDateTime.now().plusDays(7)
         );
         
         SurveyReadEntity entity = SurveyReadEntity.create(
             1L, 1L, "테스트 설문", "테스트 설문 설명", 
-            SurveyStatus.PREPARING.name(), 5, options
+            SurveyStatus.PREPARING, 5, options
         );
         
         return SearchSurveyTitleResponse.from(entity);

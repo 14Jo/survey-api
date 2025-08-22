@@ -1,8 +1,19 @@
-# 공통 설정
 spring:
-  # 기본 프로필을 dev로 설정
   profiles:
     active: dev
+  
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/survey_db
+    username: survey_user
+    password: survey_password
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 10
+      connection-timeout: 5000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
   jpa:
     hibernate:
       ddl-auto: update
@@ -12,10 +23,10 @@ spring:
         show_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
         jdbc:
-          batch_size: 50        # 배치 크기
+          batch_size: 50
           batch_versioned_data: true
-          order_inserts: true     # INSERT 순서 최적화
-          order_updates: true     # UPDATE 순서 최적화
+          order_inserts: true
+          order_updates: true
         batch_fetch_style: DYNAMIC
         default_batch_fetch_size: 50
 
@@ -32,10 +43,10 @@ spring:
         recordStats
 
   rabbitmq:
-    host: localhost
-    port: 5672
-    username: guest
-    password: guest
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:admin}
+    password: ${RABBITMQ_PASSWORD:admin}
 
   data:
     mongodb:
@@ -45,55 +56,10 @@ spring:
       username: ${MONGODB_USERNAME:survey_user}
       password: ${MONGODB_PASSWORD:survey_password}
       authentication-database: ${MONGODB_AUTHDB:admin}
-
-  elasticsearch:
-    uris: ${ELASTIC_HOST:http://localhost:9200}
-
-# =======================================================
-# == Actuator 공통 설정 추가
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    distribution:
-      percentiles-histogram:
-        http.server.requests: true
-      percentiles:
-        http.server.requests: 0.5,0.95,0.99
-  health:
-    elasticsearch:
-      enabled: false
-
----
-# 개발(dev) 프로필 - 로컬 PostgreSQL DB 설정
-spring:
-  config:
-    activate:
-      on-profile: dev
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/${DB_SCHEME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    hikari:
-      minimum-idle: 5
-      maximum-pool-size: 10
-      connection-timeout: 5000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-  data:
     redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -109,32 +75,25 @@ spring:
 server:
   tomcat:
     threads:
-      max: 20 # 최대 스레드 수를 25개
-      min-spare: 10 # 최소 유휴 스레드
+      max: 20
+      min-spare: 10
 
-# 로그 설정 - 외부 API 관련 로그만 DEBUG로 설정
-logging:
-  level:
-    org.springframework.security: DEBUG
-    com.zaxxer.hikari: DEBUG
-    org.apache.tomcat.util.threads.ThreadPoolExecutor: DEBUG
-    com.example.surveyapi: INFO
-    org.elasticsearch.client.RestClient.level: DEBUG
-    org.elasticsearch.client.level: DEBUG
-    co.elastic.clients.transport.level: TRACE
-    # 외부 API 관련 로그만 DEBUG로 설정
-    com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
-    com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
-    com.example.surveyapi.domain.survey.api.SurveyQueryController: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/external_api_debug.log
-    max-size: 10MB
-    max-history: 30
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
 
-# JWT Secret Key
 jwt:
   secret:
     key: ${SECRET_KEY}
@@ -151,78 +110,3 @@ oauth:
     client-id: ${GOOGLE_CLIENT_ID}
     client-secret: ${GOOGLE_SECRET}
     redirect-uri: ${GOOGLE_REDIRECT_URL}
-
-
----
-# 운영(prod) 프로필 - PostgreSQL (EC2 등 외부 서버) 설정
-spring:
-  config:
-    activate:
-      on-profile: prod
-
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_SCHEME}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    hikari:
-      minimum-idle: 5
-      maximum-pool-size: 10
-      connection-timeout: 5000
-      idle-timeout: 600000
-      max-lifetime: 1800000
-
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_ADDRESS}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-
-server:
-  tomcat:
-    threads:
-      max: 20
-      min-spare: 10
-
-# 로그 설정
-logging:
-  level:
-    org.springframework.security: INFO
-    com.example.surveyapi: INFO
-    # 외부 API 관련 로그만 DEBUG로 설정
-    com.example.surveyapi.domain.survey.application.SurveyQueryService: DEBUG
-    com.example.surveyapi.domain.survey.infra.adapter.ParticipationAdapter: DEBUG
-    com.example.surveyapi.domain.survey.api.SurveyQueryController: DEBUG
-  pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  file:
-    name: logs/external_api_debug.log
-    max-size: 100MB
-    max-history: 30
-
-# JWT Secret Key
-jwt:
-  secret:
-    key: ${SECRET_KEY}
-
-oauth:
-  kakao:
-    client-id: ${CLIENT_ID}
-    redirect-uri: ${REDIRECT_URL}

@@ -12,7 +12,7 @@ import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;

@@ -15,7 +15,7 @@ import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
 import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

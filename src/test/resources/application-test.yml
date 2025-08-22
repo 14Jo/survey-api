@@ -1,42 +1,13 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: true
-  datasource:
-    url: jdbc:postgresql://localhost:5432/testdb
-    username: ljy
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      max-lifetime: 30000
-      connection-timeout: 20000
-      validation-timeout: 5000
-      leak-detection-threshold: 60000
+        format_sql: false
+    show-sql: false
   data:
-    redis:
-      host: ${ACTION_REDIS_HOST:localhost}
-      port: ${ACTION_REDIS_PORT:6379}
-
-  mail:
-    host: localhost
-    port: 1025
-    username:
-    password:
-    properties:
-      mail:
-        smtp:
-          auth: false
-          starttls:
-            enable: false
-
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017}
-      database: ${MONGODB_DATABASE:test_survey_db}
       auto-index-creation: true
 
 # JWT Secret Key for test environment

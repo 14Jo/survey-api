@@ -9,14 +9,14 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.Pr
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.participant.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectAbstractRoot;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedDomainEvent;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectManagerAddedDomainEvent;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectMemberAddedDomainEvent;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
-import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
-import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
-import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -29,7 +29,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -42,30 +41,37 @@ import lombok.NoArgsConstructor;
 @Table(name = "projects")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Project extends BaseEntity {
+public class Project extends ProjectAbstractRoot {
 
-	@Transient
-	private final List<Object> domainEvents = new ArrayList<>();
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	@Version
 	private Long version;
+
 	@Column(nullable = false, unique = true)
 	private String name;
+
 	@Column(columnDefinition = "TEXT", nullable = false)
 	private String description;
+
 	@Column(nullable = false)
 	private Long ownerId;
+
 	@Embedded
 	private ProjectPeriod period;
+
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false)
 	private ProjectState state = ProjectState.PENDING;
+
 	@Column(nullable = false)
 	private int maxMembers;
+
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	private List<ProjectManager> projectManagers = new ArrayList<>();
+
 	@OneToMany(mappedBy = "project", cascade = {CascadeType.MERGE, CascadeType.PERSIST})
 	private List<ProjectMember> projectMembers = new ArrayList<>();
 
@@ -117,7 +123,7 @@ public class Project extends BaseEntity {
 		}
 
 		this.state = newState;
-		registerEvent(new ProjectStateChangedEvent(this.id, newState.name()));
+		registerEvent(new ProjectStateChangedDomainEvent(this.id, newState));
 	}
 
 	public void updateOwner(Long currentUserId, Long newOwnerId) {
@@ -150,7 +156,7 @@ public class Project extends BaseEntity {
 		}
 
 		this.delete();
-		registerEvent(new ProjectDeletedEvent(this.id, this.name, currentUserId));
+		registerEvent(new ProjectDeletedDomainEvent(this.id, this.name, currentUserId));
 	}
 
 	public void addManager(Long currentUserId) {
@@ -164,7 +170,8 @@ public class Project extends BaseEntity {
 		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
 
-		registerEvent(new ProjectManagerAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
+		registerEvent(
+			new ProjectManagerAddedDomainEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
@@ -237,7 +244,8 @@ public class Project extends BaseEntity {
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
 
-		registerEvent(new ProjectMemberAddedEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
+		registerEvent(
+			new ProjectMemberAddedDomainEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void removeMember(Long currentUserId) {
@@ -265,16 +273,5 @@ public class Project extends BaseEntity {
 		if (!this.ownerId.equals(currentUserId)) {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED);
 		}
-	}
-
-	// 이벤트 등록/ 관리
-	public List<Object> pullDomainEvents() {
-		List<Object> events = new ArrayList<>(domainEvents);
-		domainEvents.clear();
-		return events;
-	}
-
-	private void registerEvent(Object event) {
-		this.domainEvents.add(event);
 	}
 }

@@ -1,14 +1,20 @@
 package com.example.surveyapi.domain.survey.domain.survey.vo;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+@NoArgsConstructor
+@Embeddable
 public class SurveyOption {
-	private boolean anonymous = false;
-	private boolean allowResponseUpdate = false;
+	@Column(name = "anonymous", nullable = false)
+	private boolean anonymous;
+
+	@Column(name = "allow_response_update", nullable = false)
+	private boolean allowResponseUpdate;
 
 	public static SurveyOption of(boolean anonymous, boolean allowResponseUpdate) {
 		SurveyOption option = new SurveyOption();

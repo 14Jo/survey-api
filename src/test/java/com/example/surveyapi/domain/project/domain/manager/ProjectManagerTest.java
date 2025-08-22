@@ -10,7 +10,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.example.surveyapi.domain.project.domain.participant.manager.entity.ProjectManager;
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 public class ProjectManagerTest {

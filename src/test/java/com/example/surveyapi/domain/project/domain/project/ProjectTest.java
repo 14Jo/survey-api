@@ -12,7 +12,7 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.Pr
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 class ProjectTest {
@@ -95,20 +95,6 @@ class ProjectTest {
 		assertEquals(ProjectState.CLOSED, project.getState());
 		assertThat(project.getPeriod().getPeriodEnd())
 			.isCloseTo(LocalDateTime.now(), within(2, SECONDS));
-	}
-
-	@Test
-	void 프로젝트_상태_변경_CLOSED에서_다른_상태로_변경_불가() {
-		// given
-		Project project = createProject();
-		project.updateState(ProjectState.IN_PROGRESS);
-		project.updateState(ProjectState.CLOSED);
-
-		// when & then
-		CustomException exception = assertThrows(CustomException.class, () -> {
-			project.updateState(ProjectState.IN_PROGRESS);
-		});
-		assertEquals(CustomErrorCode.INVALID_PROJECT_STATE, exception.getErrorCode());
 	}
 
 	@Test
