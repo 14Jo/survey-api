@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.share.application.event.dto.ShareCreateRequest;
 import com.example.surveyapi.domain.share.application.event.port.ShareEventPort;
-import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.event.SurveyActivateEvent;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
