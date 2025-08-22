@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
-import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
