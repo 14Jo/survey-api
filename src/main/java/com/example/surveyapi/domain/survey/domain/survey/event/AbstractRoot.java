@@ -39,13 +39,13 @@ public class AbstractRoot<A extends AbstractRoot<A>> extends BaseEntity {
 
 		this.domainEvents.addAll(aggregate.domainEvents());
 
-		return (A) this;
+		return (A)this;
 	}
 
 	protected final A andEvent(Object event) {
 
 		registerEvent(event);
 
-		return (A) this;
+		return (A)this;
 	}
 }

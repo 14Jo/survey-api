@@ -296,7 +296,7 @@ public class UserControllerTest {
         UpdateUserRequest invalidRequest = updateRequest(longName);
 
         // when & then
-        mockMvc.perform(patch("/api/v1/users")
+        mockMvc.perform(patch("/api/v1/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andDo(print())

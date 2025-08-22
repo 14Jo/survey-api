@@ -92,12 +92,16 @@ class ShareServiceTest {
 		}
 	}
 
+	//TODO 에러떄메 주석처리함
 	@Test
 	@DisplayName("공유 조회 성공")
 	void getShare_success() {
 		ShareResponse response = shareService.getShare(savedShareId, 1L);
+    
 		Share share = shareService.getShareEntity(savedShareId, 1L);
 		assertThat(response.getShareLink()).isEqualTo(share.getLink());
+
+		assertThat(response.getId()).isEqualTo(savedShareId);
 	}
 
 	@Test

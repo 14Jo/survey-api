@@ -9,12 +9,13 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
+import com.example.surveyapi.domain.participation.domain.event.ParticipationAbstractRoot;
+import com.example.surveyapi.domain.participation.domain.event.ParticipationCreatedEvent;
+import com.example.surveyapi.domain.participation.domain.event.ParticipationUpdatedEvent;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.domain.participation.domain.response.Response;
 import com.example.surveyapi.global.enums.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.BaseEntity;
-import com.example.surveyapi.global.model.ParticipationEvent;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -24,8 +25,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
-import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,8 +35,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "participations")
-public class Participation extends BaseEntity {
-
+public class Participation extends ParticipationAbstractRoot<Participation> {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -53,9 +53,6 @@ public class Participation extends BaseEntity {
 	@OneToMany(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY, mappedBy = "participation")
 	private List<Response> responses = new ArrayList<>();
 
-	@Transient
-	private final List<ParticipationEvent> participationEvents = new ArrayList<>();
-
 	public static Participation create(Long userId, Long surveyId, ParticipantInfo participantInfo,
 		List<ResponseData> responseDataList) {
 		Participation participation = new Participation();
@@ -65,6 +62,11 @@ public class Participation extends BaseEntity {
 		participation.addResponse(responseDataList);
 
 		return participation;
+	}
+
+	@PostPersist
+	protected void registerCreatedEvent() {
+		registerEvent(ParticipationCreatedEvent.from(this));
 	}
 
 	private void addResponse(List<ResponseData> responseDataList) {
@@ -99,15 +101,7 @@ public class Participation extends BaseEntity {
 				response.updateAnswer(newResponse.getAnswer());
 			}
 		}
-	}
 
-	public void registerEvent(ParticipationEvent event) {
-		this.participationEvents.add(event);
-	}
-
-	public List<ParticipationEvent> pollAllEvents() {
-		List<ParticipationEvent> events = new ArrayList<>(this.participationEvents);
-		this.participationEvents.clear();
-		return events;
+		registerEvent(ParticipationUpdatedEvent.from(this));
 	}
 }

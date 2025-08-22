@@ -32,12 +32,8 @@ import com.example.surveyapi.domain.participation.domain.participation.Participa
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
 import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
-import com.example.surveyapi.global.constant.RabbitConst;
 import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.event.ParticipationCreatedEvent;
-import com.example.surveyapi.global.event.ParticipationUpdatedEvent;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.ParticipationEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -71,19 +67,6 @@ public class ParticipationService {
 		Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 
 		Participation savedParticipation = participationRepository.save(participation);
-
-		// 이벤트 생성
-		ParticipationCreatedEvent event = ParticipationCreatedEvent.from(savedParticipation);
-		savedParticipation.registerEvent(event);
-
-		// 이벤트 발행
-		savedParticipation.pollAllEvents().forEach(evt ->
-			rabbitTemplate.convertAndSend(
-				RabbitConst.PARTICIPATION_EXCHANGE_NAME,
-				getRoutingKey(evt),
-				evt
-			)
-		);
 
 		return savedParticipation.getId();
 	}
@@ -178,17 +161,6 @@ public class ParticipationService {
 
 		// 문항과 답변 유효성 검사
 		validateQuestionsAndAnswers(responseDataList, questions);
-
-		ParticipationUpdatedEvent event = ParticipationUpdatedEvent.from(participation);
-		participation.registerEvent(event);
-
-		participation.pollAllEvents().forEach(evt ->
-			rabbitTemplate.convertAndSend(
-				RabbitConst.PARTICIPATION_EXCHANGE_NAME,
-				getRoutingKey(evt),
-				evt
-			)
-		);
 
 		participation.update(responseDataList);
 	}
@@ -339,14 +311,5 @@ public class ParticipationService {
 			userSnapshot.getRegion().getProvince(),
 			userSnapshot.getRegion().getDistrict()
 		);
-	}
-
-	private String getRoutingKey(ParticipationEvent event) {
-		if (event instanceof ParticipationCreatedEvent) {
-			return RabbitConst.PARTICIPATION_ROUTING_KEY.replace("#", "created");
-		} else if (event instanceof ParticipationUpdatedEvent) {
-			return RabbitConst.PARTICIPATION_ROUTING_KEY.replace("#", "updated");
-		}
-		throw new RuntimeException("Participation 이벤트 식별 실패");
 	}
 }

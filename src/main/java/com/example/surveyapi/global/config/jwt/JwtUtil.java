@@ -35,7 +35,7 @@ public class JwtUtil {
     }
 
     private static final String BEARER_PREFIX = "Bearer ";
-    private static final long TOKEN_TIME = 60 * 360 * 1000L;
+    private static final long TOKEN_TIME = 60 * 60 * 1000L;
     private static final long REFRESH_TIME = 7 * 24 * 60 * 60 * 1000L;
 
     public String createAccessToken(Long userId, Role userRole) {

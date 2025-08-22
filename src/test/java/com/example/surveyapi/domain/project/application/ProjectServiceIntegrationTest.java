@@ -6,9 +6,7 @@ import java.time.LocalDateTime;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
@@ -20,18 +18,18 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.Pr
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.domain.project.infra.project.jpa.ProjectJpaRepository;
+import com.example.surveyapi.domain.project.infra.repository.jpa.ProjectJpaRepository;
+import com.example.surveyapi.domain.survey.application.IntegrationTestBase;
 
 /**
  * DB에 정상적으로 반영되는지 확인하기 위한 통합 테스트
  * 예외 로직은 도메인 단위테스트 진행
  */
-@SpringBootTest
-@Transactional
-class ProjectServiceIntegrationTest {
+class ProjectServiceIntegrationTest extends IntegrationTestBase {
 
 	@Autowired
 	private ProjectService projectService;
+
 	@Autowired
 	private ProjectQueryService projectQueryService;
 
@@ -117,17 +115,19 @@ class ProjectServiceIntegrationTest {
 		// given
 		Long projectId = createSampleProject();
 		projectService.joinProjectManager(projectId, 2L);
+		Project project = projectRepository.findById(projectId).orElseThrow();
+		ProjectManager manager = project.findManagerByUserId(2L);
 
 		UpdateManagerRoleRequest roleRequest = new UpdateManagerRoleRequest();
 		ReflectionTestUtils.setField(roleRequest, "newRole", ManagerRole.WRITE);
 
 		// when
-		projectService.updateManagerRole(projectId, 2L, roleRequest, 1L);
+		projectService.updateManagerRole(projectId, manager.getId(), roleRequest, 1L);
 
 		// then
-		Project project = projectRepository.findById(projectId).orElseThrow();
-		ProjectManager manager = project.getProjectManagers().get(1);
-		assertThat(manager.getRole()).isEqualTo(ManagerRole.WRITE);
+		Project updatedProject = projectRepository.findById(projectId).orElseThrow();
+		ProjectManager updatedManager = updatedProject.getProjectManagers().get(1);
+		assertThat(updatedManager.getRole()).isEqualTo(ManagerRole.WRITE);
 	}
 
 	@Test
@@ -135,13 +135,31 @@ class ProjectServiceIntegrationTest {
 		// given
 		Long projectId = createSampleProject();
 		projectService.joinProjectManager(projectId, 2L);
+		Project project = projectRepository.findById(projectId).orElseThrow();
+		ProjectManager manager = project.findManagerByUserId(2L);
 
 		// when
-		projectService.deleteManager(projectId, 2L, 1L);
+		projectService.deleteManager(projectId, manager.getId(), 1L);
+
+		// then
+		Project updatedProject = projectRepository.findById(projectId).orElseThrow();
+		assertThat(updatedProject.getProjectManagers().get(1).getIsDeleted()).isTrue();
+	}
+
+	@Test
+	void 프로젝트_매니저_탈퇴_정상동작() {
+		// given
+		Long projectId = createSampleProject();
+		projectService.joinProjectManager(projectId, 2L);
+
+		// when
+		projectService.leaveProjectManager(projectId, 2L);
 
 		// then
 		Project project = projectRepository.findById(projectId).orElseThrow();
-		assertThat(project.getProjectManagers().get(1).getIsDeleted()).isTrue();
+		assertThat(project.getProjectManagers().stream()
+			.filter(m -> m.getUserId().equals(2L))
+			.findFirst().orElseThrow().getIsDeleted()).isTrue();
 	}
 
 	@Test
