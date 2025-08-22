@@ -61,7 +61,7 @@ public class ParticipationService {
 		log.info("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
 		long totalStartTime = System.currentTimeMillis();
 
-		// validateParticipationDuplicated(surveyId, userId);
+		validateParticipationDuplicated(surveyId, userId);
 
 		CompletableFuture<SurveyDetailDto> futureSurveyDetail = CompletableFuture.supplyAsync(
 			() -> surveyPort.getSurveyDetail(authHeader, surveyId), taskExecutor);
@@ -236,8 +236,10 @@ public class ParticipationService {
 		}
 	}
 
-	private void validateResponses(List<ResponseData> responses,
-		List<SurveyDetailDto.QuestionValidationInfo> questions) {
+	private void validateResponses(
+		List<ResponseData> responses,
+		List<SurveyDetailDto.QuestionValidationInfo> questions
+	) {
 		Map<Long, ResponseData> responseMap = responses.stream()
 			.collect(Collectors.toMap(ResponseData::getQuestionId, r -> r));
 
@@ -245,92 +247,79 @@ public class ParticipationService {
 		if (responseMap.size() != questions.size() || !responseMap.keySet().equals(
 			questions.stream()
 				.map(SurveyDetailDto.QuestionValidationInfo::getQuestionId)
-				.collect(Collectors.toSet()))) {
+				.collect(Collectors.toSet())
+		)) {
 			throw new CustomException(CustomErrorCode.INVALID_SURVEY_QUESTION);
 		}
 
 		for (SurveyDetailDto.QuestionValidationInfo question : questions) {
 			ResponseData response = responseMap.get(question.getQuestionId());
-			boolean isAnswerEmpty = isEmpty(response.getAnswer());
+			Map<String, Object> answer = response.getAnswer();
+			SurveyApiQuestionType questionType = question.getQuestionType();
 
-			if (question.isRequired() && isAnswerEmpty) {
-				throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
-			}
-
-			if (!isAnswerEmpty) {
-				validateAnswer(response.getAnswer(), question);
-			}
-		}
-	}
-
-	private void validateAnswer(Map<String, Object> answer, SurveyDetailDto.QuestionValidationInfo question) {
-		SurveyApiQuestionType questionType = question.getQuestionType();
-
-		switch (questionType) {
-			case SINGLE_CHOICE -> {
-				if (!(answer.containsKey("choice") && answer.get("choice") instanceof List<?> choiceList
-					&& choiceList.size() < 2)) {
-					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
-				}
-
-				Set<Integer> validateChoiceIds = question.getChoices().stream()
-					.map(SurveyDetailDto.ChoiceNumber::getChoiceId)
-					.collect(Collectors.toSet());
-
-				for (Object choice : choiceList) {
-					if (!(choice instanceof Integer choiceId)) {
+			switch (questionType) {
+				case SINGLE_CHOICE: {
+					if (!answer.containsKey("choice") || !(answer.get("choice") instanceof List<?> choiceList)
+						|| choiceList.size() > 1) {
+						log.error("INVALID_ANSWER_TYPE ERROR: not choice, questionId = {}", question.getQuestionId());
 						throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 					}
 
-					if (!validateChoiceIds.contains(choiceId)) {
-						log.error("questionId = {}, choiceId = {}", question.getQuestionId(), choiceId);
-						throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+					if (choiceList.isEmpty() && question.getIsRequired()) {
+						log.error("REQUIRED_QUESTION_NOT_ANSWERED ERROR: questionId = {}",
+							question.getQuestionId());
+						throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
 					}
-				}
-			}
-			case MULTIPLE_CHOICE -> {
-				if (!(answer.containsKey("choices") && answer.get("choices") instanceof List<?> choiceList)) {
-					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
-				}
+					Set<Integer> validateChoiceIds = question.getChoices().stream()
+						.map(SurveyDetailDto.ChoiceNumber::getChoiceId).collect(Collectors.toSet());
 
-				Set<Integer> validateChoiceIds = question.getChoices().stream()
-					.map(SurveyDetailDto.ChoiceNumber::getChoiceId)
-					.collect(Collectors.toSet());
-
-				for (Object choice : choiceList) {
-					if (!(choice instanceof Integer choiceId)) {
+					for (Object choice : choiceList) {
+						if (!(choice instanceof Integer choiceId) || !validateChoiceIds.contains(choiceId)) {
+							log.error("INVALID_CHOICE_ID ERROR: questionId = {}, choiceId = {}",
+								question.getQuestionId(), choice instanceof Integer choiceId);
+							throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+						}
+					}
+					break;
+				}
+				case MULTIPLE_CHOICE: {
+					if (!answer.containsKey("choices") ||
+						!(answer.get("choices") instanceof List<?> choiceList)) {
+						log.error("INVALID_ANSWER_TYPE ERROR: not choices, questionId = {}", question.getQuestionId());
 						throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 					}
 
-					if (!validateChoiceIds.contains(choiceId)) {
-						log.error("questionId = {}, choiceId = {}", question.getQuestionId(), choiceId);
-						throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+					if (choiceList.isEmpty() && question.getIsRequired()) {
+						log.error("REQUIRED_QUESTION_NOT_ANSWERED ERROR: questionId = {}",
+							question.getQuestionId());
+						throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
 					}
+					Set<Integer> validateChoiceIds = question.getChoices().stream()
+						.map(SurveyDetailDto.ChoiceNumber::getChoiceId).collect(Collectors.toSet());
+
+					for (Object choice : choiceList) {
+						if (!(choice instanceof Integer choiceId) || !validateChoiceIds.contains(choiceId)) {
+							log.error("INVALID_CHOICE_ID ERROR: questionId = {}, choiceId = {}",
+								question.getQuestionId(), choice instanceof Integer choiceId);
+							throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+						}
+					}
+					break;
+				}
+				case SHORT_ANSWER, LONG_ANSWER: {
+					if (!answer.containsKey("textAnswer") || !(answer.get("textAnswer") instanceof String textAnswer)) {
+						log.error("INVALID_ANSWER_TYPE ERROR: not textAnswer, questionId = {}",
+							question.getQuestionId());
+						throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
+					}
+					if (textAnswer.isBlank() && question.getIsRequired()) {
+						log.error("REQUIRED_QUESTION_NOT_ANSWERED ERROR: questionId = {}",
+							question.getQuestionId());
+						throw new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED);
+					}
+					break;
 				}
 			}
-			case SHORT_ANSWER, LONG_ANSWER -> {
-				if (!(answer.containsKey("textAnswer") && answer.get("textAnswer") instanceof String)) {
-					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
-				}
-			}
 		}
-	}
-
-	private boolean isEmpty(Map<String, Object> answer) {
-		if (answer == null || answer.isEmpty()) {
-			return true;
-		}
-		Object value = answer.values().iterator().next();
-
-		if (value == null) {
-			return true;
-		}
-		if (value instanceof String) {
-			return ((String)value).isBlank();
-		}
-		if (value instanceof List) {
-			return ((List<?>)value).isEmpty();
-		}
-		return false;
 	}
 }
