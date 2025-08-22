@@ -10,7 +10,7 @@ import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -72,8 +72,19 @@ public class ShareService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<Share> getShareBySource(Long sourceId) {
-		List<Share> shares = shareRepository.findBySource(sourceId);
+	public Share getShareBySource(ShareSourceType sourceType, Long sourceId) {
+		Share share = shareRepository.findBySource(sourceType, sourceId);
+
+		if (share.isDeleted()) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return share;
+	}
+
+	@Transactional(readOnly = true)
+	public List<Share> getShareBySourceId(Long sourceId) {
+		List<Share> shares = shareRepository.findBySourceId(sourceId);
 
 		if (shares.isEmpty()) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
