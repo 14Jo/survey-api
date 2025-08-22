@@ -12,7 +12,7 @@ import com.example.surveyapi.domain.user.application.client.response.KakaoAccess
 import com.example.surveyapi.domain.user.application.client.response.KakaoUserInfoResponse;
 import com.example.surveyapi.domain.user.application.client.response.NaverAccessResponse;
 import com.example.surveyapi.domain.user.application.client.response.NaverUserInfoResponse;
-import com.example.surveyapi.global.config.client.user.OAuthApiClient;
+import com.example.surveyapi.global.client.OAuthApiClient;
 
 import lombok.RequiredArgsConstructor;
 

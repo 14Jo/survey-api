@@ -1,7 +1,7 @@
 package com.example.surveyapi.domain.survey.application.event;
 
-import com.example.surveyapi.global.enums.EventCode;
-import com.example.surveyapi.global.model.SurveyEvent;
+import com.example.surveyapi.global.event.EventCode;
+import com.example.surveyapi.global.event.survey.SurveyEvent;
 
 public interface SurveyEventPublisherPort {
 

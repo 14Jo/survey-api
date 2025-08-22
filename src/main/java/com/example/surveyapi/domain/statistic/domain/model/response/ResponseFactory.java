@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.example.surveyapi.domain.statistic.domain.dto.StatisticCommand;
 import com.example.surveyapi.domain.statistic.domain.model.enums.AnswerType;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.extern.slf4j.Slf4j;

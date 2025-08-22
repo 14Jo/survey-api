@@ -24,12 +24,12 @@ import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRedisRepository;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.global.config.jwt.JwtUtil;
-import com.example.surveyapi.global.config.oauth.GoogleOAuthProperties;
-import com.example.surveyapi.global.config.oauth.KakaoOAuthProperties;
-import com.example.surveyapi.global.config.oauth.NaverOAuthProperties;
-import com.example.surveyapi.global.config.security.PasswordEncoder;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.auth.jwt.JwtUtil;
+import com.example.surveyapi.global.auth.oauth.GoogleOAuthProperties;
+import com.example.surveyapi.global.auth.oauth.KakaoOAuthProperties;
+import com.example.surveyapi.global.auth.oauth.NaverOAuthProperties;
+import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import io.jsonwebtoken.Claims;
@@ -249,8 +249,8 @@ public class AuthService {
 
     private LoginResponse createAccessAndSaveRefresh(User user) {
 
-        String newAccessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
-        String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getRole());
+        String newAccessToken = jwtUtil.createAccessToken(user.getId(), user.getRole().name());
+        String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getRole().name());
 
         String redisKey = "refreshToken" + user.getId();
         userRedisRepository.saveRedisKey(redisKey, newRefreshToken, Duration.ofDays(7));

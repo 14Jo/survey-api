@@ -31,7 +31,7 @@ import com.example.surveyapi.domain.project.application.dto.response.ProjectMana
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberIdsResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectMemberInfoResponse;
 import com.example.surveyapi.domain.project.application.dto.response.ProjectSearchInfoResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
