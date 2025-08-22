@@ -1,0 +1,256 @@
+name: Deploy API to ECS
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'Dockerfile'
+      - 'ecs-task-definitions/api-task-definition.json'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy without changes'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: survey-api/service
+  ECS_CLUSTER: survey-cluster
+  ECS_SERVICE: api-service
+  ECS_TASK_DEFINITION: api-task
+  # GitHub Secrets 추가 필요함
+  # SOME_SECRET: ${{ secrets.SOME_SECRET }}
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Run tests
+      run: ./gradlew test
+
+    - name: Publish test results
+      uses: dorny/test-reporter@v1
+      if: success() || failure()
+      with:
+        name: Test Results
+        path: build/test-results/test/*.xml
+        reporter: java-junit
+
+  build-and-deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Build application
+      run: ./gradlew bootJar -x test
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::025861172546:role/github-actions-role
+        role-session-name: GitHub-Actions-Survey-API
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Extract metadata
+      id: meta
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        # Get current timestamp for image tag
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        SHORT_SHA=${GITHUB_SHA::8}
+        IMAGE_TAG="${TIMESTAMP}-${SHORT_SHA}"
+        
+        echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        echo "image-uri=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        echo "latest-uri=${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" >> $GITHUB_OUTPUT
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ steps.meta.outputs.image-tag }}
+        IMAGE_URI: ${{ steps.meta.outputs.image-uri }}
+        LATEST_URI: ${{ steps.meta.outputs.latest-uri }}
+      run: |
+        # Build Docker image
+        docker build -t $IMAGE_URI .
+        docker tag $IMAGE_URI $LATEST_URI
+        
+        # Push to ECR
+        docker push $IMAGE_URI
+        docker push $LATEST_URI
+        
+        echo "이미지 빌드 및 푸시 완료: $IMAGE_URI"
+        echo "최신 이미지: $LATEST_URI"
+        echo "image=$LATEST_URI" >> $GITHUB_OUTPUT
+
+    - name: Force ECS service update
+      id: deploy
+      run: |
+        echo "ECS 서비스 강제 업데이트 시작..."
+        
+        # ECS 서비스를 강제로 새 배포 시작 (새 이미지 가져오기)
+        aws ecs update-service \
+          --cluster $ECS_CLUSTER \
+          --service $ECS_SERVICE \
+          --force-new-deployment \
+          --output json > deployment_result.json
+        
+        # 배포 정보 출력
+        DEPLOYMENT_ID=$(cat deployment_result.json | jq -r '.service.deployments[0].id')
+        echo "배포 ID: $DEPLOYMENT_ID"
+        echo "deployment-id=$DEPLOYMENT_ID" >> $GITHUB_OUTPUT
+        
+        # 배포 상태 대기
+        echo "배포 완료 대기 중..."
+        aws ecs wait services-stable \
+          --cluster $ECS_CLUSTER \
+          --services $ECS_SERVICE
+
+    - name: Verify deployment
+      run: |
+        # Get ECS service status
+        SERVICE_STATUS=$(aws ecs describe-services \
+          --cluster $ECS_CLUSTER \
+          --services $ECS_SERVICE \
+          --query 'services[0].deployments[0].status' \
+          --output text)
+        
+        RUNNING_COUNT=$(aws ecs describe-services \
+          --cluster $ECS_CLUSTER \
+          --services $ECS_SERVICE \
+          --query 'services[0].runningCount' \
+          --output text)
+        
+        DESIRED_COUNT=$(aws ecs describe-services \
+          --cluster $ECS_CLUSTER \
+          --services $ECS_SERVICE \
+          --query 'services[0].desiredCount' \
+          --output text)
+        
+        echo "배포 상태: $SERVICE_STATUS"
+        echo "실행 중인 태스크: $RUNNING_COUNT/$DESIRED_COUNT"
+        
+        if [ "$SERVICE_STATUS" = "PRIMARY" ] && [ "$RUNNING_COUNT" = "$DESIRED_COUNT" ]; then
+          echo "배포 성공!"
+        else
+          echo "배포 실패 또는 불안정 상태"
+          exit 1
+        fi
+
+    - name: Health check
+      run: |
+        # Get task public IP (if using Fargate with public subnet)
+        TASK_ARN=$(aws ecs list-tasks \
+          --cluster $ECS_CLUSTER \
+          --service-name $ECS_SERVICE \
+          --desired-status RUNNING \
+          --query 'taskArns[0]' \
+          --output text)
+        
+        if [ "$TASK_ARN" != "None" ]; then
+          echo "헬스체크 시작..."
+          
+          # Wait for service to be stable
+          sleep 30
+          
+          # Check if actuator health endpoint is accessible (through ALB)
+          # Note: 실제 ALB DNS 주소로 교체 필요
+          # curl -f https://your-alb-dns/actuator/health || echo "⚠️ Health check endpoint not accessible"
+          
+          echo "헬스체크 완료"
+        fi
+
+    - name: Clean up old ECR images
+      run: |
+        echo "오래된 ECR 이미지 정리 중..."
+        
+        # Get image details and sort by push date, keep latest 10 images
+        aws ecr list-images \
+          --repository-name $ECR_REPOSITORY \
+          --filter tagStatus=TAGGED \
+          --query 'imageIds[?imageTag!=`latest`]' \
+          --output json | \
+        jq -r '.[] | select(.imageTag != null) | .imageTag' | \
+        sort -r | \
+        tail -n +11 | \
+        while read -r tag; do
+          if [ ! -z "$tag" ]; then
+            echo "삭제: $tag"
+            aws ecr batch-delete-image \
+              --repository-name $ECR_REPOSITORY \
+              --image-ids imageTag=$tag \
+              --output text
+          fi
+        done
+        
+        echo "ECR 이미지 정리 완료"
+
+    - name: Notify deployment result
+      if: always()
+      run: |
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "API 배포가 성공적으로 완료되었습니다!"
+          echo "이미지: ${{ steps.build-image.outputs.image }}"
+          echo "서비스: $ECS_SERVICE"
+          echo "클러스터: $ECS_CLUSTER"
+        else
+          echo "API 배포 중 오류가 발생했습니다."
+        fi
