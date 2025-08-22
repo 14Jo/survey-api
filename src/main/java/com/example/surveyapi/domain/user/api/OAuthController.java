@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.surveyapi.domain.user.application.AuthService;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 
 import lombok.RequiredArgsConstructor;

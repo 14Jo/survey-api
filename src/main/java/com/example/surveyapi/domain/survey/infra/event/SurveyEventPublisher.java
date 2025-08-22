@@ -4,9 +4,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 import com.example.surveyapi.domain.survey.application.event.SurveyEventPublisherPort;
-import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.enums.EventCode;
-import com.example.surveyapi.global.model.SurveyEvent;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.EventCode;
+import com.example.surveyapi.global.event.survey.SurveyEvent;
 
 import lombok.RequiredArgsConstructor;
 

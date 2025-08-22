@@ -3,8 +3,6 @@ package com.example.surveyapi.global.health;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 @Component("myCustomHealth")
 public class HealthController implements HealthIndicator {

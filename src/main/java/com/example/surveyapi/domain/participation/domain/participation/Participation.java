@@ -11,7 +11,7 @@ import com.example.surveyapi.domain.participation.domain.event.ParticipationAbst
 import com.example.surveyapi.domain.participation.domain.event.ParticipationCreatedEvent;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationUpdatedEvent;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import jakarta.persistence.Column;

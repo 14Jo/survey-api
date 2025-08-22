@@ -8,15 +8,13 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import static org.assertj.core.api.Assertions.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @ExtendWith(MockitoExtension.class)
 class ShareDomainServiceTest {
@@ -44,8 +42,8 @@ class ShareDomainServiceTest {
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getLink()).startsWith("https://localhost:8080/api/v2/share/surveys/");
-		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/api/v2/share/surveys/".length());
+		assertThat(share.getLink()).startsWith("http://localhost:8080/api/v2/share/surveys/");
+		assertThat(share.getLink().length()).isGreaterThan("http://localhost:8080/api/v2/share/surveys/".length());
 	}
 
 	@Test
@@ -65,8 +63,8 @@ class ShareDomainServiceTest {
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getLink()).startsWith("https://localhost:8080/api/v2/share/projects/");
-		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/api/v2/share/projects/".length());
+		assertThat(share.getLink()).startsWith("http://localhost:8080/api/v2/share/projects/");
+		assertThat(share.getLink().length()).isGreaterThan("http://localhost:8080/api/v2/share/projects/".length());
 	}
 
 	@Test

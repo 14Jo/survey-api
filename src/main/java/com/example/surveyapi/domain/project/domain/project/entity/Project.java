@@ -15,7 +15,7 @@ import com.example.surveyapi.domain.project.domain.project.event.ProjectManagerA
 import com.example.surveyapi.domain.project.domain.project.event.ProjectMemberAddedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import jakarta.persistence.CascadeType;

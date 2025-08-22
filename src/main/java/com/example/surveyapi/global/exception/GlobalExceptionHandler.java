@@ -17,8 +17,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MissingRequestHeaderException;
 
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import io.jsonwebtoken.JwtException;
 import jakarta.persistence.OptimisticLockException;

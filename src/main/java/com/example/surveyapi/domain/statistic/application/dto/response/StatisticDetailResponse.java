@@ -10,7 +10,7 @@ import com.example.surveyapi.domain.statistic.application.client.SurveyDetailDto
 import com.example.surveyapi.domain.statistic.domain.StatisticReport;
 import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
 import com.example.surveyapi.domain.statistic.domain.model.enums.AnswerType;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.AccessLevel;

@@ -13,10 +13,10 @@ import com.example.surveyapi.domain.user.application.dto.response.UserGradeRespo
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserSnapShotResponse;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
-import com.example.surveyapi.global.config.security.PasswordEncoder;
+import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
