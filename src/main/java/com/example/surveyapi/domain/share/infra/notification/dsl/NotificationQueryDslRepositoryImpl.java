@@ -14,7 +14,7 @@ import com.example.surveyapi.domain.share.domain.notification.entity.Notificatio
 import com.example.surveyapi.domain.share.domain.notification.entity.QNotification;
 import com.example.surveyapi.domain.share.domain.share.entity.QShare;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 

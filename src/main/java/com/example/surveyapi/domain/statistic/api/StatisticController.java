@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.statistic.application.StatisticService;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 
