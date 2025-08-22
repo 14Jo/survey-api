@@ -43,7 +43,12 @@ public class ShareRepositoryImpl implements ShareRepository {
 	}
 
 	@Override
-	public List<Share> findBySource(Long sourceId) {
+	public Share findBySource(ShareSourceType sourceType, Long sourceId) {
+		return shareJpaRepository.findBySourceTypeAndSourceId(sourceType, sourceId);
+	}
+
+	@Override
+	public List<Share> findBySourceId(Long sourceId) {
 		return shareJpaRepository.findBySourceId(sourceId);
 	}
 }

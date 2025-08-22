@@ -9,9 +9,9 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.notification.entity.QNotification;
+import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.QShare;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.global.exception.CustomErrorCode;
@@ -26,7 +26,7 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 	private final JPAQueryFactory queryFactory;
 
 	@Override
-	public Page<NotificationResponse> findByShareId(Long shareId, Long requesterId, Pageable pageable) {
+	public Page<Notification> findByShareId(Long shareId, Long requesterId, Pageable pageable) {
 		QNotification notification = QNotification.notification;
 		QShare share = QShare.share;
 
@@ -57,11 +57,7 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 			.where(notification.share.id.eq(shareId))
 			.fetchOne();
 
-		List<NotificationResponse> responses = content.stream()
-			.map(NotificationResponse::from)
-			.collect(Collectors.toList());
-
-		Page<NotificationResponse> pageResult = new PageImpl<>(responses, pageable, Optional.ofNullable(total).orElse(0L));
+		Page<Notification> pageResult = new PageImpl<>(content, pageable, Optional.ofNullable(total).orElse(0L));
 
 		return pageResult;
 	}
@@ -81,5 +77,28 @@ public class NotificationQueryDslRepositoryImpl implements NotificationQueryDslR
 			).fetchOne();
 
 		return count != null && count > 0;
+	}
+
+	@Override
+	public Page<Notification> findByUserId(Long userId, Pageable pageable) {
+		QNotification notification = QNotification.notification;
+
+		List<Notification> content = queryFactory
+			.selectFrom(notification)
+			.where(notification.recipientId.eq(userId), notification.status.eq(Status.SENT))
+			.orderBy(notification.sentAt.desc())
+			.offset(pageable.getOffset())
+			.limit(pageable.getPageSize())
+			.fetch();
+
+		long total = queryFactory
+			.select(notification.count())
+			.from(notification)
+			.where(notification.recipientId.eq(userId), notification.status.eq(Status.SENT))
+			.fetchOne();
+
+		Page<Notification> pageResult = new PageImpl<>(content, pageable, Optional.ofNullable(total).orElse(0L));
+
+		return pageResult;
 	}
 }

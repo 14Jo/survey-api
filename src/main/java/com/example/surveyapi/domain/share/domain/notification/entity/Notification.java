@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
