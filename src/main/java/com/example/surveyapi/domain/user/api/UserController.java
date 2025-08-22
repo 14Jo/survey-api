@@ -19,7 +19,7 @@ import com.example.surveyapi.domain.user.application.dto.response.UserGradeRespo
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.application.UserService;
 import com.example.surveyapi.domain.user.application.dto.response.UserSnapShotResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

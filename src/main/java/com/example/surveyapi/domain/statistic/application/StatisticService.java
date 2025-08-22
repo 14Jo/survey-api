@@ -10,7 +10,7 @@ import com.example.surveyapi.domain.statistic.application.client.ParticipationSe
 import com.example.surveyapi.domain.statistic.domain.dto.StatisticCommand;
 import com.example.surveyapi.domain.statistic.domain.model.aggregate.Statistic;
 import com.example.surveyapi.domain.statistic.domain.repository.StatisticRepository;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;

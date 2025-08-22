@@ -15,7 +15,7 @@ import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 class QuestionTest {

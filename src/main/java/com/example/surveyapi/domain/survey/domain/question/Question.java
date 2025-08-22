@@ -10,7 +10,7 @@ import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 
