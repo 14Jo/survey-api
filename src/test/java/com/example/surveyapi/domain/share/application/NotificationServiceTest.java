@@ -63,8 +63,7 @@ class NotificationServiceTest {
 		ReflectionTestUtils.setField(mockNotification, "failedReason", null);
 
 		Pageable pageable = PageRequest.of(page, size);
-		NotificationResponse mockNotificationResponse = NotificationResponse.from(mockNotification);
-		Page<NotificationResponse> mockPage = new PageImpl<>(List.of(mockNotificationResponse), pageable, 1);
+		Page<Notification> mockPage = new PageImpl<>(List.of(mockNotification), pageable, 1);
 
 		given(notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable))
 			.willReturn(mockPage);
