@@ -25,13 +25,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/v1/users")
+    @GetMapping("/users")
     public ResponseEntity<ApiResponse<Page<UserInfoResponse>>> getUsers(
         Pageable pageable
     ) {
@@ -41,7 +40,7 @@ public class UserController {
             .body(ApiResponse.success("회원 전체 조회 성공", all));
     }
 
-    @GetMapping("/v1/users/me")
+    @GetMapping("/users/me")
     public ResponseEntity<ApiResponse<UserInfoResponse>> getUser(
         @AuthenticationPrincipal Long userId
     ) {
@@ -51,7 +50,7 @@ public class UserController {
             .body(ApiResponse.success("회원 조회 성공", user));
     }
 
-    @GetMapping("/v1/users/grade")
+    @GetMapping("/users/grade")
     public ResponseEntity<ApiResponse<UserGradeResponse>> getGrade(
         @AuthenticationPrincipal Long userId
     ) {
@@ -61,7 +60,7 @@ public class UserController {
             .body(ApiResponse.success("회원 등급 조회 성공", success));
     }
 
-    @PatchMapping("/v1/users/me")
+    @PatchMapping("/users/me")
     public ResponseEntity<ApiResponse<UpdateUserResponse>> update(
         @Valid @RequestBody UpdateUserRequest request,
         @AuthenticationPrincipal Long userId
@@ -72,7 +71,7 @@ public class UserController {
             .body(ApiResponse.success("회원 정보 수정 성공", update));
     }
 
-    @GetMapping("/v2/users/{userId}/snapshot")
+    @GetMapping("/users/{userId}/snapshot")
     public ResponseEntity<ApiResponse<UserSnapShotResponse>> snapshot(
         @PathVariable Long userId
     ) {
