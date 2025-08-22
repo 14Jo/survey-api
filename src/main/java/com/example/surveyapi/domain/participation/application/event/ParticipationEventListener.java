@@ -8,9 +8,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationCreatedEvent;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationEvent;
 import com.example.surveyapi.domain.participation.domain.event.ParticipationUpdatedEvent;
-import com.example.surveyapi.global.enums.EventCode;
-import com.example.surveyapi.global.event.ParticipationCreatedGlobalEvent;
-import com.example.surveyapi.global.event.ParticipationUpdatedGlobalEvent;
+import com.example.surveyapi.global.event.EventCode;
+import com.example.surveyapi.global.event.participation.ParticipationCreatedGlobalEvent;
+import com.example.surveyapi.global.event.participation.ParticipationUpdatedGlobalEvent;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

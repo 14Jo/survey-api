@@ -26,7 +26,7 @@ import com.example.surveyapi.domain.survey.application.command.dto.response.Sear
 import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;

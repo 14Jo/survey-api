@@ -13,7 +13,7 @@ import com.example.surveyapi.domain.survey.application.command.dto.response.Sear
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;

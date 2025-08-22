@@ -3,8 +3,6 @@ package com.example.surveyapi.domain.user.application;
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
@@ -20,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -48,12 +45,12 @@ import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
-import com.example.surveyapi.global.config.client.ExternalApiResponse;
-import com.example.surveyapi.global.config.client.participation.ParticipationApiClient;
-import com.example.surveyapi.global.config.client.project.ProjectApiClient;
-import com.example.surveyapi.global.config.jwt.JwtUtil;
-import com.example.surveyapi.global.config.security.PasswordEncoder;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.dto.ExternalApiResponse;
+import com.example.surveyapi.global.client.ParticipationApiClient;
+import com.example.surveyapi.global.client.ProjectApiClient;
+import com.example.surveyapi.global.auth.jwt.JwtUtil;
+import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.statistic.domain.model.enums;
 
 import java.util.Arrays;
 
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.AllArgsConstructor;

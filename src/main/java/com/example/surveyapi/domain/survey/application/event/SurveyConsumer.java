@@ -18,9 +18,9 @@ import com.example.surveyapi.domain.survey.domain.dlq.DeadLetterQueue;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.event.SurveyEndDueEvent;
-import com.example.surveyapi.global.event.SurveyStartDueEvent;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
+import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 

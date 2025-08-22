@@ -35,7 +35,7 @@ import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 @DisplayName("설문 서비스 통합 테스트")

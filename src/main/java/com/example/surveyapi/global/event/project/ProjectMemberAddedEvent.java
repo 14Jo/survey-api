@@ -2,8 +2,7 @@ package com.example.surveyapi.global.event.project;
 
 import java.time.LocalDateTime;
 
-import com.example.surveyapi.global.enums.EventCode;
-import com.example.surveyapi.global.model.ProjectEvent;
+import com.example.surveyapi.global.event.EventCode;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

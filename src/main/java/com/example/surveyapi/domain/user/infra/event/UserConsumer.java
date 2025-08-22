@@ -5,9 +5,9 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.user.application.event.UserEventListenerPort;
-import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.event.ParticipationCreatedGlobalEvent;
-import com.example.surveyapi.global.event.SurveyActivateEvent;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.participation.ParticipationCreatedGlobalEvent;
+import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
