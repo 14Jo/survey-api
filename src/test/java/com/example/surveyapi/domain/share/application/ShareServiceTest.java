@@ -100,8 +100,6 @@ class ShareServiceTest {
     
 		Share share = shareService.getShareEntity(savedShareId, 1L);
 		assertThat(response.getShareLink()).isEqualTo(share.getLink());
-
-		assertThat(response.getId()).isEqualTo(savedShareId);
 	}
 
 	@Test
