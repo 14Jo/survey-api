@@ -6,11 +6,11 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.project.application.event.ProjectEventPublisher;
-import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.enums.EventCode;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.exception.CustomErrorCode;
+import com.example.surveyapi.global.event.EventCode;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.ProjectEvent;
+import com.example.surveyapi.global.event.project.ProjectEvent;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

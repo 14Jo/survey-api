@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
-import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.event.UserWithdrawEvent;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.user.UserWithdrawEvent;
 
 import lombok.RequiredArgsConstructor;
 

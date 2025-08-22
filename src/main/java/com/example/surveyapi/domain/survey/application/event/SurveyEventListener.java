@@ -16,15 +16,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.SurveyScheduleRequestedEvent;
-import com.example.surveyapi.global.constant.RabbitConst;
-import com.example.surveyapi.global.enums.EventCode;
-import com.example.surveyapi.global.event.SurveyActivateEvent;
-import com.example.surveyapi.global.event.SurveyEndDueEvent;
-import com.example.surveyapi.global.event.SurveyStartDueEvent;
-import com.example.surveyapi.global.model.SurveyEvent;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.EventCode;
+import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
+import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
+import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
+import com.example.surveyapi.global.event.survey.SurveyEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
