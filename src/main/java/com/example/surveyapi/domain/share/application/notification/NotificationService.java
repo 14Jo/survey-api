@@ -38,9 +38,9 @@ public class NotificationService {
 		Long requesterId,
 		Pageable pageable
 	) {
-		Page<NotificationResponse> notifications = notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable);
+		Page<Notification> notifications = notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable);
 
-		return notifications;
+		return notifications.map(NotificationResponse::from);
 	}
 
 	public ShareValidationResponse isRecipient(Long sourceId, Long recipientId) {
@@ -53,8 +53,8 @@ public class NotificationService {
 		Long currentId,
 		Pageable pageable
 	) {
-		Page<NotificationResponse> notifications = notificationQueryRepository.findPageByUserId(currentId, pageable);
+		Page<Notification> notifications = notificationQueryRepository.findPageByUserId(currentId, pageable);
 
-		return notifications;
+		return notifications.map(NotificationResponse::from);
 	}
 }
