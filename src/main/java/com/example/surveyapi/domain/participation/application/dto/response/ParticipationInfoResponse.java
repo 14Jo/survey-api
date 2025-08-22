@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
+import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -35,7 +35,7 @@ public class ParticipationInfoResponse {
 
 		private Long surveyId;
 		private String title;
-		private SurveyStatus status;
+		private SurveyApiStatus status;
 		private LocalDate endDate;
 		private boolean allowResponseUpdate;
 
