@@ -2,15 +2,16 @@ package com.example.surveyapi.domain.participation.application.client;
 
 import java.time.LocalDateTime;
 
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 
 import lombok.Getter;
 
 @Getter
 public class SurveyInfoDto {
+	
 	private Long surveyId;
 	private String title;
-	private SurveyStatus status;
+	private SurveyApiStatus status;
 	private Option option;
 	private Duration duration;
 
