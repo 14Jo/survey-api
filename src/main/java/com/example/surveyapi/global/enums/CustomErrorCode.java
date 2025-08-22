@@ -19,7 +19,7 @@ public enum CustomErrorCode {
     INVALID_PERMISSION(HttpStatus.FORBIDDEN, "작성 권한이 없습니다"),
     INVALID_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 요청입니다."),
     CONFLICT(HttpStatus.CONFLICT, "요청이 충돌합니다."),
-    BLACKLISTED_TOKEN(HttpStatus.NOT_FOUND,"블랙리스트 토큰입니다."),
+    INVALID_TOKEN(HttpStatus.NOT_FOUND,"유효하지 않은 토큰입니다."),
     INVALID_TOKEN_TYPE(HttpStatus.BAD_REQUEST,"토큰 타입이 잘못되었습니다."),
     ACCESS_TOKEN_NOT_EXPIRED(HttpStatus.BAD_REQUEST,"아직 액세스 토큰이 만료되지 않았습니다."),
     NOT_FOUND_REFRESH_TOKEN(HttpStatus.NOT_FOUND,"리프레쉬 토큰이 없습니다."),
@@ -29,6 +29,7 @@ public enum CustomErrorCode {
     PROVIDER_ID_NOT_FOUNT(HttpStatus.NOT_FOUND,"해당 providerId로 가입된 사용자가 존재하지 않습니다"),
     OAUTH_ACCESS_TOKEN_FAILED(HttpStatus.BAD_REQUEST,"소셜 로그인 인증에 실패했습니다"),
     EXTERNAL_API_ERROR(HttpStatus.INTERNAL_SERVER_ERROR,"외부 API 오류 발생했습니다."),
+    NOT_FOUND_ROUTING_KEY(HttpStatus.NOT_FOUND,"라우팅키를 찾을 수 없습니다."),
 
     // 프로젝트 에러
     START_DATE_AFTER_END_DATE(HttpStatus.BAD_REQUEST, "시작일은 종료일보다 이후일 수 없습니다."),
@@ -46,6 +47,7 @@ public enum CustomErrorCode {
     PROJECT_MEMBER_LIMIT_EXCEEDED(HttpStatus.CONFLICT, "프로젝트 최대 인원수를 초과하였습니다."),
     NOT_FOUND_MEMBER(HttpStatus.NOT_FOUND, "프로젝트에 참여한 이용자가 아닙니다."),
     CANNOT_TRANSFER_TO_SELF(HttpStatus.BAD_REQUEST, "자기 자신에게 소유권 이전 불가합니다."),
+    OPTIMISTIC_LOCK_CONFLICT(HttpStatus.CONFLICT, "데이터가 다른 사용자에 의해 수정되었습니다. 다시 시도해주세요."),
 
     // 통계 에러
     STATISTICS_ALREADY_EXISTS(HttpStatus.CONFLICT, "이미 생성된 통계입니다."),

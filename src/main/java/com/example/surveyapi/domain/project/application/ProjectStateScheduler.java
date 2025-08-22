@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ProjectStateScheduler {
 
-	private ProjectRepository projectRepository;
+	private final ProjectRepository projectRepository;
 
 	@Scheduled(cron = "0 0 0 * * *") // 매일 00시 실행
 	@Transactional
@@ -29,13 +30,31 @@ public class ProjectStateScheduler {
 
 	private void updatePendingProjects(LocalDateTime now) {
 		List<Project> pendingProjects = projectRepository.findPendingProjectsToStart(now);
+		if (pendingProjects.isEmpty()) {
+			return;
+		}
+
 		List<Long> projectIds = pendingProjects.stream().map(Project::getId).toList();
 		projectRepository.updateStateByIds(projectIds, ProjectState.IN_PROGRESS);
+
+		for (Project project : pendingProjects) {
+			project.registerEvent(new ProjectStateChangedDomainEvent(project.getId(), project.getState()));
+		}
+		projectRepository.saveAll(pendingProjects);
 	}
 
 	private void updateInProgressProjects(LocalDateTime now) {
 		List<Project> inProgressProjects = projectRepository.findInProgressProjectsToClose(now);
+		if (inProgressProjects.isEmpty()) {
+			return;
+		}
+
 		List<Long> projectIds = inProgressProjects.stream().map(Project::getId).toList();
 		projectRepository.updateStateByIds(projectIds, ProjectState.CLOSED);
+
+		for (Project project : inProgressProjects) {
+			project.registerEvent(new ProjectStateChangedDomainEvent(project.getId(), project.getState()));
+		}
+		projectRepository.saveAll(inProgressProjects);
 	}
 }
