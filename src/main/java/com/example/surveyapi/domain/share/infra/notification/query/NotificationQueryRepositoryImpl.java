@@ -4,7 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
+import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.notification.repository.query.NotificationQueryRepository;
 import com.example.surveyapi.domain.share.infra.notification.dsl.NotificationQueryDslRepository;
 
@@ -16,7 +16,7 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
 	private final NotificationQueryDslRepository dslRepository;
 
 	@Override
-	public Page<NotificationResponse> findPageByShareId(Long shareId, Long requesterId, Pageable pageable) {
+	public Page<Notification> findPageByShareId(Long shareId, Long requesterId, Pageable pageable) {
 
 		return dslRepository.findByShareId(shareId, requesterId, pageable);
 	}
@@ -25,5 +25,11 @@ public class NotificationQueryRepositoryImpl implements NotificationQueryReposit
 	public boolean isRecipient(Long sourceId, Long recipientId) {
 
 		return dslRepository.isRecipient(sourceId, recipientId);
+	}
+
+	@Override
+	public Page<Notification> findPageByUserId(Long userId, Pageable pageable) {
+
+		return dslRepository.findByUserId(userId, pageable);
 	}
 }
