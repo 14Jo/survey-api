@@ -14,7 +14,7 @@ import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
 import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyDetailResponse;
 import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyTitleResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 

@@ -10,9 +10,9 @@ import org.springframework.stereotype.Component;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
-import com.example.surveyapi.global.config.client.ExternalApiResponse;
-import com.example.surveyapi.global.config.client.project.ProjectApiClient;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.dto.ExternalApiResponse;
+import com.example.surveyapi.global.client.ProjectApiClient;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;

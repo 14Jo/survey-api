@@ -12,7 +12,7 @@ import com.example.surveyapi.domain.share.application.notification.dto.Notificat
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

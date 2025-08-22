@@ -27,7 +27,7 @@ import com.example.surveyapi.domain.share.application.notification.NotificationS
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 @AutoConfigureMockMvc(addFilters = false)

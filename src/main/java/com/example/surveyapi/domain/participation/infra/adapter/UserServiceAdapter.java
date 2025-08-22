@@ -4,8 +4,8 @@ import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.participation.application.client.UserServicePort;
 import com.example.surveyapi.domain.participation.application.client.UserSnapshotDto;
-import com.example.surveyapi.global.config.client.ExternalApiResponse;
-import com.example.surveyapi.global.config.client.user.UserApiClient;
+import com.example.surveyapi.global.dto.ExternalApiResponse;
+import com.example.surveyapi.global.client.UserApiClient;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
