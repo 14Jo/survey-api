@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -60,7 +61,7 @@ public class ParticipationService {
 		log.info("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
 		long totalStartTime = System.currentTimeMillis();
 
-		validateParticipationDuplicated(surveyId, userId);
+		// validateParticipationDuplicated(surveyId, userId);
 
 		CompletableFuture<SurveyDetailDto> futureSurveyDetail = CompletableFuture.supplyAsync(
 			() -> surveyPort.getSurveyDetail(authHeader, surveyId), taskExecutor);
@@ -272,14 +273,19 @@ public class ParticipationService {
 					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 				}
 
+				Set<Integer> validateChoiceIds = question.getChoices().stream()
+					.map(SurveyDetailDto.ChoiceNumber::getChoiceId)
+					.collect(Collectors.toSet());
+
 				for (Object choice : choiceList) {
 					if (!(choice instanceof Integer choiceId)) {
 						throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 					}
-				}
 
-				if (question.getChoices().size() != choiceList.size()) {
-					throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+					if (!validateChoiceIds.contains(choiceId)) {
+						log.error("questionId = {}, choiceId = {}", question.getQuestionId(), choiceId);
+						throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+					}
 				}
 			}
 			case MULTIPLE_CHOICE -> {
@@ -287,14 +293,19 @@ public class ParticipationService {
 					throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 				}
 
+				Set<Integer> validateChoiceIds = question.getChoices().stream()
+					.map(SurveyDetailDto.ChoiceNumber::getChoiceId)
+					.collect(Collectors.toSet());
+
 				for (Object choice : choiceList) {
 					if (!(choice instanceof Integer choiceId)) {
 						throw new CustomException(CustomErrorCode.INVALID_ANSWER_TYPE);
 					}
-				}
 
-				if (question.getChoices().size() != choiceList.size()) {
-					throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+					if (!validateChoiceIds.contains(choiceId)) {
+						log.error("questionId = {}, choiceId = {}", question.getQuestionId(), choiceId);
+						throw new CustomException(CustomErrorCode.INVALID_CHOICE_ID);
+					}
 				}
 			}
 			case SHORT_ANSWER, LONG_ANSWER -> {
