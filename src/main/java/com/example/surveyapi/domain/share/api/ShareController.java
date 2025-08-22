@@ -12,7 +12,7 @@ import com.example.surveyapi.domain.share.application.notification.dto.Notificat
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -61,5 +61,16 @@ public class ShareController {
 		Page<NotificationResponse> response = notificationService.gets(shareId, currentId, pageable);
 
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
+	}
+
+	@GetMapping("/v2/notifications")
+	public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getMyNotifications(
+		@AuthenticationPrincipal Long currentId,
+		Pageable pageable
+	) {
+		Page<NotificationResponse> response =  notificationService.getMyNotifications(currentId, pageable);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("알림 조회 성공", response));
 	}
 }

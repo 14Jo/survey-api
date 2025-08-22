@@ -18,7 +18,7 @@ import com.example.surveyapi.domain.participation.application.ParticipationServi
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

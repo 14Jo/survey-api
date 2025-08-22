@@ -1,7 +1,5 @@
 package com.example.surveyapi.global.exception;
 
-import com.example.surveyapi.global.enums.CustomErrorCode;
-
 import lombok.Getter;
 
 @Getter
