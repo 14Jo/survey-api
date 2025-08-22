@@ -16,8 +16,6 @@ public interface UserRepository {
 
     User save(User user);
 
-    User withdrawSave(User user);
-
     Optional<User> findByEmailAndIsDeletedFalse(String email);
 
     Page<User> gets(Pageable pageable);
