@@ -2,7 +2,7 @@ package com.example.surveyapi.domain.user.application;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
-
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.time.LocalDateTime;
@@ -24,9 +24,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -36,20 +33,20 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
+import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
-import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
-import com.example.surveyapi.global.dto.ExternalApiResponse;
-import com.example.surveyapi.global.client.ParticipationApiClient;
-import com.example.surveyapi.global.client.ProjectApiClient;
 import com.example.surveyapi.global.auth.jwt.JwtUtil;
 import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
+import com.example.surveyapi.global.client.ParticipationApiClient;
+import com.example.surveyapi.global.client.ProjectApiClient;
+import com.example.surveyapi.global.dto.ExternalApiResponse;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -360,7 +357,7 @@ public class UserServiceTest {
         UserWithdrawRequest userWithdrawRequest = new UserWithdrawRequest();
         ReflectionTestUtils.setField(userWithdrawRequest, "password", "Password123");
 
-        String authHeader = jwtUtil.createAccessToken(user.getId(), user.getRole());
+        String authHeader = jwtUtil.createAccessToken(user.getId(), user.getRole().name());
 
         // when
         authService.withdraw(user.getId(), userWithdrawRequest, authHeader);

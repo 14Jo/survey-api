@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import com.example.surveyapi.domain.user.domain.user.enums.Role;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -38,13 +37,13 @@ public class JwtUtil {
     private static final long TOKEN_TIME = 60 * 60 * 1000L;
     private static final long REFRESH_TIME = 7 * 24 * 60 * 60 * 1000L;
 
-    public String createAccessToken(Long userId, Role userRole) {
+    public String createAccessToken(Long userId, String userRole) {
         Date date = new Date();
 
         return BEARER_PREFIX +
             Jwts.builder()
                 .subject(String.valueOf(userId))
-                .claim("userRole", userRole.name())
+                .claim("userRole", userRole)
                 .claim("type", "access")
                 .expiration(new Date(date.getTime() + TOKEN_TIME))
                 .issuedAt(date)
@@ -52,13 +51,13 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String createRefreshToken(Long userId, Role userRole) {
+    public String createRefreshToken(Long userId, String userRole) {
         Date date = new Date();
 
         return BEARER_PREFIX +
             Jwts.builder()
                 .subject(String.valueOf(userId))
-                .claim("userRole", userRole.name())
+                .claim("userRole", userRole)
                 .claim("type", "refresh")
                 .expiration(new Date(date.getTime() + REFRESH_TIME))
                 .issuedAt(date)

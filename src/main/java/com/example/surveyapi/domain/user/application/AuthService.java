@@ -249,8 +249,8 @@ public class AuthService {
 
     private LoginResponse createAccessAndSaveRefresh(User user) {
 
-        String newAccessToken = jwtUtil.createAccessToken(user.getId(), user.getRole());
-        String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getRole());
+        String newAccessToken = jwtUtil.createAccessToken(user.getId(), user.getRole().name());
+        String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getRole().name());
 
         String redisKey = "refreshToken" + user.getId();
         userRedisRepository.saveRedisKey(redisKey, newRefreshToken, Duration.ofDays(7));
