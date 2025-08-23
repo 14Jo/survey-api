@@ -36,13 +36,7 @@ public class ShareExternalController {
 
 	@GetMapping("/surveys/{token}")
 	public ResponseEntity<Void> redirectToSurvey(@PathVariable String token) {
-		Share share = shareService.getShareByToken(token);
-
-		if (share.getSourceType() != ShareSourceType.SURVEY) {
-			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
-		}
-
-		String redirectUrl = shareService.getRedirectUrl(share);
+		String redirectUrl = shareService.getRedirectUrl(token, ShareSourceType.SURVEY);
 
 		return ResponseEntity.status(HttpStatus.FOUND)
 			.location(URI.create(redirectUrl)).build();
@@ -50,13 +44,7 @@ public class ShareExternalController {
 
 	@GetMapping("/projects/{token}")
 	public ResponseEntity<Void> redirectToProject(@PathVariable String token) {
-		Share share = shareService.getShareByToken(token);
-
-		if (share.getSourceType() != ShareSourceType.PROJECT_MEMBER) {
-			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
-		}
-
-		String redirectUrl = shareService.getRedirectUrl(share);
+		String redirectUrl = shareService.getRedirectUrl(token, ShareSourceType.PROJECT_MEMBER);
 
 		return ResponseEntity.status(HttpStatus.FOUND)
 			.location(URI.create(redirectUrl)).build();

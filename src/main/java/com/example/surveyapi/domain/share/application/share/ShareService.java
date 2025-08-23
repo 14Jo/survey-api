@@ -117,7 +117,13 @@ public class ShareService {
 		return share;
 	}
 
-	public String getRedirectUrl(Share share) {
+	public String getRedirectUrl(String token, ShareSourceType sourceType) {
+		Share share = getShareByToken(token);
+
+		if (share.getSourceType() != sourceType) {
+			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
+		}
+
 		return shareDomainService.getRedirectUrl(share);
 	}
 }
