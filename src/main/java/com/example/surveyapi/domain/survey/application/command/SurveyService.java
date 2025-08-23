@@ -138,8 +138,7 @@ public class SurveyService {
 		}
 
 		validateProjectMembership(authHeader, survey.getProjectId(), userId);
-
-		survey.open();
+		
 		surveyActivator(survey, SurveyStatus.IN_PROGRESS.name());
 	}
 
