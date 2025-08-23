@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.share.application.event;
+package com.example.surveyapi.domain.share.infra.event;
 
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

@@ -38,6 +38,7 @@ public class NotificationService {
 		Long requesterId,
 		Pageable pageable
 	) {
+
 		Page<Notification> notifications = notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable);
 
 		return notifications.map(NotificationResponse::from);
