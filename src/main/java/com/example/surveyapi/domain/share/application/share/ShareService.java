@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.share.application.share;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,12 @@ public class ShareService {
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
 		Long creatorId, LocalDateTime expirationDate) {
+		Share existingShare = shareRepository.findBySource(sourceType, sourceId);
+
+		if(existingShare != null) {
+			throw new CustomException(CustomErrorCode.ALREADY_EXISTED_SHARE);
+		}
+
 		Share share = shareDomainService.createShare(
 			sourceType, sourceId,
 			creatorId, expirationDate);

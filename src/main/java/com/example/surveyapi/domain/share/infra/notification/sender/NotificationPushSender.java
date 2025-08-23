@@ -10,7 +10,7 @@ import com.example.surveyapi.domain.share.domain.fcm.entity.FcmToken;
 import com.example.surveyapi.domain.share.domain.fcm.repository.FcmTokenRepository;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingException;
