@@ -58,7 +58,7 @@ class ParticipationInternalControllerTest {
 		when(participationService.getAllBySurveyIds(eq(surveyIds))).thenReturn(serviceResult);
 
 		// when & then
-		mockMvc.perform(get("/api/v1/surveys/participations")
+		mockMvc.perform(get("/api/surveys/participations")
 				.param("surveyIds", "10", "20"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("여러 참여 기록 조회에 성공하였습니다."))
@@ -79,7 +79,7 @@ class ParticipationInternalControllerTest {
 		when(participationService.getCountsBySurveyIds(surveyIds)).thenReturn(counts);
 
 		// when & then
-		mockMvc.perform(get("/api/v2/surveys/participations/count")
+		mockMvc.perform(get("/api/surveys/participations/count")
 				.param("surveyIds", "1", "2", "3"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("참여 count 성공"))

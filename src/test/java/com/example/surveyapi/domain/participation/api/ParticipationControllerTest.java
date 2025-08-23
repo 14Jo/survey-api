@@ -90,7 +90,7 @@ class ParticipationControllerTest {
 		ReflectionTestUtils.setField(request, "responseDataList", responseDataList);
 
 		// when & then
-		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+		mockMvc.perform(post("/api/surveys/{surveyId}/participations", surveyId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -110,7 +110,7 @@ class ParticipationControllerTest {
 		ReflectionTestUtils.setField(request, "responseDataList", Collections.emptyList());
 
 		// when & then
-		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+		mockMvc.perform(post("/api/surveys/{surveyId}/participations", surveyId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -145,7 +145,7 @@ class ParticipationControllerTest {
 		when(participationService.gets(anyString(), eq(1L), any(Pageable.class))).thenReturn(pageResponse);
 
 		// when & then
-		mockMvc.perform(get("/api/v1/members/me/participations")
+		mockMvc.perform(get("/api/members/me/participations")
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
@@ -185,7 +185,7 @@ class ParticipationControllerTest {
 			.create(anyString(), eq(surveyId), eq(1L), any(CreateParticipationRequest.class));
 
 		// when & then
-		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+		mockMvc.perform(post("/api/surveys/{surveyId}/participations", surveyId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -207,7 +207,7 @@ class ParticipationControllerTest {
 			.when(participationService).create(anyString(), anyLong(), anyLong(), any());
 
 		// when & then
-		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+		mockMvc.perform(post("/api/surveys/{surveyId}/participations", surveyId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -229,7 +229,7 @@ class ParticipationControllerTest {
 			.when(participationService).create(anyString(), anyLong(), anyLong(), any());
 
 		// when & then
-		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+		mockMvc.perform(post("/api/surveys/{surveyId}/participations", surveyId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -253,7 +253,7 @@ class ParticipationControllerTest {
 		when(participationService.get(eq(userId), eq(participationId))).thenReturn(serviceResult);
 
 		// when & then
-		mockMvc.perform(get("/api/v1/participations/{participationId}", participationId)
+		mockMvc.perform(get("/api/participations/{participationId}", participationId)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.message").value("참여 응답 상세 조회에 성공하였습니다."))
@@ -273,7 +273,7 @@ class ParticipationControllerTest {
 			.when(participationService).get(eq(userId), eq(participationId));
 
 		// when & then
-		mockMvc.perform(get("/api/v1/participations/{participationId}", participationId)
+		mockMvc.perform(get("/api/participations/{participationId}", participationId)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.NOT_FOUND_PARTICIPATION.getMessage()));
@@ -291,7 +291,7 @@ class ParticipationControllerTest {
 			.when(participationService).get(eq(userId), eq(participationId));
 
 		// when & then
-		mockMvc.perform(get("/api/v1/participations/{participationId}", participationId)
+		mockMvc.perform(get("/api/participations/{participationId}", participationId)
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.ACCESS_DENIED_PARTICIPATION_VIEW.getMessage()));
@@ -313,7 +313,7 @@ class ParticipationControllerTest {
 			.update(anyString(), eq(userId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
-		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+		mockMvc.perform(put("/api/participations/{participationId}", participationId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -338,7 +338,7 @@ class ParticipationControllerTest {
 			.update(anyString(), eq(userId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
-		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+		mockMvc.perform(put("/api/participations/{participationId}", participationId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -363,7 +363,7 @@ class ParticipationControllerTest {
 			.update(anyString(), eq(userId), eq(participationId), any(CreateParticipationRequest.class));
 
 		// when & then
-		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+		mockMvc.perform(put("/api/participations/{participationId}", participationId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))
@@ -382,7 +382,7 @@ class ParticipationControllerTest {
 		ReflectionTestUtils.setField(request, "responseDataList", Collections.emptyList());
 
 		// when & then
-		mockMvc.perform(put("/api/v1/participations/{participationId}", participationId)
+		mockMvc.perform(put("/api/participations/{participationId}", participationId)
 				.header("Authorization", "Bearer test-token")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(request)))

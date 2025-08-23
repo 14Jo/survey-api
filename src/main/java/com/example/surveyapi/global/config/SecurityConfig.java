@@ -22,35 +22,35 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtUtil jwtUtil;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
-    private final RedisTemplate<String, String> redisTemplate;
+	private final JwtUtil jwtUtil;
+	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+	private final RedisTemplate<String, String> redisTemplate;
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+	@Bean
+	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .exceptionHandling(exceptions -> exceptions
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .accessDeniedHandler(jwtAccessDeniedHandler))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/reissue").permitAll()
-                .requestMatchers("/auth/kakao/**").permitAll()
-                .requestMatchers("/auth/naver/**").permitAll()
-                .requestMatchers("/auth/google/**").permitAll()
-                .requestMatchers("/api/v1/survey/**").permitAll()
-                .requestMatchers("/api/v1/surveys/**").permitAll()
-                .requestMatchers("/api/v1/projects/**").permitAll()
-                .requestMatchers("/api/v2/survey/**").permitAll()
-                .requestMatchers("/error").permitAll()
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/v2/surveys/participations/count").permitAll()
-                .anyRequest().authenticated())
-            .addFilterBefore(new JwtFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class);
+		http
+			.csrf(AbstractHttpConfigurer::disable)
+			.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+			.exceptionHandling(exceptions -> exceptions
+				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
+				.accessDeniedHandler(jwtAccessDeniedHandler))
+			.authorizeHttpRequests(auth -> auth
+				.requestMatchers("/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/reissue").permitAll()
+				.requestMatchers("/auth/kakao/**").permitAll()
+				.requestMatchers("/auth/naver/**").permitAll()
+				.requestMatchers("/auth/google/**").permitAll()
+				.requestMatchers("/api/v1/survey/**").permitAll()
+				.requestMatchers("/api/v1/surveys/**").permitAll()
+				.requestMatchers("/api/v1/projects/**").permitAll()
+				.requestMatchers("/api/v2/survey/**").permitAll()
+				.requestMatchers("/error").permitAll()
+				.requestMatchers("/actuator/**").permitAll()
+				.requestMatchers("/api/surveys/participations/count").permitAll()
+				.anyRequest().authenticated())
+			.addFilterBefore(new JwtFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
-    }
+		return http.build();
+	}
 }
