@@ -15,7 +15,8 @@ import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyScheduleRequestedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.CreatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleRequestedEvent;
 import com.example.surveyapi.global.event.RabbitConst;
 import com.example.surveyapi.global.event.EventCode;
 import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
@@ -46,22 +47,29 @@ public class SurveyEventListener {
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handle(SurveyScheduleRequestedEvent event) {
-		log.info("=== SurveyScheduleRequestedEvent 수신 ===");
-		log.info("surveyId: {}", event.getSurveyId());
-		log.info("startAt: {}", event.getStartAt());
-		log.info("endAt: {}", event.getEndAt());
-		log.info("=== 이벤트 처리 시작 ===");
+	public void handle(CreatedEvent event) {
+		filterDelay(event.getSurveyId(), event.getCreatorId(), event.getStartAt(), event.getEndAt());
+	}
+
+	@Async
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	public void handle(ScheduleRequestedEvent event) {
+		log.info("=== 스케줄 변경 수신 ===");
+		filterDelay(event.getSurveyId(), event.getCreatorId(), event.getStartAt(), event.getEndAt());
+	}
+
+	private void filterDelay(Long surveyId, Long creatorId, LocalDateTime startAt, LocalDateTime endAt) {
 		LocalDateTime now = LocalDateTime.now();
-		if (event.getStartAt() != null && event.getStartAt().isAfter(now)) {
-			long delayMs = Duration.between(now, event.getStartAt()).toMillis();
-			publishDelayed(new SurveyStartDueEvent(event.getSurveyId(), event.getCreatorId(), event.getStartAt()),
+
+		if (startAt != null && startAt.isAfter(now)) {
+			long delayMs = Duration.between(now, startAt).toMillis();
+			publishDelayed(new SurveyStartDueEvent(surveyId, creatorId, startAt),
 				RabbitConst.ROUTING_KEY_SURVEY_START_DUE, delayMs);
 		}
 
-		if (event.getEndAt() != null && event.getEndAt().isAfter(now)) {
-			long delayMs = Duration.between(now, event.getEndAt()).toMillis();
-			publishDelayed(new SurveyEndDueEvent(event.getSurveyId(), event.getCreatorId(), event.getEndAt()),
+		if (endAt != null && endAt.isAfter(now)) {
+			long delayMs = Duration.between(now, endAt).toMillis();
+			publishDelayed(new SurveyStartDueEvent(surveyId, creatorId, endAt),
 				RabbitConst.ROUTING_KEY_SURVEY_END_DUE, delayMs);
 		}
 	}

@@ -21,8 +21,6 @@ import com.example.surveyapi.domain.survey.application.command.dto.request.Updat
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
-import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
-import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -55,8 +53,6 @@ public class SurveyService {
 		);
 
 		Survey save = surveyRepository.save(survey);
-		save.registerScheduledEvent();
-		surveyRepository.save(save);
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.surveyReadSync(SurveySyncDto.from(survey), questionList);
@@ -68,7 +64,6 @@ public class SurveyService {
 	public Long update(String authHeader, Long surveyId, Long userId, UpdateSurveyRequest request) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
-		boolean durationFlag = false;
 
 		if (survey.getStatus() == SurveyStatus.IN_PROGRESS) {
 			throw new CustomException(CustomErrorCode.CONFLICT, "진행 중인 설문은 수정할 수 없습니다.");
@@ -89,7 +84,6 @@ public class SurveyService {
 		}
 		if (request.getSurveyDuration() != null) {
 			updateFields.put("duration", request.getSurveyDuration().toSurveyDuration());
-			durationFlag = true;
 		}
 		if (request.getSurveyOption() != null) {
 			updateFields.put("option", request.getSurveyOption().toSurveyOption());
@@ -101,8 +95,6 @@ public class SurveyService {
 
 		survey.updateFields(updateFields);
 		survey.applyDurationChange(survey.getDuration(), LocalDateTime.now());
-		if (durationFlag)
-			survey.registerScheduledEvent();
 		surveyRepository.update(survey);
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
@@ -138,7 +130,7 @@ public class SurveyService {
 		}
 
 		validateProjectMembership(authHeader, survey.getProjectId(), userId);
-		
+
 		surveyActivator(survey, SurveyStatus.IN_PROGRESS.name());
 	}
 
@@ -177,10 +169,10 @@ public class SurveyService {
 
 	public void surveyActivator(Survey survey, String activator) {
 		if (activator.equals(SurveyStatus.IN_PROGRESS.name())) {
-			survey.open();
+			survey.openAt(LocalDateTime.now());
 		}
 		if (activator.equals(SurveyStatus.CLOSED.name())) {
-			survey.close();
+			survey.closeAt(LocalDateTime.now());
 		}
 		surveyRepository.stateUpdate(survey);
 		surveyReadSync.activateSurveyRead(survey.getSurveyId(), survey.getStatus());
@@ -212,7 +204,7 @@ public class SurveyService {
 		}
 
 		if (survey.getStatus() == SurveyStatus.PREPARING) {
-			survey.open();
+			survey.openAt(eventScheduledAt);
 			surveyRepository.stateUpdate(survey);
 		}
 	}
@@ -229,7 +221,7 @@ public class SurveyService {
 		}
 
 		if (survey.getStatus() == SurveyStatus.IN_PROGRESS) {
-			survey.close();
+			survey.closeAt(eventScheduledAt);
 			surveyRepository.stateUpdate(survey);
 		}
 	}
