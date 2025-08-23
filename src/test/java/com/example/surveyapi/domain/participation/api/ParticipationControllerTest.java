@@ -30,15 +30,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.surveyapi.domain.participation.application.ParticipationService;
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
+import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
 import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
-import com.example.surveyapi.domain.participation.domain.participation.Participation;
-import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -160,7 +158,7 @@ class ParticipationControllerTest {
 		SurveyInfoDto dto = new SurveyInfoDto();
 		ReflectionTestUtils.setField(dto, "surveyId", id);
 		ReflectionTestUtils.setField(dto, "title", title);
-		ReflectionTestUtils.setField(dto, "status", SurveyStatus.IN_PROGRESS);
+		ReflectionTestUtils.setField(dto, "status", SurveyApiStatus.IN_PROGRESS);
 		SurveyInfoDto.Duration duration = new SurveyInfoDto.Duration();
 		ReflectionTestUtils.setField(duration, "endDate", LocalDateTime.now().plusDays(1));
 		ReflectionTestUtils.setField(dto, "duration", duration);
@@ -196,6 +194,50 @@ class ParticipationControllerTest {
 	}
 
 	@Test
+	@DisplayName("잘못된 질문 ID로 요청 시 400 에러")
+	void createParticipation_invalidQuestion() throws Exception {
+		// given
+		Long surveyId = 1L;
+		authenticateUser(1L);
+
+		CreateParticipationRequest request = new CreateParticipationRequest();
+		ReflectionTestUtils.setField(request, "responseDataList", List.of(createResponseData(1L, Map.of("text", ""))));
+
+		doThrow(new CustomException(CustomErrorCode.INVALID_SURVEY_QUESTION))
+			.when(participationService).create(anyString(), anyLong(), anyLong(), any());
+
+		// when & then
+		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+				.header("Authorization", "Bearer test-token")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value(CustomErrorCode.INVALID_SURVEY_QUESTION.getMessage()));
+	}
+
+	@Test
+	@DisplayName("필수 질문 누락 시 400 에러")
+	void createParticipation_missingRequiredQuestion() throws Exception {
+		// given
+		Long surveyId = 1L;
+		authenticateUser(1L);
+
+		CreateParticipationRequest request = new CreateParticipationRequest();
+		ReflectionTestUtils.setField(request, "responseDataList", List.of(createResponseData(1L, Map.of("text", ""))));
+
+		doThrow(new CustomException(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED))
+			.when(participationService).create(anyString(), anyLong(), anyLong(), any());
+
+		// when & then
+		mockMvc.perform(post("/api/v1/surveys/{surveyId}/participations", surveyId)
+				.header("Authorization", "Bearer test-token")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(request)))
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value(CustomErrorCode.REQUIRED_QUESTION_NOT_ANSWERED.getMessage()));
+	}
+
+	@Test
 	@DisplayName("나의 참여 응답 상세 조회 API")
 	void getParticipation() throws Exception {
 		// given
@@ -203,13 +245,10 @@ class ParticipationControllerTest {
 		Long userId = 1L;
 		authenticateUser(userId);
 
-		List<ResponseData> responseDataList = List.of(createResponseData(1L, Map.of("text", "응답 상세 조회")));
+		ParticipationProjection projection = new ParticipationProjection(1L, participationId, LocalDateTime.now(),
+			List.of(createResponseData(1L, Map.of("text", "응답 상세 조회"))));
 
-		ParticipationDetailResponse serviceResult = ParticipationDetailResponse.from(
-			Participation.create(userId, 1L, ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, "서울", "강남구"),
-				responseDataList)
-		);
-		ReflectionTestUtils.setField(serviceResult, "participationId", participationId);
+		ParticipationDetailResponse serviceResult = ParticipationDetailResponse.fromProjection(projection);
 
 		when(participationService.get(eq(userId), eq(participationId))).thenReturn(serviceResult);
 
