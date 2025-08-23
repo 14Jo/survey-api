@@ -43,14 +43,10 @@ public class RedisConfig {
 	@Bean
 	public RedisCacheManagerBuilderCustomizer redisCacheManagerBuilderCustomizer() {
 		return (builder) -> {
-			RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
-				.entryTtl(Duration.ofMinutes(5));
-
 			RedisCacheConfiguration surveyDetailsConfig = RedisCacheConfiguration.defaultCacheConfig()
-				.entryTtl(Duration.ofMinutes(1));
+				.entryTtl(Duration.ofHours(4));
 
-			builder.cacheDefaults(defaultConfig)
-				.withCacheConfiguration("surveyDetails", surveyDetailsConfig);
+			builder.withCacheConfiguration("surveyDetails", surveyDetailsConfig);
 		};
 	}
 }
