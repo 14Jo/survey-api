@@ -40,11 +40,11 @@ public class ShareDomainService {
 
 	public String getRedirectUrl(Share share) {
 		if (share.getSourceType() == ShareSourceType.PROJECT_MEMBER) {
-			return "http://localhost:8080/api/v2/projects/members/" + share.getSourceId();
+			return "http://localhost:8080/api/v2/projects/" + share.getSourceId() + "/members";
 		} else if(share.getSourceType() == ShareSourceType.PROJECT_MANAGER) {
-			return "http://localhost:8080/api/v2/projects/managers/" + share.getSourceId();
+			return "http://localhost:8080/api/v2/projects/" + share.getSourceId() + "/managers";
 		} else if (share.getSourceType() == ShareSourceType.SURVEY) {
-			return "http://localhost:8080/api/v1/survey/" + share.getSourceId() + "/detail";
+			return "http://localhost:8080/api/v1/surveys/" + share.getSourceId();
 		}
 		throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
 	}
