@@ -1,9 +1,11 @@
 package com.example.surveyapi.domain.survey.application.command;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,8 @@ import com.example.surveyapi.domain.survey.application.command.dto.request.Updat
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
+import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -97,9 +101,9 @@ public class SurveyService {
 
 		survey.updateFields(updateFields);
 		survey.applyDurationChange(survey.getDuration(), LocalDateTime.now());
-		if (durationFlag) survey.registerScheduledEvent();
+		if (durationFlag)
+			survey.registerScheduledEvent();
 		surveyRepository.update(survey);
-
 
 		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.updateSurveyRead(SurveySyncDto.from(survey));
@@ -187,5 +191,51 @@ public class SurveyService {
 		survey.delete();
 		surveyRepository.delete(survey);
 		surveyReadSync.deleteSurveyRead(surveyId);
+	}
+
+	public void surveyDeleteForProject(Long projectId) {
+		List<Survey> surveyOp = surveyRepository.findAllByProjectId(projectId);
+
+		surveyOp.forEach(survey -> {
+			surveyDeleter(survey, survey.getSurveyId());
+		});
+	}
+
+	public void processSurveyStart(Long surveyId, LocalDateTime eventScheduledAt) {
+		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(surveyId);
+
+		if (surveyOp.isEmpty())
+			return;
+
+		Survey survey = surveyOp.get();
+		if (isDifferentMinute(survey.getDuration().getStartDate(), eventScheduledAt)) {
+			return;
+		}
+
+		if (survey.getStatus() == SurveyStatus.PREPARING) {
+			survey.open();
+			surveyRepository.stateUpdate(survey);
+		}
+	}
+
+	public void processSurveyEnd(Long surveyId, LocalDateTime eventScheduledAt) {
+		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(surveyId);
+
+		if (surveyOp.isEmpty())
+			return;
+
+		Survey survey = surveyOp.get();
+		if (isDifferentMinute(survey.getDuration().getEndDate(), eventScheduledAt)) {
+			return;
+		}
+
+		if (survey.getStatus() == SurveyStatus.IN_PROGRESS) {
+			survey.close();
+			surveyRepository.stateUpdate(survey);
+		}
+	}
+
+	private boolean isDifferentMinute(LocalDateTime activeDate, LocalDateTime scheduledDate) {
+		return !activeDate.truncatedTo(ChronoUnit.MINUTES).isEqual(scheduledDate.truncatedTo(ChronoUnit.MINUTES));
 	}
 }

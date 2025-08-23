@@ -36,22 +36,13 @@ import lombok.extern.slf4j.Slf4j;
 public class SurveyConsumer {
 
 	private final SurveyService surveyService;
-	private final SurveyRepository surveyRepository;
 	private final ObjectMapper objectMapper;
 
 	@RabbitHandler
 	public void handleProjectClosed(ProjectDeletedEvent event) {
 		try {
 			log.info("이벤트 수신");
-			List<Survey> surveyOp = surveyRepository.findAllByProjectId(event.getProjectId());
-
-			if (surveyOp.isEmpty())
-				return;
-
-			for (Survey survey : surveyOp) {
-				surveyService.surveyDeleter(survey, survey.getSurveyId());
-			}
-
+			surveyService.surveyDeleteForProject(event.getProjectId());
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}
@@ -68,28 +59,10 @@ public class SurveyConsumer {
 		try {
 			log.info("SurveyStartDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(),
 				event.getScheduledAt());
-			processSurveyStart(event);
+			surveyService.processSurveyStart(event.getSurveyId(), event.getScheduledAt());
 		} catch (Exception e) {
 			log.error("SurveyStartDueEvent 처리 실패: surveyId={}, error={}", event.getSurveyId(), e.getMessage());
 			throw e;
-		}
-	}
-
-	private void processSurveyStart(SurveyStartDueEvent event) {
-		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId());
-
-		if (surveyOp.isEmpty())
-			return;
-
-		Survey survey = surveyOp.get();
-		if (survey.getDuration().getStartDate() == null ||
-			isDifferentMinute(survey.getDuration().getStartDate(), event.getScheduledAt())) {
-			return;
-		}
-
-		if (survey.getStatus() == SurveyStatus.PREPARING) {
-			survey.open();
-			surveyRepository.stateUpdate(survey);
 		}
 	}
 
@@ -103,28 +76,10 @@ public class SurveyConsumer {
 	public void handleSurveyEnd(SurveyEndDueEvent event) {
 		try {
 			log.info("SurveyEndDueEvent 수신: surveyId={}, scheduledAt={}", event.getSurveyId(), event.getScheduledAt());
-			processSurveyEnd(event);
+			surveyService.processSurveyEnd(event.getSurveyId(), event.getScheduledAt());
 		} catch (Exception e) {
 			log.error("SurveyEndDueEvent 처리 실패: surveyId={}, error={}", event.getSurveyId(), e.getMessage());
 			throw e;
-		}
-	}
-
-	private void processSurveyEnd(SurveyEndDueEvent event) {
-		Optional<Survey> surveyOp = surveyRepository.findBySurveyIdAndIsDeletedFalse(event.getSurveyId());
-
-		if (surveyOp.isEmpty())
-			return;
-
-		Survey survey = surveyOp.get();
-		if (survey.getDuration().getEndDate() == null ||
-			isDifferentMinute(survey.getDuration().getEndDate(), event.getScheduledAt())) {
-			return;
-		}
-
-		if (survey.getStatus() == SurveyStatus.IN_PROGRESS) {
-			survey.close();
-			surveyRepository.stateUpdate(survey);
 		}
 	}
 
@@ -148,9 +103,5 @@ public class SurveyConsumer {
 		} catch (Exception e) {
 			log.error("DLQ 저장 실패: routingKey={}, error={}", routingKey, e.getMessage());
 		}
-	}
-
-	private boolean isDifferentMinute(LocalDateTime activeDate, LocalDateTime scheduledDate) {
-		return !activeDate.truncatedTo(ChronoUnit.MINUTES).isEqual(scheduledDate.truncatedTo(ChronoUnit.MINUTES));
 	}
 }
