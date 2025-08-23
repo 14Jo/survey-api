@@ -74,6 +74,7 @@ public enum CustomErrorCode {
     UNSUPPORTED_SHARE_METHOD(HttpStatus.BAD_REQUEST, "지원하지 않는 공유 방법 입니다."),
     SHARE_EXPIRED(HttpStatus.BAD_REQUEST, "유효하지 않은 공유 링크 입니다."),
     INVALID_SHARE_TYPE(HttpStatus.BAD_REQUEST, "공유 타입이 일치하지 않습니다."),
+    ALREADY_EXISTED_SHARE(HttpStatus.BAD_REQUEST, "이미 존재하는 공유작업입니다."),
     PUSH_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "알림 송신에 실패했습니다.");
 
     private final HttpStatus httpStatus;
