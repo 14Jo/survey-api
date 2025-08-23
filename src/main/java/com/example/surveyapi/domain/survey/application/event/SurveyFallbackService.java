@@ -125,6 +125,31 @@ public class SurveyFallbackService {
 		}
 	}
 
+	@Transactional
+	public void handleFinalFailure(Long surveyId, String failureReason) {
+		log.error("=== 이벤트 오케스트레이션 최종 실패 - 수동 모드로 전환 ===");
+		log.error("surveyId: {}", surveyId);
+		log.error("실패 사유: {}", failureReason);
+
+		try {
+			Optional<Survey> surveyOpt = surveyRepository.findById(surveyId);
+			if (surveyOpt.isEmpty()) {
+				log.error("최종 실패 처리 중 설문을 찾을 수 없음: surveyId={}", surveyId);
+				return;
+			}
+
+			Survey survey = surveyOpt.get();
+			survey.changeToManualMode();
+			surveyRepository.save(survey);
+
+			log.info("수동 모드 전환 완료: surveyId={}", surveyId);
+
+		} catch (Exception finalException) {
+			log.error("수동 모드 전환도 실패 - 관리자 개입 필요: surveyId={}, error={}",
+				surveyId, finalException.getMessage(), finalException);
+		}
+	}
+
 	private Long extractSurveyId(SurveyEvent event) {
 		if (event instanceof SurveyStartDueEvent startEvent) {
 			return startEvent.getSurveyId();

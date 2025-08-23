@@ -47,6 +47,6 @@ public class RetryablePublisher {
 	@Recover
 	public void recoverPublishDelayed(Exception ex, SurveyEvent event, String routingKey, long delayMs) {
 		log.error("지연 이벤트 발행 최종 실패 - 풀백 실행: routingKey={}, error={}", routingKey, ex.getMessage());
-		fallbackService.handleFailedEvent(event, routingKey, ex.getMessage());
+
 	}
 }

@@ -11,7 +11,6 @@ import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.event.CreatedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleRequestedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
@@ -101,8 +100,7 @@ public class Survey extends AbstractRoot<Survey> {
 		survey.duration = duration;
 		survey.option = option;
 		survey.addQuestion(questions);
-
-		survey.registerEvent(new CreatedEvent(survey));
+		survey.addEvent();
 
 		return survey;
 	}
@@ -115,12 +113,7 @@ public class Survey extends AbstractRoot<Survey> {
 				case "type" -> this.type = (SurveyType)value;
 				case "duration" -> {
 					this.duration = (SurveyDuration)value;
-					this.registerEvent(new ScheduleRequestedEvent(
-						this.getSurveyId(),
-						this.getCreatorId(),
-						this.getDuration().getStartDate(),
-						this.getDuration().getEndDate()
-					));
+					addEvent();
 				}
 				case "option" -> this.option = (SurveyOption)value;
 				case "questions" -> {
@@ -156,6 +149,10 @@ public class Survey extends AbstractRoot<Survey> {
 
 	private void removeQuestions() {
 		this.questions.forEach(Question::delete);
+	}
+
+	private void addEvent() {
+		registerEvent(new CreatedEvent(this));
 	}
 
 	public void applyDurationChange(SurveyDuration newDuration, LocalDateTime now) {
