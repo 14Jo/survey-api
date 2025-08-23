@@ -58,7 +58,7 @@ public class ParticipationService {
 
 	@Transactional
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
-		log.info("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
+		log.debug("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
 		long totalStartTime = System.currentTimeMillis();
 
 		validateParticipationDuplicated(surveyId, userId);
@@ -121,6 +121,7 @@ public class ParticipationService {
 
 		List<Long> surveyIds = participationInfos.getContent().stream()
 			.map(ParticipationInfo::getSurveyId)
+			.distinct()
 			.toList();
 
 		List<SurveyInfoDto> surveyInfoList = surveyPort.getSurveyInfoList(authHeader, surveyIds);
@@ -176,27 +177,19 @@ public class ParticipationService {
 	@Transactional
 	public void update(String authHeader, Long userId, Long participationId,
 		CreateParticipationRequest request) {
-		log.info("설문 참여 수정 시작. participationId: {}, userId: {}", participationId, userId);
+		log.debug("설문 참여 수정 시작. participationId: {}, userId: {}", participationId, userId);
 		long totalStartTime = System.currentTimeMillis();
 
+		List<ResponseData> responseDataList = request.getResponseDataList();
 		Participation participation = getParticipationOrThrow(participationId);
 
 		participation.validateOwner(userId);
 
-		long surveyApiStartTime = System.currentTimeMillis();
 		SurveyDetailDto surveyDetail = surveyPort.getSurveyDetail(authHeader, participation.getSurveyId());
-		long surveyApiEndTime = System.currentTimeMillis();
-		log.debug("Survey API 호출 소요 시간: {}ms", (surveyApiEndTime - surveyApiStartTime));
 
 		validateSurveyActive(surveyDetail);
 		validateAllowUpdate(surveyDetail);
-
-		List<ResponseData> responseDataList = request.getResponseDataList();
-		List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
-
-		// 문항과 답변 유효성 검사
-		validateResponses(responseDataList, questions);
-
+		validateResponses(responseDataList, surveyDetail.getQuestions());
 		participation.update(responseDataList);
 
 		long totalEndTime = System.currentTimeMillis();
