@@ -3,12 +3,12 @@ package com.example.surveyapi.domain.survey.domain.query;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 
 import jakarta.persistence.Id;
@@ -38,6 +38,7 @@ public class SurveyReadEntity {
 	private String title;
 	private String description;
 	private String status;
+	private String scheduleState;
 	private Integer participationCount;
 
 	private SurveyOptions options;
@@ -46,8 +47,8 @@ public class SurveyReadEntity {
 
 	public static SurveyReadEntity create(
 		Long surveyId, Long projectId, String title,
-		String description, SurveyStatus status, Integer participationCount,
-		SurveyOptions options
+		String description, SurveyStatus status, ScheduleState scheduleState,
+		Integer participationCount, SurveyOptions options
 
 	) {
 		SurveyReadEntity surveyRead = new SurveyReadEntity();
@@ -56,6 +57,7 @@ public class SurveyReadEntity {
 		surveyRead.title = title;
 		surveyRead.description = description;
 		surveyRead.status = status.name();
+		surveyRead.scheduleState = scheduleState.name();
 		surveyRead.participationCount = participationCount;
 		surveyRead.options = options;
 

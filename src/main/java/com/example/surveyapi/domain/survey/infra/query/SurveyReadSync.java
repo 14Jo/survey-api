@@ -42,7 +42,8 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 
 			SurveyReadEntity surveyRead = SurveyReadEntity.create(
 				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
-				dto.getDescription(), dto.getStatus(), 0, surveyOptions
+				dto.getDescription(), dto.getStatus(), dto.getScheduleState(),
+				0, surveyOptions
 			);
 
 			SurveyReadEntity save = surveyReadRepository.save(surveyRead);
@@ -68,7 +69,8 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 
 			SurveyReadEntity surveyRead = SurveyReadEntity.create(
 				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
-				dto.getDescription(), dto.getStatus(), 0, surveyOptions
+				dto.getDescription(), dto.getStatus(), dto.getScheduleState(),
+				0, surveyOptions
 			);
 
 			surveyReadRepository.updateBySurveyId(surveyRead);
