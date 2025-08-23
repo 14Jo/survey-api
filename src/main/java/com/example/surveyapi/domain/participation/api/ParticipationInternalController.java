@@ -23,7 +23,7 @@ public class ParticipationInternalController {
 
 	private final ParticipationService participationService;
 
-	@GetMapping("/v1/surveys/participations")
+	@GetMapping("/surveys/participations")
 	public ResponseEntity<ApiResponse<List<ParticipationGroupResponse>>> getAllBySurveyIds(
 		@RequestParam(required = true) List<Long> surveyIds
 	) {
@@ -33,7 +33,7 @@ public class ParticipationInternalController {
 			.body(ApiResponse.success("여러 참여 기록 조회에 성공하였습니다.", result));
 	}
 
-	@GetMapping("/v2/surveys/participations/count")
+	@GetMapping("/surveys/participations/count")
 	public ResponseEntity<ApiResponse<Map<Long, Long>>> getParticipationCounts(
 		@RequestParam List<Long> surveyIds
 	) {
