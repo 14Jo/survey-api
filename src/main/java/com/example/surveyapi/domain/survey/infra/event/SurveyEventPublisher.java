@@ -1,5 +1,8 @@
 package com.example.surveyapi.domain.survey.infra.event;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
@@ -20,5 +23,15 @@ public class SurveyEventPublisher implements SurveyEventPublisherPort {
 		if (key.equals(EventCode.SURVEY_ACTIVATED)) {
 			rabbitTemplate.convertAndSend(RabbitConst.EXCHANGE_NAME, RabbitConst.ROUTING_KEY_SURVEY_ACTIVE, event);
 		}
+	}
+
+	@Override
+	public void publishDelayed(SurveyEvent event, String routingKey, long delayMs) {
+		Map<String, Object> headers = new HashMap<>();
+		headers.put("x-delay", delayMs);
+		rabbitTemplate.convertAndSend(RabbitConst.DELAYED_EXCHANGE_NAME, routingKey, event, message -> {
+			message.getMessageProperties().getHeaders().putAll(headers);
+			return message;
+		});
 	}
 }

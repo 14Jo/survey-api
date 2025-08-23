@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SurveyService {
 
-	private final SurveyReadSyncPort surveyReadSync;
+
 	private final SurveyRepository surveyRepository;
 	private final ProjectPort projectPort;
 
@@ -53,9 +53,6 @@ public class SurveyService {
 		);
 
 		Survey save = surveyRepository.save(survey);
-
-		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
-		surveyReadSync.surveyReadSync(SurveySyncDto.from(survey), questionList);
 
 		return save.getSurveyId();
 	}
@@ -97,9 +94,7 @@ public class SurveyService {
 		survey.applyDurationChange(survey.getDuration(), LocalDateTime.now());
 		surveyRepository.update(survey);
 
-		List<QuestionSyncDto> questionList = survey.getQuestions().stream().map(QuestionSyncDto::from).toList();
-		surveyReadSync.updateSurveyRead(SurveySyncDto.from(survey));
-		surveyReadSync.questionReadSync(surveyId, questionList);
+
 
 		return survey.getSurveyId();
 	}
@@ -167,6 +162,7 @@ public class SurveyService {
 		}
 	}
 
+	//TODO 동기화 이벤트화
 	public void surveyActivator(Survey survey, String activator) {
 		if (activator.equals(SurveyStatus.IN_PROGRESS.name())) {
 			survey.openAt(LocalDateTime.now());
@@ -175,13 +171,14 @@ public class SurveyService {
 			survey.closeAt(LocalDateTime.now());
 		}
 		surveyRepository.stateUpdate(survey);
-		surveyReadSync.activateSurveyRead(survey.getSurveyId(), survey.getStatus());
+		//surveyReadSync.activateSurveyRead(survey.getSurveyId(), survey.getStatus());
 	}
 
+	//TODO 동기화 이벤트화
 	public void surveyDeleter(Survey survey, Long surveyId) {
 		survey.delete();
 		surveyRepository.delete(survey);
-		surveyReadSync.deleteSurveyRead(surveyId);
+		//surveyReadSync.deleteSurveyRead(surveyId);
 	}
 
 	public void surveyDeleteForProject(Long projectId) {

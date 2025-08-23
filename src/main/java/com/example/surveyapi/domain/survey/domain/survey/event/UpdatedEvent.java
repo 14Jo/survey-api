@@ -9,10 +9,14 @@ import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
-public class CreatedEvent {
+import lombok.Getter;
+
+@Getter
+public class UpdatedEvent {
+
 	Survey survey;
 
-	public CreatedEvent(Survey survey) {
+	public UpdatedEvent(Survey survey) {
 		this.survey = survey;
 	}
 
