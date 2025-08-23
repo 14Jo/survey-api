@@ -29,10 +29,10 @@ public class SurveyFallbackService {
 		try {
 			switch (routingKey) {
 				case RabbitConst.ROUTING_KEY_SURVEY_START_DUE:
-					handleFailedSurveyStart((SurveyStartDueEvent) event, failureReason);
+					handleFailedSurveyStart((SurveyStartDueEvent)event, failureReason);
 					break;
 				case RabbitConst.ROUTING_KEY_SURVEY_END_DUE:
-					handleFailedSurveyEnd((SurveyEndDueEvent) event, failureReason);
+					handleFailedSurveyEnd((SurveyEndDueEvent)event, failureReason);
 					break;
 				default:
 					log.warn("알 수 없는 라우팅 키: {}", routingKey);
@@ -46,8 +46,8 @@ public class SurveyFallbackService {
 		Long surveyId = event.getSurveyId();
 		LocalDateTime scheduledTime = event.getScheduledAt();
 		LocalDateTime now = LocalDateTime.now();
-		
-		log.error("설문 시작 이벤트 실패: surveyId={}, scheduledTime={}, reason={}", 
+
+		log.error("설문 시작 이벤트 실패: surveyId={}, scheduledTime={}, reason={}",
 			surveyId, scheduledTime, failureReason);
 
 		Optional<Survey> surveyOpt = surveyRepository.findById(surveyId);
@@ -57,15 +57,14 @@ public class SurveyFallbackService {
 		}
 
 		Survey survey = surveyOpt.get();
-		
-		// 시간이 지났다면 즉시 시작
+
 		if (scheduledTime.isBefore(now) && survey.getStatus() == SurveyStatus.PREPARING) {
 			log.info("설문 시작 시간이 지났으므로 즉시 시작: surveyId={}", surveyId);
 			survey.applyDurationChange(survey.getDuration(), now);
 			surveyRepository.save(survey);
 			log.info("설문 시작 풀백 완료: surveyId={}", surveyId);
 		} else {
-			log.warn("설문 시작 풀백 불가: surveyId={}, status={}, scheduledTime={}", 
+			log.warn("설문 시작 풀백 불가: surveyId={}, status={}, scheduledTime={}",
 				surveyId, survey.getStatus(), scheduledTime);
 		}
 	}
@@ -74,8 +73,8 @@ public class SurveyFallbackService {
 		Long surveyId = event.getSurveyId();
 		LocalDateTime scheduledTime = event.getScheduledAt();
 		LocalDateTime now = LocalDateTime.now();
-		
-		log.error("설문 종료 이벤트 실패: surveyId={}, scheduledTime={}, reason={}", 
+
+		log.error("설문 종료 이벤트 실패: surveyId={}, scheduledTime={}, reason={}",
 			surveyId, scheduledTime, failureReason);
 
 		Optional<Survey> surveyOpt = surveyRepository.findById(surveyId);
@@ -85,7 +84,7 @@ public class SurveyFallbackService {
 		}
 
 		Survey survey = surveyOpt.get();
-		
+
 		// 시간이 지났다면 즉시 종료
 		if (scheduledTime.isBefore(now) && survey.getStatus() == SurveyStatus.IN_PROGRESS) {
 			log.info("설문 종료 시간이 지났으므로 즉시 종료: surveyId={}", surveyId);
@@ -93,7 +92,7 @@ public class SurveyFallbackService {
 			surveyRepository.save(survey);
 			log.info("설문 종료 풀백 완료: surveyId={}", surveyId);
 		} else {
-			log.warn("설문 종료 풀백 불가: surveyId={}, status={}, scheduledTime={}", 
+			log.warn("설문 종료 풀백 불가: surveyId={}, status={}, scheduledTime={}",
 				surveyId, survey.getStatus(), scheduledTime);
 		}
 	}

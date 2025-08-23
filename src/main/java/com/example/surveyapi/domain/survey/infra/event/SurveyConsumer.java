@@ -1,9 +1,4 @@
-package com.example.surveyapi.domain.survey.application.event;
-
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.Optional;
+package com.example.surveyapi.domain.survey.infra.event;
 
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -15,9 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.command.SurveyService;
 import com.example.surveyapi.domain.survey.domain.dlq.DeadLetterQueue;
-import com.example.surveyapi.domain.survey.domain.survey.Survey;
-import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
-import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.event.RabbitConst;
 import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
 import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
