@@ -9,6 +9,7 @@ import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.event.CreatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleRequestedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
@@ -59,7 +60,10 @@ public class Survey extends AbstractRoot<Survey> {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status", nullable = false)
 	private SurveyStatus status;
-
+	@Enumerated(EnumType.STRING)
+	@Column(name = "schedule_state", nullable = false)
+	private ScheduleState scheduleState = ScheduleState.AUTO_SCHEDULED;
+	
 	@Enumerated
 	private SurveyOption option;
 	@Enumerated
@@ -184,5 +188,9 @@ public class Survey extends AbstractRoot<Survey> {
 		this.status = SurveyStatus.CLOSED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), endedAt);
 		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+	}
+
+	public void changeToManualMode() {
+		this.scheduleState = ScheduleState.MANUAL_CONTROL;
 	}
 }

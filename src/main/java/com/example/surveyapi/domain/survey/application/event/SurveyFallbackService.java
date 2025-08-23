@@ -39,6 +39,7 @@ public class SurveyFallbackService {
 			}
 		} catch (Exception e) {
 			log.error("풀백 처리 중 오류: {}", e.getMessage(), e);
+			handleFinalFailure(event, routingKey, failureReason, e);
 		}
 	}
 
@@ -95,5 +96,41 @@ public class SurveyFallbackService {
 			log.warn("설문 종료 풀백 불가: surveyId={}, status={}, scheduledTime={}",
 				surveyId, survey.getStatus(), scheduledTime);
 		}
+	}
+
+	private void handleFinalFailure(SurveyEvent event, String routingKey, String originalFailureReason,
+		Exception fallbackException) {
+		Long surveyId = extractSurveyId(event);
+
+		log.error("=== 지연이벤트 발행 최종 실패 - 관리자 개입 필요 ===");
+		log.error("surveyId: {}", surveyId);
+		log.error("routingKey: {}", routingKey);
+		log.error("원본 실패 사유: {}", originalFailureReason);
+		log.error("Fallback 실패 사유: {}", fallbackException.getMessage(), fallbackException);
+
+		try {
+			Optional<Survey> surveyOpt = surveyRepository.findById(surveyId);
+			if (surveyOpt.isEmpty()) {
+				log.error("최종 실패 처리 중 설문을 찾을 수 없음: surveyId={}", surveyId);
+				return;
+			}
+
+			Survey survey = surveyOpt.get();
+			survey.changeToManualMode();
+			surveyRepository.save(survey);
+
+		} catch (Exception finalException) {
+			log.error("수동 모드 전환도 실패 - 관리자 개입 필요: surveyId={}, error={}",
+				surveyId, finalException.getMessage(), finalException);
+		}
+	}
+
+	private Long extractSurveyId(SurveyEvent event) {
+		if (event instanceof SurveyStartDueEvent startEvent) {
+			return startEvent.getSurveyId();
+		} else if (event instanceof SurveyEndDueEvent endEvent) {
+			return endEvent.getSurveyId();
+		}
+		return null;
 	}
 }

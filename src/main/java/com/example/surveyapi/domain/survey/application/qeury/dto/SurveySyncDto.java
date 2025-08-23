@@ -2,6 +2,7 @@ package com.example.surveyapi.domain.survey.application.qeury.dto;
 
 import java.time.LocalDateTime;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 
 import lombok.AccessLevel;
@@ -18,6 +19,7 @@ public class SurveySyncDto {
 	private String title;
 	private String description;
 	private SurveyStatus status;
+	private ScheduleState scheduleState;
 	private SurveyOptions options;
 
 	public static SurveySyncDto from(Survey survey) {
@@ -26,6 +28,7 @@ public class SurveySyncDto {
 		dto.projectId = survey.getProjectId();
 		dto.title = survey.getTitle();
 		dto.status = survey.getStatus();
+		dto.scheduleState = survey.getScheduleState();
 		dto.description = survey.getDescription();
 		dto.options = new SurveyOptions(
 			survey.getOption().isAnonymous(), survey.getOption().isAllowResponseUpdate(),
