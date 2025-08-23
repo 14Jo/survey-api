@@ -91,4 +91,21 @@ public class ShareConsumer {
 			log.error(e.getMessage(), e);
 		}
 	}
+
+	@RabbitHandler
+	public void handleProjectCreatedEvent(ProjectMemberAddedEvent event) {//프로젝트 생성 이벤트 작성 후 해당 내역 반영 예정
+		try {
+			log.info("Received project create event");
+
+			ShareCreateRequest request = new ShareCreateRequest(
+				event.getProjectId(),
+				event.getProjectOwnerId(),
+				event.getPeriodEnd()
+			);
+
+			shareEventPort.handleProjectCreateEvent(request);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
 }
