@@ -82,4 +82,8 @@ public class Notification extends BaseEntity {
 		this.status = Status.FAILED;
 		this.failedReason = failedReason;
 	}
+
+	public void setCheck() {
+		this.status = Status.CHECK;
+	}
 }
