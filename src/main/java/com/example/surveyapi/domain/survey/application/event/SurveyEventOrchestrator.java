@@ -15,10 +15,6 @@ import com.example.surveyapi.global.event.survey.SurveyEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 설문 이벤트 오케스트레이터
- * 모든 이벤트 발행을 중앙에서 관리하고 조율하는 클래스
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
