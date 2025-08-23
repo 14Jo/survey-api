@@ -15,10 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 
-/**
- * 이벤트 명령 생성 팩토리
- * 다양한 이벤트 타입에 따라 적절한 Command 객체들을 생성
- */
 @Component
 @RequiredArgsConstructor
 public class EventCommandFactory {

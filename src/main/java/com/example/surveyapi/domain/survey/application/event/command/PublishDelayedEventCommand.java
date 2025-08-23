@@ -7,9 +7,6 @@ import com.example.surveyapi.global.event.survey.SurveyEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 지연 이벤트 발행 명령
- */
 @Slf4j
 @RequiredArgsConstructor
 public class PublishDelayedEventCommand implements EventCommand {

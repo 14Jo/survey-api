@@ -19,10 +19,6 @@ import com.example.surveyapi.global.event.RabbitConst;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 설문 도메인 이벤트 리스너
- * 모든 이벤트 처리를 SurveyEventOrchestrator에 위임하여 중앙 집중식 관리
- */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -42,7 +38,8 @@ public class SurveyEventListener {
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handle(CreatedEvent event) {
 		log.info("CreatedEvent 수신 - 지연이벤트 발행 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
-		delayEvent(event.getSurveyId(), event.getCreatorId(), event.getDuration().getStartDate(), event.getDuration().getEndDate());
+		delayEvent(event.getSurveyId(), event.getCreatorId(), event.getDuration().getStartDate(),
+			event.getDuration().getEndDate());
 
 		// 3. 읽기 동기화
 		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
@@ -59,7 +56,8 @@ public class SurveyEventListener {
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handle(UpdatedEvent event) {
 		log.info("UpdatedEvent 수신 - 지연이벤트 발행 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
-		delayEvent(event.getSurveyId(), event.getCreatorId(), event.getDuration().getStartDate(), event.getDuration().getEndDate());
+		delayEvent(event.getSurveyId(), event.getCreatorId(), event.getDuration().getStartDate(),
+			event.getDuration().getEndDate());
 
 		// 3. 읽기 동기화
 		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();

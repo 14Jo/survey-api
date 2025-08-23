@@ -9,9 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * 설문 활성화 이벤트 발행 명령
- */
 @Slf4j
 @RequiredArgsConstructor
 public class PublishActivateEventCommand implements EventCommand {

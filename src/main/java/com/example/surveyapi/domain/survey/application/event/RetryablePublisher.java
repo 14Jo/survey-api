@@ -22,7 +22,7 @@ public class RetryablePublisher {
 
 	private final RabbitTemplate rabbitTemplate;
 	private final SurveyFallbackService fallbackService;
-	
+
 	@Retryable(
 		retryFor = {Exception.class},
 		maxAttempts = 3,
