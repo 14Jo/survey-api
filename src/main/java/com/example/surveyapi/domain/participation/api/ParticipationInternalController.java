@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.participation.api.internal;
+package com.example.surveyapi.domain.participation.api;
 
 import java.util.List;
 import java.util.Map;
