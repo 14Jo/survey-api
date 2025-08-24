@@ -11,6 +11,7 @@ import com.example.surveyapi.domain.statistic.application.event.ParticipationRes
 import com.example.surveyapi.domain.statistic.application.event.StatisticEventPort;
 import com.example.surveyapi.global.event.RabbitConst;
 import com.example.surveyapi.global.event.participation.ParticipationCreatedGlobalEvent;
+import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,9 +27,25 @@ public class StatisticEventConsumer {
 	@RabbitHandler
 	public void consumeParticipationCreatedEvent(ParticipationCreatedGlobalEvent event) {
 		try{
-			log.debug("ParticipationCreatedGlobalEvent received: {}", event);
+			log.info("ParticipationCreatedGlobalEvent received: {}", event);
 			ParticipationResponses responses = convertEventToDto(event);
 			statisticEventPort.handleParticipationEvent(responses);
+		} catch (Exception e) {
+			log.error("메시지 처리 중 에러 발생: {}", event, e);
+		}
+	}
+
+	@RabbitHandler
+	public void consumeSurveyActivateEvent(SurveyActivateEvent event) {
+		try{
+			log.info("get surveyEvent : {}", event);
+			if (event.getSurveyStatus().equals("IN_PROGRESS")) {
+				statisticEventPort.handleSurveyActivateEvent(event.getSurveyId());
+				return;
+			}
+			if (event.getSurveyStatus().equals("CLOSED")) {
+				statisticEventPort.handleSurveyDeactivateEvent(event.getSurveyId());
+			}
 		} catch (Exception e) {
 			log.error("메시지 처리 중 에러 발생: {}", event, e);
 		}
