@@ -34,7 +34,6 @@ import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 @Transactional
-@ActiveProfiles("test")
 @SpringBootTest
 @Rollback(value = false)
 @TestPropertySource(properties = "management.health.mail.enabled=false")
