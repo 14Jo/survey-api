@@ -1,12 +1,16 @@
 package com.example.surveyapi.domain.share.application.share;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.share.application.client.UserEmailDto;
+import com.example.surveyapi.domain.share.application.client.UserServicePort;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
@@ -24,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 public class ShareService {
 	private final ShareRepository shareRepository;
 	private final ShareDomainService shareDomainService;
+	private final UserServicePort userServicePort;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
 		Long creatorId, LocalDateTime expirationDate) {
@@ -41,7 +46,7 @@ public class ShareService {
 		return ShareResponse.from(saved);
 	}
 
-	public void createNotifications(Long shareId, Long creatorId,
+	public void createNotifications(String authHeader, Long shareId, Long creatorId,
 		ShareMethod shareMethod, List<String> emails,
 		LocalDateTime notifyAt) {
 		Share share = shareRepository.findById(shareId)
@@ -51,7 +56,22 @@ public class ShareService {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED_SHARE);
 		}
 
-		share.createNotifications(shareMethod, emails, notifyAt);
+		Map<String, Long> emailToUserIdMap = new HashMap<>();
+
+		if (shareMethod == ShareMethod.PUSH && emails != null && !emails.isEmpty()) {
+			for (String email : emails) {
+				try {
+					UserEmailDto userEmailDto = userServicePort.getUserByEmail(authHeader, email);
+					if (userEmailDto != null && userEmailDto.getId() != null) {
+						emailToUserIdMap.put(email, userEmailDto.getId());
+					}
+				} catch (Exception e) {
+					throw new CustomException(CustomErrorCode.CANNOT_CREATE_NOTIFICATION);
+				}
+			}
+		}
+
+		share.createNotifications(shareMethod, emails, notifyAt, emailToUserIdMap);
 	}
 
 	@Transactional(readOnly = true)
