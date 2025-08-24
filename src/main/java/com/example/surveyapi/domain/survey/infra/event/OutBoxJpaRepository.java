@@ -10,12 +10,15 @@ import org.springframework.data.repository.query.Param;
 import com.example.surveyapi.domain.survey.domain.dlq.OutboxEvent;
 
 public interface OutBoxJpaRepository extends JpaRepository<OutboxEvent, Integer> {
-	
+
 	@Query("SELECT o FROM OutboxEvent o WHERE o.status = 'PENDING' " +
 		"AND (o.nextRetryAt IS NULL OR o.nextRetryAt <= :now) " +
-		"AND (o.scheduledAt IS NULL OR o.scheduledAt <= :now) " +
 		"ORDER BY o.createdAt ASC")
 	List<OutboxEvent> findEventsToProcess(@Param("now") LocalDateTime now);
+
+	@Query("SELECT o FROM OutboxEvent o WHERE o.status = 'PENDING' " +
+		"ORDER BY o.createdAt ASC")
+	List<OutboxEvent> findPendingEvents();
 
 	@Query("SELECT o FROM OutboxEvent o WHERE o.status = 'PUBLISHED' " +
 		"AND o.publishedAt < :cutoffDate")

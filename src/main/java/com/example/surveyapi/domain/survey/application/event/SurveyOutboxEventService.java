@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.event.enums.OutboxEventStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.global.event.RabbitConst;
@@ -115,99 +116,71 @@ public class SurveyOutboxEventService {
 	@Transactional
 	public void processSurveyOutboxEvents() {
 		try {
-			log.debug("Survey Outbox 이벤트 처리 시작");
+			log.info("Survey Outbox 이벤트 처리 시작");
 
-			List<OutboxEvent> pendingEvents = outboxEventRepository.findEventsToProcess(LocalDateTime.now())
+			List<OutboxEvent> pendingEvents = outboxEventRepository.findPendingEvents()
 				.stream()
 				.filter(event -> "Survey".equals(event.getAggregateType()))
 				.toList();
 
 			if (pendingEvents.isEmpty()) {
-				log.debug("처리할 Survey Outbox 이벤트가 없습니다.");
+				log.info("처리할 Survey Outbox 이벤트가 없습니다.");
 				return;
 			}
 
-			int publishedCount = 0;
-			int failedCount = 0;
+			// 5분 이상된 PENDING 이벤트를 FAILED로 변경
+			markExpiredEventsAsFailed(pendingEvents);
 
+			// 모든 PENDING 이벤트를 오케스트레이터로 위임
+			int delegatedCount = 0;
 			for (OutboxEvent event : pendingEvents) {
-				try {
-					if (event.isReadyForDelivery()) {
-						processSurveyEvent(event);
-						event.asPublish();
-						publishedCount++;
-						log.debug("Survey Outbox 이벤트 발행 성공: id={}, eventType={}",
+				if (event.getStatus() == OutboxEventStatus.PENDING) {
+					try {
+						delegateToOrchestrator(event);
+						delegatedCount++;
+						log.info("오케스트레이터로 위임 완료: id={}, eventType={}",
 							event.getOutboxEventId(), event.getEventType());
+					} catch (Exception e) {
+						log.error("오케스트레이터 위임 실패: id={}, eventType={}, error={}",
+							event.getOutboxEventId(), event.getEventType(), e.getMessage());
 					}
-				} catch (Exception e) {
-					event.asFailed(e.getMessage());
-					failedCount++;
-					log.error("Survey Outbox 이벤트 발행 실패: id={}, eventType={}, error={}",
-						event.getOutboxEventId(), event.getEventType(), e.getMessage());
 				}
-
-				outboxEventRepository.save(event);
 			}
 
-			log.info("Survey Outbox 이벤트 처리 완료: 처리대상={}, 성공={}, 실패={}",
-				pendingEvents.size(), publishedCount, failedCount);
+			log.info("Survey Outbox 이벤트 처리 완료: 총 이벤트={}, 위임 완료={}",
+				pendingEvents.size(), delegatedCount);
 
 		} catch (Exception e) {
 			log.error("Survey Outbox 이벤트 처리 중 예외 발생", e);
 		}
 	}
 
-	private void processSurveyEvent(OutboxEvent event) {
-		try {
-			publishEventToRabbit(event);
+	/**
+	 * 5분 이상된 PENDING 이벤트를 FAILED로 변경
+	 */
+	private void markExpiredEventsAsFailed(List<OutboxEvent> events) {
+		LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
 
-			if ("SurveyActivated".equals(event.getEventType())) {
-				processSurveyActivateEvent(event);
-			} else if ("SurveyDelayed".equals(event.getEventType())) {
-				processDelayedSurveyEvent(event);
+		for (OutboxEvent event : events) {
+			if (event.getStatus() == OutboxEventStatus.PENDING && event.getCreatedAt().isBefore(fiveMinutesAgo)) {
+
+				event.asFailed("5분 시간 초과로 만료됨");
+				outboxEventRepository.save(event);
+
+				log.warn("5분 시간 초과로 이벤트 만료: id={}, eventType={}, createdAt={}",
+					event.getOutboxEventId(), event.getEventType(), event.getCreatedAt());
 			}
-		} catch (JsonProcessingException e) {
-			throw new CustomException(CustomErrorCode.SERVER_ERROR, "Survey 이벤트 역직렬화 실패 message = " + e);
 		}
 	}
 
-	private void publishEventToRabbit(OutboxEvent event) {
-		try {
-			Object eventData = objectMapper.readValue(event.getEventData(), Object.class);
-
-			if (event.isDelayedEvent()) {
-				publishDelayedEvent(event);
-			} else {
-				publishImmediateEvent(event);
-			}
-		} catch (JsonProcessingException e) {
-			throw new CustomException(CustomErrorCode.SERVER_ERROR, "Survey 이벤트 역직렬화 실패" + e);
-		}
-	}
-
-	private void publishImmediateEvent(OutboxEvent event) {
-		try {
-			Object actualEvent = deserializeToActualEventType(event.getEventData(), event.getEventType());
-			rabbitTemplate.convertAndSend(event.getExchangeName(), event.getRoutingKey(), actualEvent);
-		} catch (JsonProcessingException e) {
-			log.error("이벤트 역직렬화 실패: eventType={}, error={}", event.getEventType(), e.getMessage());
-			throw new CustomException(CustomErrorCode.SERVER_ERROR, "이벤트 역직렬화 실패" + e);
-		}
-	}
-
-	private void publishDelayedEvent(OutboxEvent event) {
-		try {
-			Object actualEvent = deserializeToActualEventType(event.getEventData(), event.getEventType());
-			Map<String, Object> headers = new HashMap<>();
-			headers.put("x-delay", event.getDelayMs());
-
-			rabbitTemplate.convertAndSend(event.getExchangeName(), event.getRoutingKey(), actualEvent, message -> {
-				message.getMessageProperties().getHeaders().putAll(headers);
-				return message;
-			});
-		} catch (JsonProcessingException e) {
-			log.error("지연 이벤트 역직렬화 실패: eventType={}, error={}", event.getEventType(), e.getMessage());
-			throw new CustomException(CustomErrorCode.SERVER_ERROR, "지연 이벤트 역직렬화 실패" + e);
+	/**
+	 * PENDING 이벤트를 오케스트레이터로 위임 (기한 체크 없이)
+	 */
+	private void delegateToOrchestrator(OutboxEvent event) throws JsonProcessingException {
+		if ("SurveyActivated".equals(event.getEventType())) {
+			processSurveyActivateEvent(event);
+		} else if ("SurveyDelayed".equals(event.getEventType())) {
+			processDelayedSurveyEvent(event);
 		}
 	}
 
@@ -222,27 +195,35 @@ public class SurveyOutboxEventService {
 		);
 
 		log.debug("오케스트레이터를 통한 설문 활성화 이벤트 처리: surveyId={}", surveyEvent.getSurveyId());
-		surveyEventOrchestrator.orchestrateActivateEvent(activateEvent);
+
+		// 오케스트레이터에서 처리 (성공/실패에 따른 스케줄 상태 변경 포함)
+		surveyEventOrchestrator.orchestrateActivateEventWithOutboxCallback(activateEvent, event);
 	}
 
 	private void processDelayedSurveyEvent(OutboxEvent event) throws JsonProcessingException {
 		if (RabbitConst.ROUTING_KEY_SURVEY_START_DUE.equals(event.getRoutingKey())) {
 			SurveyStartDueEvent startEvent = objectMapper.readValue(event.getEventData(), SurveyStartDueEvent.class);
 			log.debug("오케스트레이터를 통한 설문 시작 지연 이벤트 처리: surveyId={}", startEvent.getSurveyId());
-			surveyEventOrchestrator.orchestrateDelayedEvent(
+
+			// 오케스트레이터에서 처리 (성공/실패에 따른 스케줄 상태 변경 포함)
+			surveyEventOrchestrator.orchestrateDelayedEventWithOutboxCallback(
 				startEvent.getSurveyId(),
 				startEvent.getCreatorId(),
 				event.getRoutingKey(),
-				event.getScheduledAt()
+				event.getScheduledAt(),
+				event
 			);
 		} else if (RabbitConst.ROUTING_KEY_SURVEY_END_DUE.equals(event.getRoutingKey())) {
 			SurveyEndDueEvent endEvent = objectMapper.readValue(event.getEventData(), SurveyEndDueEvent.class);
 			log.debug("오케스트레이터를 통한 설문 종료 지연 이벤트 처리: surveyId={}", endEvent.getSurveyId());
-			surveyEventOrchestrator.orchestrateDelayedEvent(
+
+			// 오케스트레이터에서 처리 (성공/실패에 따른 스케줄 상태 변경 포함)
+			surveyEventOrchestrator.orchestrateDelayedEventWithOutboxCallback(
 				endEvent.getSurveyId(),
 				endEvent.getCreatorId(),
 				event.getRoutingKey(),
-				event.getScheduledAt()
+				event.getScheduledAt(),
+				event
 			);
 		}
 	}
