@@ -16,7 +16,7 @@ public record DocumentCreateCommand (
 ) {
 	public record Answer(
 		Long questionId,
-		List<Long> choiceIds,
+		List<Integer> choiceIds,
 		String responseText
 	) {}
 }

@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.statistic.application.StatisticService;
-import com.example.surveyapi.domain.statistic.application.client.SurveyDetailDto;
+import com.example.surveyapi.domain.statistic.application.client.dto.SurveyDetailDto;
 import com.example.surveyapi.domain.statistic.application.client.SurveyServicePort;
 import com.example.surveyapi.domain.statistic.domain.statistic.Statistic;
 import com.example.surveyapi.domain.statistic.domain.statisticdocument.StatisticDocument;
@@ -50,6 +50,11 @@ public class StatisticEventHandler implements StatisticEventPort {
 		if(!documents.isEmpty()) {
 			statisticDocumentRepository.saveAll(documents);
 		}
+	}
+
+	@Override
+	public void handleSurveyActivateEvent(Long surveyId) {
+
 	}
 
 	private DocumentCreateCommand toCreateCommand(ParticipationResponses responses) {

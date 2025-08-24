@@ -54,7 +54,7 @@ public class ParticipationCreatedGlobalEvent implements ParticipationGlobalEvent
 	}
 
 	@Getter
-	private static class Answer {
+	public static class Answer {
 
 		private final Long questionId;
 		private final List<Integer> choiceIds;

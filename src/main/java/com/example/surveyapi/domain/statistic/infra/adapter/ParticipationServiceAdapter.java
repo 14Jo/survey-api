@@ -6,9 +6,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.example.surveyapi.domain.statistic.application.client.ParticipationInfoDto;
+import com.example.surveyapi.domain.statistic.application.client.dto.ParticipationInfoDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
-import com.example.surveyapi.domain.statistic.application.client.QuestionAnswers;
+import com.example.surveyapi.domain.statistic.application.client.dto.QuestionAnswers;
 import com.example.surveyapi.global.dto.ExternalApiResponse;
 import com.example.surveyapi.global.client.ParticipationApiClient;
 import com.fasterxml.jackson.core.type.TypeReference;

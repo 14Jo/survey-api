@@ -26,7 +26,7 @@ public class StatisticDocument {
 	private String questionText;
 	private String questionType;
 
-	private Long choiceId;
+	private Integer choiceId;
 	private String choiceText;
 	private String responseText;
 
@@ -40,7 +40,7 @@ public class StatisticDocument {
 
 	private StatisticDocument(
 		String responseId, Long surveyId, Long questionId, String questionText, String questionType,
-		Long choiceId, String choiceText, String responseText, Long userId, String userGender, String userBirthDate,
+		Integer choiceId, String choiceText, String responseText, Long userId, String userGender, String userBirthDate,
 		Integer userAge, String userAgeGroup, Instant submittedAt
 	) {
 		this.responseId = responseId;
@@ -61,7 +61,7 @@ public class StatisticDocument {
 
 	public static StatisticDocument create(
 		String responseId, Long surveyId, Long questionId, String questionText,
-		String questionType, Long choiceId, String choiceText, String responseText,
+		String questionType, Integer choiceId, String choiceText, String responseText,
 		Long userId, String userGender, String userBirthDate, Integer userAge,
 		String userAgeGroup, Instant submittedAt) {
 

@@ -41,7 +41,7 @@ public class StatisticDocumentFactory {
 	private StatisticDocument buildDocument(DocumentCreateCommand command,
 		DocumentCreateCommand.Answer answer,
 		SurveyMetadata.QuestionMetadata questionMeta,
-		Long choiceId) {
+		Integer choiceId) {
 
 		// 메타데이터에서 선택지 텍스트를 조회
 		String choiceText = (choiceId != null) ? questionMeta.getChoiceText(choiceId).orElse(null) : null;
