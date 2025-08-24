@@ -1,8 +1,10 @@
 package com.example.surveyapi.domain.share.application.client;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor
 public class UserEmailDto {
 	private Long id;
 	private String email;
