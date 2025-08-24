@@ -194,9 +194,16 @@ public class Survey extends AbstractRoot<Survey> {
 		changeToManualMode("폴백 처리로 인한 수동 모드 전환");
 	}
 
-	public void changeToManualMode(String reason) {
+		public void changeToManualMode(String reason) {
 		this.scheduleState = ScheduleState.MANUAL_CONTROL;
-		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId, 
+		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId,
 			this.scheduleState, this.status, reason));
+	}
+
+	public void restoreAutoScheduleMode(String reason) {
+		this.scheduleState = ScheduleState.AUTO_SCHEDULED;
+		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId,
+			this.scheduleState, this.status, reason));
+		log.info("스케줄 상태가 자동 모드로 복구됨: surveyId={}, reason={}", this.surveyId, reason);
 	}
 }

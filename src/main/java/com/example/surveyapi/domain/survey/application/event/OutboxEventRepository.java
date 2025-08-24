@@ -14,9 +14,11 @@ public interface OutboxEventRepository {
 
 	void save(OutboxEvent event);
 
-	void deleteAll(List<OutboxEvent> events)
+	void deleteAll(List<OutboxEvent> events);
 
 	List<OutboxEvent> findEventsToProcess(@Param("now") LocalDateTime now);
+	
+	List<OutboxEvent> findPendingEvents();
 
 	List<OutboxEvent> findPublishedEventsOlderThan(@Param("cutoffDate") LocalDateTime cutoffDate);
 }

@@ -32,6 +32,11 @@ public class OutboxRepositoryImpl implements OutboxEventRepository {
 	}
 
 	@Override
+	public List<OutboxEvent> findPendingEvents() {
+		return jpaRepository.findPendingEvents();
+	}
+
+	@Override
 	public List<OutboxEvent> findPublishedEventsOlderThan(LocalDateTime cutoffDate) {
 		return jpaRepository.findPublishedEventsOlderThan(cutoffDate);
 	}
