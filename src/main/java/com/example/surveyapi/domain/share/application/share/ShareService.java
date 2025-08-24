@@ -58,7 +58,8 @@ public class ShareService {
 
 		Map<String, Long> emailToUserIdMap = new HashMap<>();
 
-		if (shareMethod == ShareMethod.PUSH && emails != null && !emails.isEmpty()) {
+		if ((shareMethod == ShareMethod.PUSH || shareMethod == ShareMethod.APP)
+			&& emails != null && !emails.isEmpty()) {
 			for (String email : emails) {
 				try {
 					UserEmailDto userEmailDto = userServicePort.getUserByEmail(authHeader, email);
