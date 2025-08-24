@@ -1,7 +1,7 @@
 spring:
   profiles:
     active: dev
-  
+
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/survey_db
@@ -71,6 +71,9 @@ spring:
           auth: true
           starttls:
             enable: true
+firebase:
+  credentials:
+    path: classpath:firebase-survey-account.json
 
 server:
   tomcat:
