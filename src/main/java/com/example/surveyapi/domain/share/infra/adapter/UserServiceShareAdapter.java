@@ -13,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class UserServiceAdapter implements UserServicePort {
+public class UserServiceShareAdapter implements UserServicePort {
 	private final UserApiClient userApiClient;
 	private final ObjectMapper objectMapper;
 
