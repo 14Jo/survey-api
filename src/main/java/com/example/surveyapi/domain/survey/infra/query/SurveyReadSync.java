@@ -15,6 +15,7 @@ import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -124,6 +125,25 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 		} else {
 			surveyRead.activate(status);
 			surveyReadRepository.save(surveyRead);
+		}
+	}
+
+	@Async
+	@Transactional
+	public void updateScheduleState(Long surveyId, ScheduleState scheduleState, SurveyStatus surveyStatus) {
+		try {
+			log.debug("설문 스케줄 상태 업데이트 시작: surveyId={}, scheduleState={}, surveyStatus={}", 
+				surveyId, scheduleState, surveyStatus);
+
+			SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
+				.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
+
+			surveyRead.updateScheduleState(scheduleState.name(), surveyStatus.name());
+			surveyReadRepository.save(surveyRead);
+
+			log.debug("설문 스케줄 상태 업데이트 완료: surveyId={}", surveyId);
+		} catch (Exception e) {
+			log.error("설문 스케줄 상태 업데이트 실패: surveyId={}, error={}", surveyId, e.getMessage());
 		}
 	}
 

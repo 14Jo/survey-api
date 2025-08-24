@@ -11,6 +11,8 @@ import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.event.CreatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.DeletedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleStateChangedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
@@ -129,6 +131,7 @@ public class Survey extends AbstractRoot<Survey> {
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
 		this.isDeleted = true;
 		removeQuestions();
+		registerEvent(new DeletedEvent(this));
 	}
 
 	private void addQuestion(List<QuestionInfo> questions) {
@@ -188,6 +191,12 @@ public class Survey extends AbstractRoot<Survey> {
 	}
 
 	public void changeToManualMode() {
+		changeToManualMode("폴백 처리로 인한 수동 모드 전환");
+	}
+
+	public void changeToManualMode(String reason) {
 		this.scheduleState = ScheduleState.MANUAL_CONTROL;
+		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId, 
+			this.scheduleState, this.status, reason));
 	}
 }

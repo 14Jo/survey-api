@@ -68,6 +68,11 @@ public class SurveyReadEntity {
 		this.status = status.name();
 	}
 
+	public void updateScheduleState(String scheduleState, String surveyStatus) {
+		this.scheduleState = scheduleState;
+		this.status = surveyStatus;
+	}
+
 	@Getter
 	@AllArgsConstructor
 	public static class SurveyOptions {
