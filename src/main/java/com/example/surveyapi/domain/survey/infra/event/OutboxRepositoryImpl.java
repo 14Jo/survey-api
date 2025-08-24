@@ -27,11 +27,6 @@ public class OutboxRepositoryImpl implements OutboxEventRepository {
 	}
 
 	@Override
-	public List<OutboxEvent> findEventsToProcess(LocalDateTime now) {
-		return jpaRepository.findEventsToProcess(now);
-	}
-
-	@Override
 	public List<OutboxEvent> findPendingEvents() {
 		return jpaRepository.findPendingEvents();
 	}
