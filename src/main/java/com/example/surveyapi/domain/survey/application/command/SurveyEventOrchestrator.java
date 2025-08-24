@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.event;
+package com.example.surveyapi.domain.survey.application.command;
 
 import java.time.LocalDateTime;
 
@@ -7,15 +7,15 @@ import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Component;
 
+import com.example.surveyapi.domain.survey.application.event.outbox.OutboxEventRepository;
+import com.example.surveyapi.domain.survey.application.event.SurveyFallbackService;
 import com.example.surveyapi.domain.survey.application.event.command.EventCommand;
 import com.example.surveyapi.domain.survey.application.event.command.EventCommandFactory;
-import com.example.surveyapi.domain.survey.application.event.enums.OutboxEventStatus;
 import com.example.surveyapi.domain.survey.domain.dlq.OutboxEvent;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
-import com.example.surveyapi.global.event.survey.SurveyEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

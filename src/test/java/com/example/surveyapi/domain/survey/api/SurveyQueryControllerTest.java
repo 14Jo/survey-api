@@ -22,9 +22,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
-import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyDetailResponse;
-import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyStatusResponse;
-import com.example.surveyapi.domain.survey.application.command.dto.response.SearchSurveyTitleResponse;
+import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyDetailResponse;
+import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyStatusResponse;
+import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;

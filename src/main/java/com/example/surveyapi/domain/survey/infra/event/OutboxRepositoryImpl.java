@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.survey.application.event.OutboxEventRepository;
+import com.example.surveyapi.domain.survey.application.event.outbox.OutboxEventRepository;
 import com.example.surveyapi.domain.survey.domain.dlq.OutboxEvent;
 
 import lombok.RequiredArgsConstructor;
