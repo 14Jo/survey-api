@@ -1,14 +1,16 @@
-package com.example.surveyapi.domain.statistic.infra.rabbitmq;
+package com.example.surveyapi.domain.statistic.infra.event;
 
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.statistic.application.event.ParticipationResponses;
 import com.example.surveyapi.domain.statistic.application.event.StatisticEventPort;
-import com.example.surveyapi.global.constant.RabbitConst;
+import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.participation.ParticipationCreatedGlobalEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,14 +18,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-
+@RabbitListener(queues = RabbitConst.QUEUE_NAME_STATISTIC)
 public class StatisticEventConsumer {
 
 	private final StatisticEventPort statisticEventPort;
 
-	@RabbitListener(queues = RabbitConst.PARTICIPATION_QUEUE_NAME)
-	public void consumeParticipationCreatedEvent(ParticipationCreatedEvent event) {
+	@RabbitHandler
+	public void consumeParticipationCreatedEvent(ParticipationCreatedGlobalEvent event) {
 		try{
+			log.debug("ParticipationCreatedGlobalEvent received: {}", event);
 			ParticipationResponses responses = convertEventToDto(event);
 			statisticEventPort.handleParticipationEvent(responses);
 		} catch (Exception e) {
@@ -31,26 +34,27 @@ public class StatisticEventConsumer {
 		}
 	}
 
-	private ParticipationResponses convertEventToDto(ParticipationCreatedEvent event) {
-		List<Integer> birth = event.demographic().birth();
+	private ParticipationResponses convertEventToDto(ParticipationCreatedGlobalEvent event) {
+		LocalDate localBirth = event.getDemographic().getBirth();
+		List<Integer> birth = List.of(localBirth.getYear(), localBirth.getMonthValue(), localBirth.getDayOfMonth());
 		String birthDate = formatBirthDate(birth);
 		Integer age = calculateAge(birth);
 		String ageGroup = calculateAgeGroup(age);
 
-		List<ParticipationResponses.Answer> answers = event.answers().stream()
+		List<ParticipationResponses.Answer> answers = event.getAnswers().stream()
 			.map(answer -> new ParticipationResponses.Answer(
-				answer.questionId(), answer.choiceIds(), answer.responseText()
+				answer.getQuestionId(), answer.getChoiceIds(), answer.getResponseText()
 			)).toList();
 
 		return new ParticipationResponses(
-			event.participationId(),
-			event.surveyId(),
-			event.userId(),
-			event.demographic().gender(),
+			event.getParticipationId(),
+			event.getSurveyId(),
+			event.getUserId(),
+			event.getDemographic().getGender(),
 			birthDate,
 			age,
 			ageGroup,
-			event.completedAt().atZone(java.time.ZoneId.systemDefault()).toInstant(),
+			event.getCompletedAt().atZone(java.time.ZoneId.systemDefault()).toInstant(),
 			answers
 		);
 	}

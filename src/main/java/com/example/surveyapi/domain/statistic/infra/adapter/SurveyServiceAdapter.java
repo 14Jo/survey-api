@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Component;
 
-import com.example.surveyapi.domain.statistic.application.client.SurveyDetailDto;
+import com.example.surveyapi.domain.statistic.application.client.dto.SurveyDetailDto;
 import com.example.surveyapi.domain.statistic.application.client.SurveyServicePort;
 import com.example.surveyapi.global.dto.ExternalApiResponse;
 import com.example.surveyapi.global.client.SurveyApiClient;

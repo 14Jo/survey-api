@@ -22,7 +22,7 @@ public class SurveyMetadata {
 		String questionType,
 		Map<Long, String> choiceMap
 	) {
-		public Optional<String> getChoiceText(Long choiceId) {
+		public Optional<String> getChoiceText(Integer choiceId) {
 			return Optional.ofNullable(choiceMap.get(choiceId));
 		}
 	}

@@ -3,7 +3,7 @@ package com.example.surveyapi.domain.statistic.domain.statistic;
 import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.statistic.domain.statistic.enums.StatisticStatus;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.model.BaseEntity;
 

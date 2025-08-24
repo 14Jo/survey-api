@@ -5,12 +5,12 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.statistic.application.client.ParticipationInfoDto;
+import com.example.surveyapi.domain.statistic.application.client.dto.ParticipationInfoDto;
 import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
 import com.example.surveyapi.domain.statistic.domain.depri.StatisticCommand;
 import com.example.surveyapi.domain.statistic.domain.statistic.Statistic;
 import com.example.surveyapi.domain.statistic.domain.statistic.StatisticRepository;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
