@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
@@ -47,67 +49,69 @@ public class ParticipationService {
 	private final SurveyServicePort surveyPort;
 	private final UserServicePort userPort;
 	private final TaskExecutor taskExecutor;
+	private final TransactionTemplate transactionTemplate;
 
-	public ParticipationService(ParticipationRepository participationRepository, SurveyServicePort surveyPort,
-		UserServicePort userPort, @Qualifier("externalAPI") TaskExecutor taskExecutor) {
+	public ParticipationService(ParticipationRepository participationRepository,
+		SurveyServicePort surveyPort,
+		UserServicePort userPort,
+		@Qualifier("externalAPI") TaskExecutor taskExecutor,
+		TransactionTemplate transactionTemplate
+	) {
 		this.participationRepository = participationRepository;
 		this.surveyPort = surveyPort;
 		this.userPort = userPort;
 		this.taskExecutor = taskExecutor;
+		this.transactionTemplate = transactionTemplate;
 	}
 
-	@Transactional
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
 		log.debug("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
 		long totalStartTime = System.currentTimeMillis();
-
 		validateParticipationDuplicated(surveyId, userId);
 
+		List<ResponseData> responseDataList = request.getResponseDataList();
+
 		CompletableFuture<SurveyDetailDto> futureSurveyDetail = CompletableFuture.supplyAsync(
-			() -> surveyPort.getSurveyDetail(authHeader, surveyId), taskExecutor);
+			() -> surveyPort.getSurveyDetail(authHeader, surveyId), taskExecutor).orTimeout(3, TimeUnit.SECONDS);
 
 		CompletableFuture<UserSnapshotDto> futureUserSnapshot = CompletableFuture.supplyAsync(
-			() -> userPort.getParticipantInfo(authHeader, userId), taskExecutor);
+			() -> userPort.getParticipantInfo(authHeader, userId), taskExecutor).orTimeout(3, TimeUnit.SECONDS);
 
-		CompletableFuture.allOf(futureSurveyDetail, futureUserSnapshot).join();
+		final SurveyDetailDto surveyDetail;
+		final UserSnapshotDto userSnapshot;
 
 		try {
-			SurveyDetailDto surveyDetail = futureSurveyDetail.get();
-			UserSnapshotDto userSnapshotDto = futureUserSnapshot.get();
+			surveyDetail = futureSurveyDetail.get();
+			userSnapshot = futureUserSnapshot.get();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			log.error("비동기 호출 중 인터럽트 발생", e);
+			futureSurveyDetail.cancel(true);
+			futureUserSnapshot.cancel(true);
+			throw new CustomException(CustomErrorCode.EXTERNAL_API_ERROR);
+		} catch (ExecutionException e) {
+			log.error("비동기 호출 실패", e);
+			futureSurveyDetail.cancel(true);
+			futureUserSnapshot.cancel(true);
+			throw new CustomException(CustomErrorCode.EXTERNAL_API_ERROR);
+		}
 
-			validateSurveyActive(surveyDetail);
+		validateSurveyActive(surveyDetail);
+		validateResponses(responseDataList, surveyDetail.getQuestions());
 
-			List<ResponseData> responseDataList = request.getResponseDataList();
-			List<SurveyDetailDto.QuestionValidationInfo> questions = surveyDetail.getQuestions();
+		ParticipantInfo participantInfo = ParticipantInfo.of(userSnapshot.getBirth(), userSnapshot.getGender(),
+			userSnapshot.getRegion());
 
-			validateResponses(responseDataList, questions);
-
-			ParticipantInfo participantInfo = ParticipantInfo.of(userSnapshotDto.getBirth(),
-				userSnapshotDto.getGender(),
-				userSnapshotDto.getRegion());
-
+		return transactionTemplate.execute(status -> {
 			Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
-
-			long dbStartTime = System.currentTimeMillis();
 			Participation savedParticipation = participationRepository.save(participation);
-			long dbEndTime = System.currentTimeMillis();
-			log.debug("DB 저장 소요 시간: {}ms", (dbEndTime - dbStartTime));
-
 			savedParticipation.registerCreatedEvent();
 
 			long totalEndTime = System.currentTimeMillis();
 			log.debug("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
 
 			return savedParticipation.getId();
-
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			log.error("비동기 호출 중 인터럽트 발생", e);
-			throw new CustomException(CustomErrorCode.EXTERNAL_API_ERROR);
-		} catch (ExecutionException e) {
-			log.error("비동기 호출 실패", e);
-			throw new CustomException(CustomErrorCode.EXTERNAL_API_ERROR);
-		}
+		});
 	}
 
 	@Transactional(readOnly = true)
