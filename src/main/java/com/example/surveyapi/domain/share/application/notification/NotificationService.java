@@ -51,6 +51,7 @@ public class NotificationService {
 		return new ShareValidationResponse(valid);
 	}
 
+	@Transactional
 	public Page<NotificationResponse> getMyNotifications(
 		Long currentId,
 		Pageable pageable
