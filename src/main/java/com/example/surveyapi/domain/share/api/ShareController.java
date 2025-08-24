@@ -26,14 +26,15 @@ public class ShareController {
 
 	@PostMapping("/v2/share-tasks/{shareId}/notifications")
 	public ResponseEntity<ApiResponse<Void>> createNotifications(
+		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long shareId,
 		@Valid @RequestBody NotificationEmailCreateRequest request,
 		@AuthenticationPrincipal Long creatorId
 	) {
 		shareService.createNotifications(
-			shareId, creatorId,
-			request.getShareMethod(), request.getEmails(),
-			request.getNotifyAt());
+			authHeader, shareId,
+			creatorId, request.getShareMethod(),
+			request.getEmails(), request.getNotifyAt());
 
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
