@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.command.dto.response;
+package com.example.surveyapi.domain.survey.application.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;

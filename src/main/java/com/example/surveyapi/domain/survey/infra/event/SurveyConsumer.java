@@ -78,6 +78,7 @@ public class SurveyConsumer {
 	@Recover
 	public void recoverSurveyStart(Exception ex, SurveyStartDueEvent event) {
 		log.error("SurveyStartDueEvent 최종 실패 - DLQ 저장: surveyId={}, error={}", event.getSurveyId(), ex.getMessage());
+
 		saveToDlq("survey.start.due", "SurveyStartDueEvent", event, ex.getMessage(), 3);
 	}
 

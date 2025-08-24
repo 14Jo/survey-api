@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.survey.application.command.SurveyService;
-import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.dto.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.dto.request.UpdateSurveyRequest;
 import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;

@@ -11,13 +11,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
-import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
-import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
-import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
-import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.dto.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.dto.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
 import com.example.surveyapi.domain.survey.domain.survey.SurveyRepository;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
