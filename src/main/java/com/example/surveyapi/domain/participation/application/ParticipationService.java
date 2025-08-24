@@ -16,6 +16,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -49,19 +50,22 @@ public class ParticipationService {
 	private final SurveyServicePort surveyPort;
 	private final UserServicePort userPort;
 	private final TaskExecutor taskExecutor;
-	private final TransactionTemplate transactionTemplate;
+	private final TransactionTemplate writeTransactionTemplate;
+	private final TransactionTemplate readOnlyTransactionTemplate;
 
 	public ParticipationService(ParticipationRepository participationRepository,
 		SurveyServicePort surveyPort,
 		UserServicePort userPort,
 		@Qualifier("externalAPI") TaskExecutor taskExecutor,
-		TransactionTemplate transactionTemplate
+		PlatformTransactionManager transactionManager
 	) {
 		this.participationRepository = participationRepository;
 		this.surveyPort = surveyPort;
 		this.userPort = userPort;
 		this.taskExecutor = taskExecutor;
-		this.transactionTemplate = transactionTemplate;
+		this.writeTransactionTemplate = new TransactionTemplate(transactionManager);
+		this.readOnlyTransactionTemplate = new TransactionTemplate(transactionManager);
+		this.readOnlyTransactionTemplate.setReadOnly(true);
 	}
 
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
@@ -102,7 +106,7 @@ public class ParticipationService {
 		ParticipantInfo participantInfo = ParticipantInfo.of(userSnapshot.getBirth(), userSnapshot.getGender(),
 			userSnapshot.getRegion());
 
-		return transactionTemplate.execute(status -> {
+		return writeTransactionTemplate.execute(status -> {
 			Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 			Participation savedParticipation = participationRepository.save(participation);
 			savedParticipation.registerCreatedEvent();
@@ -114,12 +118,12 @@ public class ParticipationService {
 		});
 	}
 
-	@Transactional(readOnly = true)
 	public Page<ParticipationInfoResponse> gets(String authHeader, Long userId, Pageable pageable) {
-		Page<ParticipationInfo> participationInfos = participationRepository.findParticipationInfos(userId,
-			pageable);
+		Page<ParticipationInfo> participationInfos = readOnlyTransactionTemplate.execute(status ->
+			participationRepository.findParticipationInfos(userId, pageable)
+		);
 
-		if (participationInfos.isEmpty()) {
+		if (participationInfos == null || participationInfos.isEmpty()) {
 			return Page.empty();
 		}
 
