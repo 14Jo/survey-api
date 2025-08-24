@@ -14,8 +14,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +33,6 @@ import com.example.surveyapi.global.exception.CustomException;
 
 @Transactional
 @SpringBootTest
-@Rollback(value = false)
 @TestPropertySource(properties = "management.health.mail.enabled=false")
 class ShareServiceTest {
 	@Autowired
