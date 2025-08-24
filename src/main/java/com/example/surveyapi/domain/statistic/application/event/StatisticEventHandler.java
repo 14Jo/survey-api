@@ -54,6 +54,11 @@ public class StatisticEventHandler implements StatisticEventPort {
 
 	@Override
 	public void handleSurveyActivateEvent(Long surveyId) {
+		statisticService.create(surveyId);
+	}
+
+	@Override
+	public void handleSurveyDeactivateEvent(Long surveyId) {
 
 	}
 
