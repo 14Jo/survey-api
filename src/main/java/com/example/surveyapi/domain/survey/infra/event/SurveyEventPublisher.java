@@ -12,13 +12,16 @@ import com.example.surveyapi.global.event.EventCode;
 import com.example.surveyapi.global.event.survey.SurveyEvent;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SurveyEventPublisher implements SurveyEventPublisherPort {
 
 	private final RabbitTemplate rabbitTemplate;
 
+	@Override
 	public void publish(SurveyEvent event, EventCode key) {
 		if (key.equals(EventCode.SURVEY_ACTIVATED)) {
 			rabbitTemplate.convertAndSend(RabbitConst.EXCHANGE_NAME, RabbitConst.ROUTING_KEY_SURVEY_ACTIVE, event);

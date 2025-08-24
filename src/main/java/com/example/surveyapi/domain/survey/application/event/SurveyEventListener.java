@@ -3,10 +3,9 @@ package com.example.surveyapi.domain.survey.application.event;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
@@ -17,6 +16,9 @@ import com.example.surveyapi.domain.survey.domain.survey.event.DeletedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleStateChangedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.event.UpdatedEvent;
 import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
+import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
+import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,31 +28,41 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SurveyEventListener {
 
-	private final SurveyEventOrchestrator orchestrator;
 	private final SurveyReadSyncPort surveyReadSync;
+	private final SurveyOutboxEventService surveyOutboxEventService;
 
 	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@EventListener
 	public void handle(ActivateEvent event) {
-		log.info("ActivateEvent 수신 - Orchestrator로 위임 및 조회 테이블 동기화: surveyId={}, status={}", 
+		log.info("ActivateEvent 수신 - 아웃박스 저장 및 조회 테이블 동기화: surveyId={}, status={}",
 			event.getSurveyId(), event.getSurveyStatus());
 
-		// 1. 오케스트레이터로 위임 (기존 로직)
-		orchestrator.orchestrateActivateEvent(event);
+		// 아웃박스에 활성화 이벤트 저장
+		SurveyActivateEvent activateEvent = new SurveyActivateEvent(
+			event.getSurveyId(),
+			event.getCreatorId(),
+			event.getSurveyStatus().name(),
+			event.getEndTime()
+		);
 
-		// 2. 조회 테이블 상태 동기화 (추가 로직)
+		surveyOutboxEventService.saveActivateEvent(activateEvent);
+
+		// 조회 테이블 동기화
 		surveyReadSync.activateSurveyRead(event.getSurveyId(), event.getSurveyStatus());
-		
+
 		log.info("ActivateEvent 처리 완료: surveyId={}", event.getSurveyId());
 	}
 
 	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@EventListener
 	public void handle(CreatedEvent event) {
-		log.info("CreatedEvent 수신 - 지연이벤트 발행 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
-		delayEvent(event.getSurveyId(), event.getCreatorId(), event.getDuration().getStartDate(),
-			event.getDuration().getEndDate());
+		log.info("CreatedEvent 수신 - 지연이벤트 아웃박스 저장 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
 
+		// 지연 이벤트를 아웃박스에 저장
+		saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
+			event.getDuration().getStartDate(), event.getDuration().getEndDate());
+
+		// 조회 테이블 동기화
 		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.surveyReadSync(
 			SurveySyncDto.from(
@@ -59,15 +71,20 @@ public class SurveyEventListener {
 				event.getOption(), event.getDuration()
 			),
 			questionList);
+
+		log.info("CreatedEvent 처리 완료: surveyId={}", event.getSurveyId());
 	}
 
 	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@EventListener
 	public void handle(UpdatedEvent event) {
-		log.info("UpdatedEvent 수신 - 지연이벤트 발행 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
-		delayEvent(event.getSurveyId(), event.getCreatorId(), event.getDuration().getStartDate(),
-			event.getDuration().getEndDate());
+		log.info("UpdatedEvent 수신 - 지연이벤트 아웃박스 저장 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
 
+		// 지연 이벤트를 아웃박스에 저장
+		saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
+			event.getDuration().getStartDate(), event.getDuration().getEndDate());
+
+		// 조회 테이블 동기화
 		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.updateSurveyRead(SurveySyncDto.from(
 			event.getSurveyId(), event.getProjectId(), event.getTitle(),
@@ -75,26 +92,42 @@ public class SurveyEventListener {
 			event.getOption(), event.getDuration()
 		));
 		surveyReadSync.questionReadSync(event.getSurveyId(), questionList);
+
+		log.info("UpdatedEvent 처리 완료: surveyId={}", event.getSurveyId());
 	}
 
-	private void delayEvent(Long surveyId, Long creatorId, LocalDateTime startDate, LocalDateTime endDate) {
-		orchestrator.orchestrateDelayedEvent(
-			surveyId,
-			creatorId,
-			RabbitConst.ROUTING_KEY_SURVEY_START_DUE,
-			startDate
-		);
+	private void saveDelayedEvents(Long surveyId, Long creatorId, LocalDateTime startDate, LocalDateTime endDate) {
+		if (startDate != null) {
+			SurveyStartDueEvent startEvent = new SurveyStartDueEvent(surveyId, creatorId, startDate);
+			long delayMs = java.time.Duration.between(LocalDateTime.now(), startDate).toMillis();
 
-		orchestrator.orchestrateDelayedEvent(
-			surveyId,
-			creatorId,
-			RabbitConst.ROUTING_KEY_SURVEY_END_DUE,
-			endDate
-		);
+			surveyOutboxEventService.saveDelayedEvent(
+				startEvent,
+				RabbitConst.ROUTING_KEY_SURVEY_START_DUE,
+				delayMs,
+				startDate,
+				surveyId
+			);
+			log.debug("설문 시작 지연 이벤트 아웃박스 저장: surveyId={}, startDate={}", surveyId, startDate);
+		}
+
+		if (endDate != null) {
+			SurveyEndDueEvent endEvent = new SurveyEndDueEvent(surveyId, creatorId, endDate);
+			long delayMs = java.time.Duration.between(LocalDateTime.now(), endDate).toMillis();
+
+			surveyOutboxEventService.saveDelayedEvent(
+				endEvent,
+				RabbitConst.ROUTING_KEY_SURVEY_END_DUE,
+				delayMs,
+				endDate,
+				surveyId
+			);
+			log.debug("설문 종료 지연 이벤트 아웃박스 저장: surveyId={}, endDate={}", surveyId, endDate);
+		}
 	}
 
 	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@EventListener
 	public void handle(ScheduleStateChangedEvent event) {
 		log.info("ScheduleStateChangedEvent 수신 - 스케줄 상태 동기화 처리: surveyId={}, scheduleState={}, reason={}",
 			event.getSurveyId(), event.getScheduleState(), event.getChangeReason());
@@ -109,11 +142,10 @@ public class SurveyEventListener {
 	}
 
 	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@EventListener
 	public void handle(DeletedEvent event) {
 		log.info("DeletedEvent 수신 - 조회 테이블에서 설문 삭제 처리: surveyId={}", event.getSurveyId());
 
-		// 조회 테이블에서 설문 삭제
 		surveyReadSync.deleteSurveyRead(event.getSurveyId());
 
 		log.info("설문 삭제 동기화 완료: surveyId={}", event.getSurveyId());
