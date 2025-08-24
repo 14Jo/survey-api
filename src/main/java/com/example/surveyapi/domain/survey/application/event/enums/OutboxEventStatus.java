@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.event;
+package com.example.surveyapi.domain.survey.application.event.enums;
 
 public enum OutboxEventStatus {
 	PENDING,

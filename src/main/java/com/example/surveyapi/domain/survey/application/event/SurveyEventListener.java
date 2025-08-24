@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
@@ -31,13 +30,11 @@ public class SurveyEventListener {
 	private final SurveyReadSyncPort surveyReadSync;
 	private final SurveyOutboxEventService surveyOutboxEventService;
 
-	@Async
 	@EventListener
 	public void handle(ActivateEvent event) {
 		log.info("ActivateEvent 수신 - 아웃박스 저장 및 조회 테이블 동기화: surveyId={}, status={}",
 			event.getSurveyId(), event.getSurveyStatus());
 
-		// 아웃박스에 활성화 이벤트 저장
 		SurveyActivateEvent activateEvent = new SurveyActivateEvent(
 			event.getSurveyId(),
 			event.getCreatorId(),
@@ -47,22 +44,18 @@ public class SurveyEventListener {
 
 		surveyOutboxEventService.saveActivateEvent(activateEvent);
 
-		// 조회 테이블 동기화
 		surveyReadSync.activateSurveyRead(event.getSurveyId(), event.getSurveyStatus());
 
 		log.info("ActivateEvent 처리 완료: surveyId={}", event.getSurveyId());
 	}
 
-	@Async
 	@EventListener
 	public void handle(CreatedEvent event) {
 		log.info("CreatedEvent 수신 - 지연이벤트 아웃박스 저장 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
 
-		// 지연 이벤트를 아웃박스에 저장
 		saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
 			event.getDuration().getStartDate(), event.getDuration().getEndDate());
 
-		// 조회 테이블 동기화
 		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.surveyReadSync(
 			SurveySyncDto.from(
@@ -75,16 +68,13 @@ public class SurveyEventListener {
 		log.info("CreatedEvent 처리 완료: surveyId={}", event.getSurveyId());
 	}
 
-	@Async
 	@EventListener
 	public void handle(UpdatedEvent event) {
 		log.info("UpdatedEvent 수신 - 지연이벤트 아웃박스 저장 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
 
-		// 지연 이벤트를 아웃박스에 저장
 		saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
 			event.getDuration().getStartDate(), event.getDuration().getEndDate());
 
-		// 조회 테이블 동기화
 		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.updateSurveyRead(SurveySyncDto.from(
 			event.getSurveyId(), event.getProjectId(), event.getTitle(),
@@ -126,7 +116,6 @@ public class SurveyEventListener {
 		}
 	}
 
-	@Async
 	@EventListener
 	public void handle(ScheduleStateChangedEvent event) {
 		log.info("ScheduleStateChangedEvent 수신 - 스케줄 상태 동기화 처리: surveyId={}, scheduleState={}, reason={}",
@@ -141,7 +130,6 @@ public class SurveyEventListener {
 		log.info("스케줄 상태 동기화 완료: surveyId={}", event.getSurveyId());
 	}
 
-	@Async
 	@EventListener
 	public void handle(DeletedEvent event) {
 		log.info("DeletedEvent 수신 - 조회 테이블에서 설문 삭제 처리: surveyId={}", event.getSurveyId());

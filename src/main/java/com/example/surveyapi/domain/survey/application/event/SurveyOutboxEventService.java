@@ -10,13 +10,15 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.global.event.RabbitConst;
-import com.example.surveyapi.global.event.domain.OutboxEvent;
-import com.example.surveyapi.global.event.domain.OutboxEventRepository;
+import com.example.surveyapi.domain.survey.domain.dlq.OutboxEvent;
 import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
 import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
 import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
+import com.example.surveyapi.global.exception.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -77,7 +79,7 @@ public class SurveyOutboxEventService {
 		} catch (JsonProcessingException e) {
 			log.error("Survey 이벤트 직렬화 실패: aggregateId={}, eventType={}, error={}",
 				aggregateId, eventType, e.getMessage());
-			throw new RuntimeException("Survey 이벤트 직렬화 실패", e);
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, "Survey 이벤트 직렬화 실패 message = " + e.getMessage());
 		}
 	}
 
@@ -105,7 +107,7 @@ public class SurveyOutboxEventService {
 		} catch (JsonProcessingException e) {
 			log.error("Survey 지연 이벤트 직렬화 실패: aggregateId={}, eventType={}, error={}",
 				aggregateId, eventType, e.getMessage());
-			throw new RuntimeException("Survey 지연 이벤트 직렬화 실패", e);
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, "Survey 지연 이벤트 직렬화 실패 message = " + e.getMessage());
 		}
 	}
 
@@ -165,7 +167,7 @@ public class SurveyOutboxEventService {
 				processDelayedSurveyEvent(event);
 			}
 		} catch (JsonProcessingException e) {
-			throw new RuntimeException("Survey 이벤트 역직렬화 실패", e);
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, "Survey 이벤트 역직렬화 실패 message = " + e);
 		}
 	}
 
@@ -174,27 +176,26 @@ public class SurveyOutboxEventService {
 			Object eventData = objectMapper.readValue(event.getEventData(), Object.class);
 
 			if (event.isDelayedEvent()) {
-				publishDelayedEvent(event, eventData);
+				publishDelayedEvent(event);
 			} else {
-				publishImmediateEvent(event, eventData);
+				publishImmediateEvent(event);
 			}
 		} catch (JsonProcessingException e) {
-			throw new RuntimeException("Survey 이벤트 역직렬화 실패", e);
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, "Survey 이벤트 역직렬화 실패" + e);
 		}
 	}
 
-	private void publishImmediateEvent(OutboxEvent event, Object eventData) {
-		// JSON 문자열을 실제 이벤트 객체로 역직렬화
+	private void publishImmediateEvent(OutboxEvent event) {
 		try {
 			Object actualEvent = deserializeToActualEventType(event.getEventData(), event.getEventType());
 			rabbitTemplate.convertAndSend(event.getExchangeName(), event.getRoutingKey(), actualEvent);
 		} catch (JsonProcessingException e) {
 			log.error("이벤트 역직렬화 실패: eventType={}, error={}", event.getEventType(), e.getMessage());
-			throw new RuntimeException("이벤트 역직렬화 실패", e);
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, "이벤트 역직렬화 실패" + e);
 		}
 	}
 
-	private void publishDelayedEvent(OutboxEvent event, Object eventData) {
+	private void publishDelayedEvent(OutboxEvent event) {
 		try {
 			Object actualEvent = deserializeToActualEventType(event.getEventData(), event.getEventType());
 			Map<String, Object> headers = new HashMap<>();
@@ -206,7 +207,7 @@ public class SurveyOutboxEventService {
 			});
 		} catch (JsonProcessingException e) {
 			log.error("지연 이벤트 역직렬화 실패: eventType={}, error={}", event.getEventType(), e.getMessage());
-			throw new RuntimeException("지연 이벤트 역직렬화 실패", e);
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, "지연 이벤트 역직렬화 실패" + e);
 		}
 	}
 
@@ -216,7 +217,7 @@ public class SurveyOutboxEventService {
 		ActivateEvent activateEvent = new ActivateEvent(
 			surveyEvent.getSurveyId(),
 			surveyEvent.getCreatorId(),
-			com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus.valueOf(surveyEvent.getSurveyStatus()),
+			SurveyStatus.valueOf(surveyEvent.getSurveyStatus()),
 			surveyEvent.getEndTime()
 		);
 
@@ -269,14 +270,13 @@ public class SurveyOutboxEventService {
 		return switch (eventType) {
 			case "SurveyActivated" -> objectMapper.readValue(eventData, SurveyActivateEvent.class);
 			case "SurveyDelayed" -> {
-				// 지연 이벤트의 경우 routing key로 구분
 				if (eventData.contains("startDate")) {
 					yield objectMapper.readValue(eventData, SurveyStartDueEvent.class);
 				} else {
 					yield objectMapper.readValue(eventData, SurveyEndDueEvent.class);
 				}
 			}
-			default -> throw new IllegalArgumentException("지원하지 않는 이벤트 타입: " + eventType);
+			default -> throw new CustomException(CustomErrorCode.SERVER_ERROR, "지원하지 않는 이벤트 타입: " + eventType);
 		};
 	}
 }

@@ -1,8 +1,8 @@
-package com.example.surveyapi.global.event.domain;
+package com.example.surveyapi.domain.survey.domain.dlq;
 
 import java.time.LocalDateTime;
 
-import com.example.surveyapi.domain.survey.application.event.OutboxEventStatus;
+import com.example.surveyapi.domain.survey.application.event.enums.OutboxEventStatus;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -102,11 +102,6 @@ public class OutboxEvent extends BaseEntity {
 		outboxEvent.delayMs = delayMs;
 		outboxEvent.scheduledAt = scheduledAt;
 		return outboxEvent;
-	}
-
-	public void asSent() {
-		this.status = OutboxEventStatus.SENT;
-		this.publishedAt = LocalDateTime.now();
 	}
 
 	public void asPublish() {

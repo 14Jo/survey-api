@@ -1,0 +1,38 @@
+package com.example.surveyapi.domain.survey.infra.event;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.stereotype.Repository;
+
+import com.example.surveyapi.domain.survey.application.event.OutboxEventRepository;
+import com.example.surveyapi.domain.survey.domain.dlq.OutboxEvent;
+
+import lombok.RequiredArgsConstructor;
+
+@Repository
+@RequiredArgsConstructor
+public class OutboxRepositoryImpl implements OutboxEventRepository {
+
+	private final OutBoxJpaRepository jpaRepository;
+
+	@Override
+	public void save(OutboxEvent event) {
+		jpaRepository.save(event);
+	}
+
+	@Override
+	public void deleteAll(List<OutboxEvent> events) {
+		jpaRepository.deleteAll(events);
+	}
+
+	@Override
+	public List<OutboxEvent> findEventsToProcess(LocalDateTime now) {
+		return jpaRepository.findEventsToProcess(now);
+	}
+
+	@Override
+	public List<OutboxEvent> findPublishedEventsOlderThan(LocalDateTime cutoffDate) {
+		return jpaRepository.findPublishedEventsOlderThan(cutoffDate);
+	}
+}
