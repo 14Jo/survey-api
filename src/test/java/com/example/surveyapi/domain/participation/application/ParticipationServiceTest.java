@@ -55,6 +55,9 @@ class ParticipationServiceTest {
 	@InjectMocks
 	private ParticipationService participationService;
 
+	@InjectMocks
+	private ParticipationQueryService participationQueryService;
+
 	@Mock
 	private ParticipationRepository participationRepository;
 
@@ -212,7 +215,7 @@ class ParticipationServiceTest {
 		given(surveyServicePort.getSurveyInfoList(authHeader, surveyIds)).willReturn(surveyInfoDtos);
 
 		// when
-		Page<ParticipationInfoResponse> result = participationService.gets(authHeader, myUserId, pageable);
+		Page<ParticipationInfoResponse> result = participationQueryService.gets(authHeader, myUserId, pageable);
 
 		// then
 		assertThat(result.getTotalElements()).isEqualTo(2);
@@ -246,7 +249,7 @@ class ParticipationServiceTest {
 			.willReturn(Optional.of(projection));
 
 		// when
-		ParticipationDetailResponse result = participationService.get(userId, participationId);
+		ParticipationDetailResponse result = participationQueryService.get(userId, participationId);
 
 		// then
 		assertThat(result).isNotNull();
@@ -319,7 +322,7 @@ class ParticipationServiceTest {
 		given(participationRepository.findParticipationProjectionsBySurveyIds(surveyIds)).willReturn(projections);
 
 		// when
-		List<ParticipationGroupResponse> result = participationService.getAllBySurveyIds(surveyIds);
+		List<ParticipationGroupResponse> result = participationQueryService.getAllBySurveyIds(surveyIds);
 
 		// then
 		assertThat(result).hasSize(2);
@@ -344,7 +347,7 @@ class ParticipationServiceTest {
 		given(participationRepository.countsBySurveyIds(surveyIds)).willReturn(counts);
 
 		// when
-		Map<Long, Long> result = participationService.getCountsBySurveyIds(surveyIds);
+		Map<Long, Long> result = participationQueryService.getCountsBySurveyIds(surveyIds);
 
 		// then
 		assertThat(result).hasSize(2);
