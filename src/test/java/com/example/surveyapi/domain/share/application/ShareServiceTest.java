@@ -120,16 +120,27 @@ class ShareServiceTest {
 		LocalDateTime notifyAt = LocalDateTime.now();
 		ShareMethod shareMethod = ShareMethod.PUSH;
 
-		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), anyString()))
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test1@test.com")))
 			.thenReturn(new UserEmailDto(100L, "test1@test.com"));
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test2@test.com")))
+			.thenReturn(new UserEmailDto(200L, "test2@test.com"));
 
 		//when
 		shareService.createNotifications(AUTH_HEADER, savedShareId, creatorId, shareMethod, emails, notifyAt);
 
 		//then
-		verify(userServicePort, atLeastOnce()).getUserByEmail(eq(AUTH_HEADER), anyString());
+		verify(userServicePort, times(2)).getUserByEmail(eq(AUTH_HEADER), anyString());
 		Share share = shareRepository.findById(savedShareId).orElseThrow();
 		assertThat(share.getNotifications()).hasSize(2);
+		assertThat(share.getNotifications())
+			.extracting("recipientEmail")
+			.containsExactlyInAnyOrder("test1@test.com", "test2@test.com");
+		assertThat(share.getNotifications())
+			.extracting("shareMethod")
+			.containsOnly(ShareMethod.PUSH);
+		assertThat(share.getNotifications())
+			.extracting("recipientId")
+			.containsExactlyInAnyOrder(100L, 200L);
 	}
 
 	@Test
@@ -141,20 +152,25 @@ class ShareServiceTest {
 		LocalDateTime notifyAt = LocalDateTime.now();
 		ShareMethod shareMethod = ShareMethod.APP;
 
-		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), anyString()))
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test1@test.com")))
 			.thenReturn(new UserEmailDto(100L, "test1@test.com"));
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test2@test.com")))
+			.thenReturn(new UserEmailDto(200L, "test2@test.com"));
 
 		//when
 		shareService.createNotifications(AUTH_HEADER, savedShareId, creatorId, shareMethod, emails, notifyAt);
 
 		//then
-		verify(userServicePort, atLeastOnce()).getUserByEmail(eq(AUTH_HEADER), anyString());
+		verify(userServicePort, times(2)).getUserByEmail(eq(AUTH_HEADER), anyString());
 		Share share = shareRepository.findById(savedShareId).orElseThrow();
 		assertThat(share.getNotifications()).hasSize(2);
 		for (Notification notification : share.getNotifications()) {
 			assertThat(notification.getShareMethod()).isEqualTo(ShareMethod.APP);
 			assertThat(notification.getNotifyAt()).isEqualTo(notifyAt);
 		}
+		assertThat(share.getNotifications())
+			.extracting("recipientId")
+			.containsExactlyInAnyOrder(100L, 200L);
 	}
 
 	@Test
