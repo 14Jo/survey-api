@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 import com.example.surveyapi.domain.participation.infra.dsl.ParticipationQueryDslRepository;
 import com.example.surveyapi.domain.participation.infra.jpa.JpaParticipationRepository;
 
@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class ParticipationRepositoryImpl implements ParticipationRepository {
 
 	private final JpaParticipationRepository jpaParticipationRepository;
-	private final ParticipationQueryDslRepository participationQueryRepository;
+	private final ParticipationQueryDslRepository participationQueryDslRepository;
 
 	@Override
 	public Participation save(Participation participation) {
@@ -36,7 +36,7 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 
 	@Override
 	public Optional<Participation> findById(Long participationId) {
-		return jpaParticipationRepository.findWithResponseByIdAndIsDeletedFalse(participationId);
+		return jpaParticipationRepository.findByIdAndIsDeletedFalse(participationId);
 	}
 
 	@Override
@@ -46,16 +46,23 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 
 	@Override
 	public Page<ParticipationInfo> findParticipationInfos(Long userId, Pageable pageable) {
-		return participationQueryRepository.findParticipationInfos(userId, pageable);
+		return participationQueryDslRepository.findParticipationInfos(userId, pageable);
 	}
 
 	@Override
 	public Map<Long, Long> countsBySurveyIds(List<Long> surveyIds) {
-		return participationQueryRepository.countsBySurveyIds(surveyIds);
+		return participationQueryDslRepository.countsBySurveyIds(surveyIds);
 	}
 
 	@Override
-	public List<QuestionAnswer> getAnswers(List<Long> questionIds) {
-		return participationQueryRepository.getAnswersByQuestionIds(questionIds);
+	public List<ParticipationProjection> findParticipationProjectionsBySurveyIds(List<Long> surveyIds) {
+		return participationQueryDslRepository.findParticipationProjectionsBySurveyIds(surveyIds);
 	}
+
+	@Override
+	public Optional<ParticipationProjection> findParticipationProjectionByIdAndUserId(Long participationId,
+		Long loginUserId) {
+		return participationQueryDslRepository.findParticipationProjectionByIdAndUserId(participationId, loginUserId);
+	}
+
 }

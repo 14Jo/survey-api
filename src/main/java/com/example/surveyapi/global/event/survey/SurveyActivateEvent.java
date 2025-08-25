@@ -8,13 +8,13 @@ import lombok.Getter;
 public class SurveyActivateEvent implements SurveyEvent {
 
 	private Long surveyId;
-	private Long creatorID;
+	private Long creatorId;
 	private String surveyStatus;
 	private LocalDateTime endTime;
 
-	public SurveyActivateEvent(Long surveyId, Long creatorID, String surveyStatus, LocalDateTime endTime) {
+	public SurveyActivateEvent(Long surveyId, Long creatorId, String surveyStatus, LocalDateTime endTime) {
 		this.surveyId = surveyId;
-		this.creatorID = creatorID;
+		this.creatorId = creatorId;
 		this.surveyStatus = surveyStatus;
 		this.endTime = endTime;
 	}

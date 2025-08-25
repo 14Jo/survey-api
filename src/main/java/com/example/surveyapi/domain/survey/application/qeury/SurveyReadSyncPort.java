@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 
 public interface SurveyReadSyncPort {
@@ -17,4 +18,6 @@ public interface SurveyReadSyncPort {
 	void deleteSurveyRead(Long surveyId);
 
 	void activateSurveyRead(Long surveyId, SurveyStatus status);
+
+	void updateScheduleState(Long surveyId, ScheduleState scheduleState, SurveyStatus surveyStatus);
 }
