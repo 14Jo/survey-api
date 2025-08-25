@@ -25,6 +25,7 @@
         { "name": "MONGODB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:MONGODB_PASSWORD::" },
         { "name": "NAVER_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:NAVER_SECRET::" },
         { "name": "GOOGLE_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:GOOGLE_SECRET::" },
+        {"name": "ELASTIC_URIS", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:ELASTIC_URIS::" },
         
         { "name": "FIREBASE_PRIVATE_KEY_ID", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:FIREBASE_PRIVATE_KEY_ID::" },
         { "name": "FIREBASE_PRIVATE_KEY", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:FIREBASE_PRIVATE_KEY::" }
@@ -43,12 +44,11 @@
       {"name": "MONGODB_PORT", "value": "27017"},
       {"name": "MONGODB_DATABASE", "value": "survey_read_db"},
       {"name": "MONGODB_AUTHDB", "value": "admin"},
-      {"name": "ELASTIC_URIS", "value": "http://elasticsearch-srv.survey-cluster.local:9200"},
+     
       {"name": "ELASTICSEARCH_ENABLED", "value": "true"},
       {"name": "SPRING_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED", "value": "false"},
-      
       {"name": "FIREBASE_ENABLED", "value": "true"},
       {"name": "FIREBASE_PROJECT_ID", "value": "survey-f5a93"},
       {"name": "FIREBASE_CLIENT_EMAIL", "value": "firebase-adminsdk-fbsvc@survey-f5a93.iam.gserviceaccount.com"},
