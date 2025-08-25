@@ -38,8 +38,8 @@ public class NotificationPushSender implements NotificationSender {
 			"회원님께서 설문 대상자로 등록되었습니다.", "회원님께서 설문 대상자로 등록되었습니다. 지금 설문에 참여해보세요!"));
 	}
 
-	private record PushContent(String title, String body) {}
-
+	private record PushContent(String title, String body) {
+	}
 
 	@Override
 	public void send(Notification notification) {
@@ -47,7 +47,7 @@ public class NotificationPushSender implements NotificationSender {
 		Long userId = notification.getRecipientId();
 		Optional<FcmToken> fcmToken = tokenRepository.findByUserId(userId);
 
-		if(fcmToken.isEmpty()) {
+		if (fcmToken.isEmpty()) {
 			log.info("userId: {} - 토큰이 존재하지 않습니다.", userId);
 			return;
 		}
@@ -57,7 +57,7 @@ public class NotificationPushSender implements NotificationSender {
 		ShareSourceType sourceType = notification.getShare().getSourceType();
 		PushContent content = pushContentMap.getOrDefault(sourceType, null);
 
-		if(content == null) {
+		if (content == null) {
 			log.error("알 수 없는 ShareSourceType: {}", sourceType);
 			return;
 		}
@@ -68,9 +68,10 @@ public class NotificationPushSender implements NotificationSender {
 			.putData("body", content.body() + "\n" + notification.getShare().getLink())
 			.build();
 
-		try{
+		try {
 			String response = firebaseMessaging.send(message);
-			log.info("userId: {}, notificationId: {}, response: {} - PUSH 알림 발송", userId, notification.getId(), response);
+			log.info("userId: {}, notificationId: {}, response: {} - PUSH 알림 발송", userId, notification.getId(),
+				response);
 		} catch (FirebaseMessagingException e) {
 			log.error("userId: {}, notificationId: {} - PUSH 전송 실패", userId, notification.getId());
 			throw new CustomException(CustomErrorCode.PUSH_FAILED);

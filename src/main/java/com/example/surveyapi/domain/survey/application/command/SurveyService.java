@@ -7,12 +7,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
+import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
+import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
+import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
+import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.dto.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.dto.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
@@ -54,6 +61,7 @@ public class SurveyService {
 		return save.getSurveyId();
 	}
 
+	@CacheEvict(value = {"surveyDetails", "surveyInfo"}, key = "#surveyId")
 	@Transactional
 	public Long update(String authHeader, Long surveyId, Long userId, UpdateSurveyRequest request) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
@@ -96,6 +104,7 @@ public class SurveyService {
 		return survey.getSurveyId();
 	}
 
+	@CacheEvict(value = {"surveyDetails", "surveyInfo"}, key = "#surveyId")
 	@Transactional
 	public Long delete(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
@@ -112,6 +121,7 @@ public class SurveyService {
 		return survey.getSurveyId();
 	}
 
+	@CacheEvict(value = {"surveyDetails", "surveyInfo"}, key = "#surveyId")
 	@Transactional
 	public void open(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
@@ -126,6 +136,7 @@ public class SurveyService {
 		surveyActivator(survey, SurveyStatus.IN_PROGRESS.name());
 	}
 
+	@CacheEvict(value = {"surveyDetails", "surveyInfo"}, key = "#surveyId")
 	@Transactional
 	public void close(String authHeader, Long surveyId, Long userId) {
 		Survey survey = surveyRepository.findBySurveyIdAndCreatorIdAndIsDeletedFalse(surveyId, userId)
@@ -159,7 +170,6 @@ public class SurveyService {
 		}
 	}
 
-	//TODO 동기화 이벤트화
 	public void surveyActivator(Survey survey, String activator) {
 		if (activator.equals(SurveyStatus.IN_PROGRESS.name())) {
 			survey.openAt(LocalDateTime.now());
@@ -171,7 +181,6 @@ public class SurveyService {
 		//surveyReadSync.activateSurveyRead(survey.getSurveyId(), survey.getStatus());
 	}
 
-	//TODO 동기화 이벤트화
 	public void surveyDeleter(Survey survey, Long surveyId) {
 		survey.delete();
 		surveyRepository.delete(survey);
