@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.command.dto.request;
+package com.example.surveyapi.domain.survey.application.dto.request;
 
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
 

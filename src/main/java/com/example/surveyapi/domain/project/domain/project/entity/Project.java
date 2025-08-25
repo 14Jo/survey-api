@@ -9,6 +9,7 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.Pr
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.participant.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectCreatedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectManagerAddedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectMemberAddedDomainEvent;
@@ -89,6 +90,17 @@ public class Project extends AbstractRoot<Project> {
 		project.projectManagers.add(ProjectManager.createOwner(project, ownerId));
 
 		return project;
+	}
+
+	public void openProject() {
+		// PENDING -> IN_PROGRESS만 허용 periodStart를 now로 세팅
+		if (this.state != ProjectState.PENDING) {
+			throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
+		}
+		this.period = ProjectPeriod.of(LocalDateTime.now(), this.period.getPeriodEnd());
+		this.state = ProjectState.IN_PROGRESS;
+
+		registerEvent(new ProjectCreatedDomainEvent(this.id, this.ownerId, this.getPeriod().getPeriodEnd()));
 	}
 
 	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,

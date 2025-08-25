@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.project.application.ProjectQueryService;
@@ -53,6 +54,16 @@ public class ProjectController {
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.success("프로젝트 생성 성공", projectId));
+	}
+
+	@PostMapping("/{projectId}/open")
+	public ResponseEntity<ApiResponse<CreateProjectResponse>> openProject(
+		@RequestParam Long projectId
+	) {
+		projectService.openProject(projectId);
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("프로젝트 OPEN 성공"));
 	}
 
 	@GetMapping("/search")

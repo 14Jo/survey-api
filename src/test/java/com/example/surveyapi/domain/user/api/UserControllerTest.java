@@ -38,11 +38,8 @@ import com.example.surveyapi.domain.user.application.dto.response.UserInfoRespon
 import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
-import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 
-import com.example.surveyapi.global.auth.jwt.JwtUtil;
-import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
@@ -51,15 +48,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 @ExtendWith(MockitoExtension.class)
 public class UserControllerTest {
-
-    @Mock
-    JwtUtil jwtUtil;
-
-    @Mock
-    UserRepository userRepository;
-
-    @Mock
-    PasswordEncoder passwordEncoder;
 
     @Mock
     UserService userService;
@@ -117,7 +105,7 @@ public class UserControllerTest {
             """;
 
         // when & then
-        mockMvc.perform(post("/api/v1/auth/signup")
+        mockMvc.perform(post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
             .andDo(print())
@@ -155,7 +143,7 @@ public class UserControllerTest {
             """;
 
         // when & then
-        mockMvc.perform(post("/api/v1/auth/signup")
+        mockMvc.perform(post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(requestJson))
             .andExpect(status().isBadRequest());
@@ -183,7 +171,7 @@ public class UserControllerTest {
         given(userService.getAll(any(Pageable.class))).willReturn(userPage);
 
         // when * then
-        mockMvc.perform(get("/api/v1/users?page=0&size=10"))
+        mockMvc.perform(get("/users?page=0&size=10"))
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.content").isArray())
@@ -208,7 +196,7 @@ public class UserControllerTest {
             .willThrow(new CustomException(CustomErrorCode.USER_LIST_EMPTY));
 
         // when * then
-        mockMvc.perform(get("/api/v1/users?page=0&size=10"))
+        mockMvc.perform(get("/users?page=0&size=10"))
             .andDo(print())
             .andExpect(status().isInternalServerError());
     }
@@ -225,7 +213,7 @@ public class UserControllerTest {
         given(userService.getUser(user.getId())).willReturn(member);
 
         // then
-        mockMvc.perform(get("/api/v1/users/me"))
+        mockMvc.perform(get("/users/me"))
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.profile.name").value("홍길동"));
@@ -242,7 +230,7 @@ public class UserControllerTest {
             .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         // then
-        mockMvc.perform(get("/api/v1/users/me"))
+        mockMvc.perform(get("/users/me"))
             .andDo(print())
             .andExpect(status().isNotFound());
     }
@@ -261,7 +249,7 @@ public class UserControllerTest {
             .willReturn(grade);
 
         // when & then
-        mockMvc.perform(get("/api/v1/users/grade"))
+        mockMvc.perform(get("/users/grade"))
             .andDo(print())
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.data.grade").value("BRONZE"));
@@ -278,7 +266,7 @@ public class UserControllerTest {
             .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
         // then
-        mockMvc.perform(get("/api/v1/users/grade"))
+        mockMvc.perform(get("/users/grade"))
             .andDo(print())
             .andExpect(status().isNotFound());
     }
@@ -291,7 +279,7 @@ public class UserControllerTest {
         UpdateUserRequest invalidRequest = updateRequest(longName);
 
         // when & then
-        mockMvc.perform(patch("/api/v1/users/me")
+        mockMvc.perform(patch("/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(invalidRequest)))
             .andDo(print())

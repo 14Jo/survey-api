@@ -5,17 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import com.example.surveyapi.domain.survey.domain.survey.event.AbstractRoot;
 import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.domain.survey.domain.question.Question;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyScheduleRequestedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
+import com.example.surveyapi.domain.survey.domain.survey.event.CreatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.DeletedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleStateChangedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
+import com.example.surveyapi.global.model.AbstractRoot;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -58,7 +61,10 @@ public class Survey extends AbstractRoot<Survey> {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status", nullable = false)
 	private SurveyStatus status;
-
+	@Enumerated(EnumType.STRING)
+	@Column(name = "schedule_state", nullable = false)
+	private ScheduleState scheduleState = ScheduleState.AUTO_SCHEDULED;
+	
 	@Enumerated
 	private SurveyOption option;
 	@Enumerated
@@ -96,6 +102,7 @@ public class Survey extends AbstractRoot<Survey> {
 		survey.duration = duration;
 		survey.option = option;
 		survey.addQuestion(questions);
+		survey.addEvent();
 
 		return survey;
 	}
@@ -106,7 +113,10 @@ public class Survey extends AbstractRoot<Survey> {
 				case "title" -> this.title = (String)value;
 				case "description" -> this.description = (String)value;
 				case "type" -> this.type = (SurveyType)value;
-				case "duration" -> this.duration = (SurveyDuration)value;
+				case "duration" -> {
+					this.duration = (SurveyDuration)value;
+					addEvent();
+				}
 				case "option" -> this.option = (SurveyOption)value;
 				case "questions" -> {
 					List<QuestionInfo> questions = (List<QuestionInfo>)value;
@@ -116,23 +126,12 @@ public class Survey extends AbstractRoot<Survey> {
 		});
 	}
 
-	public void open() {
-		this.status = SurveyStatus.IN_PROGRESS;
-		this.duration = SurveyDuration.of(LocalDateTime.now(), this.duration.getEndDate());
-		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
-	}
-
-	public void close() {
-		this.status = SurveyStatus.CLOSED;
-		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
-		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
-	}
-
 	public void delete() {
 		this.status = SurveyStatus.DELETED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
 		this.isDeleted = true;
 		removeQuestions();
+		registerEvent(new DeletedEvent(this));
 	}
 
 	private void addQuestion(List<QuestionInfo> questions) {
@@ -155,13 +154,8 @@ public class Survey extends AbstractRoot<Survey> {
 		this.questions.forEach(Question::delete);
 	}
 
-	public void registerScheduledEvent() {
-		this.registerEvent(new SurveyScheduleRequestedEvent(
-			this.getSurveyId(),
-			this.getCreatorId(),
-			this.getDuration().getStartDate(),
-			this.getDuration().getEndDate()
-		));
+	private void addEvent() {
+		registerEvent(new CreatedEvent(this));
 	}
 
 	public void applyDurationChange(SurveyDuration newDuration, LocalDateTime now) {
@@ -184,15 +178,32 @@ public class Survey extends AbstractRoot<Survey> {
 		}
 	}
 
-	private void openAt(LocalDateTime startedAt) {
+	public void openAt(LocalDateTime startedAt) {
 		this.status = SurveyStatus.IN_PROGRESS;
 		this.duration = SurveyDuration.of(startedAt, this.duration.getEndDate());
 		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
 	}
 
-	private void closeAt(LocalDateTime endedAt) {
+	public void closeAt(LocalDateTime endedAt) {
 		this.status = SurveyStatus.CLOSED;
 		this.duration = SurveyDuration.of(this.duration.getStartDate(), endedAt);
 		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+	}
+
+	public void changeToManualMode() {
+		changeToManualMode("폴백 처리로 인한 수동 모드 전환");
+	}
+
+		public void changeToManualMode(String reason) {
+		this.scheduleState = ScheduleState.MANUAL_CONTROL;
+		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId,
+			this.scheduleState, this.status, reason));
+	}
+
+	public void restoreAutoScheduleMode(String reason) {
+		this.scheduleState = ScheduleState.AUTO_SCHEDULED;
+		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId,
+			this.scheduleState, this.status, reason));
+		log.info("스케줄 상태가 자동 모드로 복구됨: surveyId={}, reason={}", this.surveyId, reason);
 	}
 }

@@ -1,28 +1,24 @@
 package com.example.surveyapi.domain.survey.application.event;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.example.surveyapi.domain.survey.application.event.outbox.SurveyOutboxEventService;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
+import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
+import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyScheduleRequestedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.CreatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.DeletedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleStateChangedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.UpdatedEvent;
 import com.example.surveyapi.global.event.RabbitConst;
-import com.example.surveyapi.global.event.EventCode;
 import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
-import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
 import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
-import com.example.surveyapi.global.event.survey.SurveyEvent;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,64 +28,117 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class SurveyEventListener {
 
-	private final RabbitTemplate rabbitTemplate;
-	private final SurveyEventPublisherPort rabbitPublisher;
-	private final ObjectMapper objectMapper;
-	private final SurveyFallbackService fallbackService;
+	private final SurveyReadSyncPort surveyReadSync;
+	private final SurveyOutboxEventService surveyOutboxEventService;
 
-	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	@EventListener
 	public void handle(ActivateEvent event) {
-		SurveyActivateEvent surveyActivateEvent = objectMapper.convertValue(event, SurveyActivateEvent.class);
-		rabbitPublisher.publish(surveyActivateEvent, EventCode.SURVEY_ACTIVATED);
+		log.info("ActivateEvent 수신 - 아웃박스 저장 및 조회 테이블 동기화: surveyId={}, status={}",
+			event.getSurveyId(), event.getSurveyStatus());
+
+		SurveyActivateEvent activateEvent = new SurveyActivateEvent(
+			event.getSurveyId(),
+			event.getCreatorId(),
+			event.getSurveyStatus().name(),
+			event.getEndTime()
+		);
+
+		surveyOutboxEventService.saveActivateEvent(activateEvent);
+
+		surveyReadSync.activateSurveyRead(event.getSurveyId(), event.getSurveyStatus());
+
+		log.info("ActivateEvent 처리 완료: surveyId={}", event.getSurveyId());
 	}
 
-	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handle(SurveyScheduleRequestedEvent event) {
-		log.info("=== SurveyScheduleRequestedEvent 수신 ===");
-		log.info("surveyId: {}", event.getSurveyId());
-		log.info("startAt: {}", event.getStartAt());
-		log.info("endAt: {}", event.getEndAt());
-		log.info("=== 이벤트 처리 시작 ===");
-		LocalDateTime now = LocalDateTime.now();
-		if (event.getStartAt() != null && event.getStartAt().isAfter(now)) {
-			long delayMs = Duration.between(now, event.getStartAt()).toMillis();
-			publishDelayed(new SurveyStartDueEvent(event.getSurveyId(), event.getCreatorId(), event.getStartAt()),
-				RabbitConst.ROUTING_KEY_SURVEY_START_DUE, delayMs);
+	@EventListener
+	public void handle(CreatedEvent event) {
+		log.info("CreatedEvent 수신 - 지연이벤트 아웃박스 저장 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
+
+		saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
+			event.getDuration().getStartDate(), event.getDuration().getEndDate());
+
+		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
+		surveyReadSync.surveyReadSync(
+			SurveySyncDto.from(
+				event.getSurveyId(), event.getProjectId(), event.getTitle(),
+				event.getDescription(), event.getStatus(), event.getScheduleState(),
+				event.getOption(), event.getDuration()
+			),
+			questionList);
+
+		log.info("CreatedEvent 처리 완료: surveyId={}", event.getSurveyId());
+	}
+
+	@EventListener
+	public void handle(UpdatedEvent event) {
+		log.info("UpdatedEvent 수신 - 지연이벤트 아웃박스 저장 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
+
+		saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
+			event.getDuration().getStartDate(), event.getDuration().getEndDate());
+
+		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
+		surveyReadSync.updateSurveyRead(SurveySyncDto.from(
+			event.getSurveyId(), event.getProjectId(), event.getTitle(),
+			event.getDescription(), event.getStatus(), event.getScheduleState(),
+			event.getOption(), event.getDuration()
+		));
+		surveyReadSync.questionReadSync(event.getSurveyId(), questionList);
+
+		log.info("UpdatedEvent 처리 완료: surveyId={}", event.getSurveyId());
+	}
+
+	private void saveDelayedEvents(Long surveyId, Long creatorId, LocalDateTime startDate, LocalDateTime endDate) {
+		if (startDate != null) {
+			SurveyStartDueEvent startEvent = new SurveyStartDueEvent(surveyId, creatorId, startDate);
+			long delayMs = java.time.Duration.between(LocalDateTime.now(), startDate).toMillis();
+
+			surveyOutboxEventService.saveDelayedEvent(
+				startEvent,
+				RabbitConst.ROUTING_KEY_SURVEY_START_DUE,
+				delayMs,
+				startDate,
+				surveyId
+			);
+			log.debug("설문 시작 지연 이벤트 아웃박스 저장: surveyId={}, startDate={}", surveyId, startDate);
 		}
 
-		if (event.getEndAt() != null && event.getEndAt().isAfter(now)) {
-			long delayMs = Duration.between(now, event.getEndAt()).toMillis();
-			publishDelayed(new SurveyEndDueEvent(event.getSurveyId(), event.getCreatorId(), event.getEndAt()),
-				RabbitConst.ROUTING_KEY_SURVEY_END_DUE, delayMs);
+		if (endDate != null) {
+			SurveyEndDueEvent endEvent = new SurveyEndDueEvent(surveyId, creatorId, endDate);
+			long delayMs = java.time.Duration.between(LocalDateTime.now(), endDate).toMillis();
+
+			surveyOutboxEventService.saveDelayedEvent(
+				endEvent,
+				RabbitConst.ROUTING_KEY_SURVEY_END_DUE,
+				delayMs,
+				endDate,
+				surveyId
+			);
+			log.debug("설문 종료 지연 이벤트 아웃박스 저장: surveyId={}, endDate={}", surveyId, endDate);
 		}
 	}
 
-	@Retryable(
-		retryFor = {Exception.class},
-		maxAttempts = 3,
-		backoff = @Backoff(delay = 1000, multiplier = 2.0)
-	)
-	public void publishDelayed(SurveyEvent event, String routingKey, long delayMs) {
-		try {
-			log.info("지연 이벤트 발행: routingKey={}, delayMs={}", routingKey, delayMs);
-			Map<String, Object> headers = new HashMap<>();
-			headers.put("x-delay", delayMs);
-			rabbitTemplate.convertAndSend(RabbitConst.DELAYED_EXCHANGE_NAME, routingKey, event, message -> {
-				message.getMessageProperties().getHeaders().putAll(headers);
-				return message;
-			});
-			log.info("지연 이벤트 발행 성공: routingKey={}", routingKey);
-		} catch (Exception e) {
-			log.error("지연 이벤트 발행 실패: routingKey={}, error={}", routingKey, e.getMessage());
-			throw e;
-		}
+	@EventListener
+	public void handle(ScheduleStateChangedEvent event) {
+		log.info("ScheduleStateChangedEvent 수신 - 스케줄 상태 동기화 처리: surveyId={}, scheduleState={}, reason={}",
+			event.getSurveyId(), event.getScheduleState(), event.getChangeReason());
+
+		surveyReadSync.updateScheduleState(
+			event.getSurveyId(),
+			event.getScheduleState(),
+			event.getSurveyStatus()
+		);
+
+		log.info("스케줄 상태 동기화 완료: surveyId={}", event.getSurveyId());
 	}
-	
-	@Recover
-	public void recoverPublishDelayed(Exception ex, SurveyEvent event, String routingKey, long delayMs) {
-		log.error("지연 이벤트 발행 최종 실패 - 풀백 실행: routingKey={}, error={}", routingKey, ex.getMessage());
-		fallbackService.handleFailedEvent(event, routingKey, ex.getMessage());
+
+	@EventListener
+	public void handle(DeletedEvent event) {
+		log.info("DeletedEvent 수신 - 조회 테이블에서 설문 삭제 처리: surveyId={}", event.getSurveyId());
+
+		surveyReadSync.deleteSurveyRead(event.getSurveyId());
+
+		log.info("설문 삭제 동기화 완료: surveyId={}", event.getSurveyId());
 	}
 }
+
+
