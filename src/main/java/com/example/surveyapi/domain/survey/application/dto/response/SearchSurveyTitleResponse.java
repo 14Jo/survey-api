@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.command.dto.response;
+package com.example.surveyapi.domain.survey.application.dto.response;
 
 import java.time.LocalDateTime;
 
@@ -25,7 +25,8 @@ public class SearchSurveyTitleResponse {
 		response.title = surveyTitle.getTitle();
 		response.status = surveyTitle.getStatus().name();
 		response.option = Option.from(surveyTitle.getOption().isAnonymous(), surveyTitle.getOption().isAnonymous());
-		response.duration = Duration.from(surveyTitle.getDuration().getStartDate(), surveyTitle.getDuration().getEndDate());
+		response.duration = Duration.from(surveyTitle.getDuration().getStartDate(),
+			surveyTitle.getDuration().getEndDate());
 		response.participationCount = count;
 		return response;
 	}
@@ -35,12 +36,13 @@ public class SearchSurveyTitleResponse {
 		response.surveyId = entity.getSurveyId();
 		response.title = entity.getTitle();
 		response.status = entity.getStatus();
-		
+
 		if (entity.getOptions() != null) {
-			response.option = Option.from(entity.getOptions().isAnonymous(), entity.getOptions().isAllowResponseUpdate());
+			response.option = Option.from(entity.getOptions().isAnonymous(),
+				entity.getOptions().isAllowResponseUpdate());
 			response.duration = Duration.from(entity.getOptions().getStartDate(), entity.getOptions().getEndDate());
 		}
-		
+
 		response.participationCount = entity.getParticipationCount();
 		return response;
 	}
