@@ -29,4 +29,7 @@ public interface UserJpaRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String authProviderId);
 
+    @Query("SELECT u.id FROM User u join u.auth a WHERE a.email = :email")
+    Optional<Long> findIdByAuthEmail(@Param("email") String email);
+
 }

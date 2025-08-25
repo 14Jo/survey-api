@@ -24,7 +24,10 @@ public class UserConsumer {
 
     @RabbitHandler
     public void handleSurveyCompletion(SurveyActivateEvent event) {
-        userEventListenerPort.surveyCompletion(event.getCreatorId());
+        if(!"CLOSED".equals(event.getSurveyStatus()) ){
+            return;
+        }
+        userEventListenerPort.surveyCompletion(event.getCreatorID());
     }
 
     @RabbitHandler

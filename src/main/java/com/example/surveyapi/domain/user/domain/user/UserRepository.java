@@ -16,8 +16,6 @@ public interface UserRepository {
 
     User save(User user);
 
-    User withdrawSave(User user);
-
     Optional<User> findByEmailAndIsDeletedFalse(String email);
 
     Page<User> gets(Pageable pageable);
@@ -29,4 +27,6 @@ public interface UserRepository {
     Optional<UserGradePoint> findByGradeAndPoint(Long userId);
 
     Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String providerId);
+
+    Optional<Long> findIdByAuthEmail(String email);
 }
