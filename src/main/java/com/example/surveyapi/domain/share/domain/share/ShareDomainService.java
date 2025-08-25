@@ -40,9 +40,9 @@ public class ShareDomainService {
 
 	public String getRedirectUrl(Share share) {
 		if (share.getSourceType() == ShareSourceType.PROJECT_MEMBER) {
-			return "https://localhost:8080/api/projects/members/" + share.getSourceId();
+			return "https://localhost:8080/api/projects/" + share.getSourceId() + "/members";
 		} else if(share.getSourceType() == ShareSourceType.PROJECT_MANAGER) {
-			return "https://localhost:8080/api/projects/managers/" + share.getSourceId();
+			return "https://localhost:8080/api/projects/" + share.getSourceId() + "/managers";
 		} else if (share.getSourceType() == ShareSourceType.SURVEY) {
 			return "https://localhost:8080/surveys/" + share.getSourceId();
 		}
