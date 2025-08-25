@@ -1,11 +1,8 @@
 package com.example.surveyapi.domain.participation.api;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -16,8 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.participation.application.ParticipationService;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
-import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
-import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
 import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -41,29 +36,6 @@ public class ParticipationController {
 
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(ApiResponse.success("설문 응답 제출이 완료되었습니다.", participationId));
-	}
-
-	@GetMapping("/members/me/participations")
-	public ResponseEntity<ApiResponse<Page<ParticipationInfoResponse>>> getAll(
-		@RequestHeader("Authorization") String authHeader,
-		@AuthenticationPrincipal Long userId,
-		Pageable pageable
-	) {
-		Page<ParticipationInfoResponse> result = participationService.gets(authHeader, userId, pageable);
-
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("나의 참여 목록 조회에 성공하였습니다.", result));
-	}
-
-	@GetMapping("/participations/{participationId}")
-	public ResponseEntity<ApiResponse<ParticipationDetailResponse>> get(
-		@PathVariable Long participationId,
-		@AuthenticationPrincipal Long userId
-	) {
-		ParticipationDetailResponse result = participationService.get(userId, participationId);
-
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(ApiResponse.success("참여 응답 상세 조회에 성공하였습니다.", result));
 	}
 
 	@PutMapping("/participations/{participationId}")

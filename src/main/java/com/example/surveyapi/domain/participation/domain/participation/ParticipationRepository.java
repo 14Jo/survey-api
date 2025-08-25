@@ -13,8 +13,6 @@ import com.example.surveyapi.domain.participation.domain.participation.query.Par
 public interface ParticipationRepository {
 	Participation save(Participation participation);
 
-	List<Participation> findAllBySurveyIdIn(List<Long> surveyIds);
-
 	Optional<Participation> findById(Long participationId);
 
 	boolean exists(Long surveyId, Long userId);
