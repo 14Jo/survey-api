@@ -7,7 +7,7 @@ on:
       - 'src/**'
       - 'build.gradle'
       - 'Dockerfile'
-      - 'ecs-task-definitions/api-task-definition.json'
+      - 'api-task-definition.json' # 수정된 부분
       - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
     inputs:
@@ -76,7 +76,7 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::025861172546:role/github-actions-role # 실제 ARN으로 교체 필요
+        role-to-assume: arn:aws:iam::025861172546:role/github-actions-role
         role-session-name: GitHub-Actions-Survey-API
         aws-region: ${{ env.AWS_REGION }}
 
@@ -111,7 +111,7 @@ jobs:
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ecs-task-definitions/${{ env.ECS_TASK_DEFINITION }}
+        task-definition: ${{ env.ECS_TASK_DEFINITION }} # 수정된 부분
         container-name: api-container
         image: ${{ steps.build-image.outputs.image }}
 
