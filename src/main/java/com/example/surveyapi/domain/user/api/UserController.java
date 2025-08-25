@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserByEmailResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
@@ -25,13 +28,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    @GetMapping("/v1/users")
+    @GetMapping("/users")
     public ResponseEntity<ApiResponse<Page<UserInfoResponse>>> getUsers(
         Pageable pageable
     ) {
@@ -41,7 +43,7 @@ public class UserController {
             .body(ApiResponse.success("회원 전체 조회 성공", all));
     }
 
-    @GetMapping("/v1/users/me")
+    @GetMapping("/users/me")
     public ResponseEntity<ApiResponse<UserInfoResponse>> getUser(
         @AuthenticationPrincipal Long userId
     ) {
@@ -51,7 +53,7 @@ public class UserController {
             .body(ApiResponse.success("회원 조회 성공", user));
     }
 
-    @GetMapping("/v1/users/grade")
+    @GetMapping("/users/grade")
     public ResponseEntity<ApiResponse<UserGradeResponse>> getGrade(
         @AuthenticationPrincipal Long userId
     ) {
@@ -61,7 +63,7 @@ public class UserController {
             .body(ApiResponse.success("회원 등급 조회 성공", success));
     }
 
-    @PatchMapping("/v1/users/me")
+    @PatchMapping("/users/me")
     public ResponseEntity<ApiResponse<UpdateUserResponse>> update(
         @Valid @RequestBody UpdateUserRequest request,
         @AuthenticationPrincipal Long userId
@@ -72,7 +74,7 @@ public class UserController {
             .body(ApiResponse.success("회원 정보 수정 성공", update));
     }
 
-    @GetMapping("/v2/users/{userId}/snapshot")
+    @GetMapping("/users/{userId}/snapshot")
     public ResponseEntity<ApiResponse<UserSnapShotResponse>> snapshot(
         @PathVariable Long userId
     ) {
@@ -82,4 +84,14 @@ public class UserController {
             .body(ApiResponse.success("스냅샷 정보", snapshot));
     }
 
+    @GetMapping("/users/by-email")
+    public ResponseEntity<ApiResponse<UserByEmailResponse>> Byemail(
+        @RequestHeader("Authorization") String authHeader,
+        @RequestParam("email") String email
+    ){
+        UserByEmailResponse byEmail = userService.byEmail(email);
+
+        return ResponseEntity.status(HttpStatus.OK)
+            .body(ApiResponse.success("이메일로 UserId 조회", byEmail));
+    }
 }
