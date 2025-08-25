@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.project.application;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -10,6 +12,7 @@ import com.example.surveyapi.domain.project.application.dto.request.UpdateProjec
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -39,6 +42,12 @@ public class ProjectService {
 		projectRepository.save(project);
 
 		return CreateProjectResponse.of(project.getId(), project.getMaxMembers());
+	}
+
+	@Transactional
+	public void openProject(Long projectId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.openProject();
 	}
 
 	@Transactional
@@ -118,6 +127,32 @@ public class ProjectService {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
 		projectRepository.save(project);
+	}
+
+	@Transactional
+	public void handleUserWithdraw(Long userId) {
+		// 카테시안 곱 발생
+		List<Project> projects = projectRepository.findAllWithParticipantsByUserId(userId);
+
+		for (Project project : projects) {
+			boolean isManager = project.getProjectManagers().stream()
+				.anyMatch(m -> m.isSameUser(userId) && !m.getIsDeleted());
+			if (isManager) {
+				project.removeManager(userId);
+			}
+
+			boolean isMember = project.getProjectMembers().stream()
+				.anyMatch(m -> m.isSameUser(userId) && !m.getIsDeleted());
+			if (isMember) {
+				project.removeMember(userId);
+			}
+
+			if (project.getOwnerId().equals(userId)) {
+				project.softDelete(userId);
+			}
+		}
+
+		projectRepository.saveAll(projects);
 	}
 
 	private void validateDuplicateName(String name) {

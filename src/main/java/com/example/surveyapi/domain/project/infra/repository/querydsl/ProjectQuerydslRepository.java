@@ -191,36 +191,21 @@ public class ProjectQuerydslRepository {
 			.execute();
 	}
 
-	public void removeMemberFromProjects(Long userId) {
-		LocalDateTime now = LocalDateTime.now();
+	public List<Project> findAllWithParticipantsByUserId(Long userId) {
 
-		query.update(projectMember)
-			.set(projectMember.isDeleted, true)
-			.set(projectMember.updatedAt, now)
-			.where(projectMember.userId.eq(userId), projectMember.isDeleted.eq(false))
-			.execute();
-	}
-
-	public void removeManagerFromProjects(Long userId) {
-		LocalDateTime now = LocalDateTime.now();
-
-		query.update(projectManager)
-			.set(projectManager.isDeleted, true)
-			.set(projectManager.updatedAt, now)
-			.where(projectManager.userId.eq(userId), projectManager.isDeleted.eq(false))
-			.execute();
-	}
-
-	public void removeProjects(Long userId) {
-		LocalDateTime now = LocalDateTime.now();
-
-		query.update(project)
-			.set(project.isDeleted, true)
-			.set(project.updatedAt, now)
-			.set(project.period.periodEnd, now)
-			.set(project.state, ProjectState.CLOSED)
-			.where(project.ownerId.eq(userId), isProjectActive())
-			.execute();
+		// 카테시안 곱 발생
+		// DDD 설계상 관점을 따라감
+		return query.selectFrom(project)
+			.distinct()
+			.leftJoin(project.projectManagers, projectManager)
+			.leftJoin(project.projectMembers, projectMember)
+			.where(
+				isProjectActive(),
+				project.ownerId.eq(userId)
+					.or(projectManager.userId.eq(userId).and(projectManager.isDeleted.eq(false)))
+					.or(projectMember.userId.eq(userId).and(projectMember.isDeleted.eq(false)))
+			)
+			.fetch();
 	}
 
 	// 내부 메소드

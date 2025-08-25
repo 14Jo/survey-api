@@ -9,7 +9,7 @@ import com.example.surveyapi.domain.project.domain.participant.manager.entity.Pr
 import com.example.surveyapi.domain.project.domain.participant.manager.enums.ManagerRole;
 import com.example.surveyapi.domain.project.domain.participant.member.entity.ProjectMember;
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectAbstractRoot;
+import com.example.surveyapi.domain.project.domain.project.event.ProjectCreatedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectManagerAddedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectMemberAddedDomainEvent;
@@ -17,6 +17,7 @@ import com.example.surveyapi.domain.project.domain.project.event.ProjectStateCha
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
+import com.example.surveyapi.global.model.AbstractRoot;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -41,7 +42,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "projects")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Project extends ProjectAbstractRoot {
+public class Project extends AbstractRoot<Project> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -89,6 +90,17 @@ public class Project extends ProjectAbstractRoot {
 		project.projectManagers.add(ProjectManager.createOwner(project, ownerId));
 
 		return project;
+	}
+
+	public void openProject() {
+		// PENDING -> IN_PROGRESS만 허용 periodStart를 now로 세팅
+		if (this.state != ProjectState.PENDING) {
+			throw new CustomException(CustomErrorCode.INVALID_STATE_TRANSITION);
+		}
+		this.period = ProjectPeriod.of(LocalDateTime.now(), this.period.getPeriodEnd());
+		this.state = ProjectState.IN_PROGRESS;
+
+		registerEvent(new ProjectCreatedDomainEvent(this.id, this.ownerId, this.getPeriod().getPeriodEnd()));
 	}
 
 	public void updateProject(String newName, String newDescription, LocalDateTime newPeriodStart,
@@ -256,7 +268,7 @@ public class Project extends ProjectAbstractRoot {
 	// Member 조회 헬퍼 메소드
 	private ProjectMember findMemberByUserId(Long userId) {
 		return this.projectMembers.stream()
-			.filter(member -> member.isSameUser(userId))
+			.filter(member -> member.isSameUser(userId) && !member.getIsDeleted())
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
 	}

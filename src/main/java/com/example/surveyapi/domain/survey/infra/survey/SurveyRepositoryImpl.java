@@ -38,6 +38,11 @@ public class SurveyRepositoryImpl implements SurveyRepository {
 	}
 
 	@Override
+	public void hardDelete(Survey survey) {
+		jpaRepository.delete(survey);
+	}
+
+	@Override
 	public Optional<Survey> findBySurveyIdAndIsDeletedFalse(Long surveyId) {
 		return jpaRepository.findBySurveyIdAndIsDeletedFalse(surveyId);
 	}

@@ -2,7 +2,10 @@ package com.example.surveyapi.domain.survey.application.qeury.dto;
 
 import java.time.LocalDateTime;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
+import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,18 +21,25 @@ public class SurveySyncDto {
 	private String title;
 	private String description;
 	private SurveyStatus status;
+	private ScheduleState scheduleState;
 	private SurveyOptions options;
 
-	public static SurveySyncDto from(Survey survey) {
+	public static SurveySyncDto from(
+		Long surveyId, Long projectId,
+		String title, String description,
+		SurveyStatus status, ScheduleState scheduleState,
+		SurveyOption options, SurveyDuration duration
+	) {
 		SurveySyncDto dto = new SurveySyncDto();
-		dto.surveyId = survey.getSurveyId();
-		dto.projectId = survey.getProjectId();
-		dto.title = survey.getTitle();
-		dto.status = survey.getStatus();
-		dto.description = survey.getDescription();
+		dto.surveyId = surveyId;
+		dto.projectId = projectId;
+		dto.title = title;
+		dto.status = status;
+		dto.scheduleState = scheduleState;
+		dto.description = description;
 		dto.options = new SurveyOptions(
-			survey.getOption().isAnonymous(), survey.getOption().isAllowResponseUpdate(),
-			survey.getDuration().getStartDate(), survey.getDuration().getEndDate()
+			options.isAnonymous(), options.isAllowResponseUpdate(),
+			duration.getStartDate(), duration.getEndDate()
 		);
 
 		return dto;
