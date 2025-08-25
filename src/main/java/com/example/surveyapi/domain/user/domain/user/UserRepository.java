@@ -27,4 +27,6 @@ public interface UserRepository {
     Optional<UserGradePoint> findByGradeAndPoint(Long userId);
 
     Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String providerId);
+
+    Optional<Long> findIdByAuthEmail(String email);
 }

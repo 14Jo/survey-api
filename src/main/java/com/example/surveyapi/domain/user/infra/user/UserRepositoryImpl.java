@@ -67,4 +67,9 @@ public class UserRepositoryImpl implements UserRepository {
         return userJpaRepository.findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(provider, providerId);
     }
 
+    @Override
+    public Optional<Long> findIdByAuthEmail(String email) {
+        return userJpaRepository.findIdByAuthEmail(email);
+    }
+
 }
