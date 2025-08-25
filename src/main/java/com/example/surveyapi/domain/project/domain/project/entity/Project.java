@@ -11,8 +11,6 @@ import com.example.surveyapi.domain.project.domain.participant.member.entity.Pro
 import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectCreatedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedDomainEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectManagerAddedDomainEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectMemberAddedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.exception.CustomErrorCode;
@@ -181,9 +179,6 @@ public class Project extends AbstractRoot<Project> {
 
 		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
-
-		registerEvent(
-			new ProjectManagerAddedDomainEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
@@ -255,9 +250,6 @@ public class Project extends AbstractRoot<Project> {
 		}
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
-
-		registerEvent(
-			new ProjectMemberAddedDomainEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void removeMember(Long currentUserId) {
