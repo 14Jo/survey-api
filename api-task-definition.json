@@ -24,7 +24,10 @@
         { "name": "MONGODB_USERNAME", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:MONGODB_USERNAME::" },
         { "name": "MONGODB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:MONGODB_PASSWORD::" },
         { "name": "NAVER_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:NAVER_SECRET::" },
-        { "name": "GOOGLE_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:GOOGLE_SECRET::" }
+        { "name": "GOOGLE_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:GOOGLE_SECRET::" },
+        
+        { "name": "FIREBASE_PRIVATE_KEY_ID", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:FIREBASE_PRIVATE_KEY_ID::" },
+        { "name": "FIREBASE_PRIVATE_KEY", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:FIREBASE_PRIVATE_KEY::" }
     ],
     "environment": [
       {"name": "SPRING_PROFILES_ACTIVE", "value": "prod"},
@@ -42,6 +45,13 @@
       {"name": "MONGODB_AUTHDB", "value": "admin"},
       {"name": "SPRING_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_MAIL_ENABLED", "value": "false"},
+      {"name": "MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED", "value": "false"},
+      
+      {"name": "FIREBASE_ENABLED", "value": "true"},
+      {"name": "FIREBASE_PROJECT_ID", "value": "survey-f5a93"},
+      {"name": "FIREBASE_CLIENT_EMAIL", "value": "firebase-adminsdk-fbsvc@survey-f5a93.iam.gserviceaccount.com"},
+      {"name": "FIREBASE_CLIENT_ID", "value": "100191250643521230154"},
+      
       {"name": "KAKAO_CLIENT_ID", "value": "095680b1255e001a75547779c2466dc7"},
       {"name": "KAKAO_REDIRECT_URL", "value": "https://api.surveylink.site/auth/kakao/login"},
       {"name": "NAVER_CLIENT_ID", "value": "fXngEOOPoc9G6_PYaVwk"},
@@ -56,6 +66,13 @@
         "awslogs-region": "ap-northeast-2",
         "awslogs-stream-prefix": "ecs"
       }
+    },
+    "healthCheck": {
+      "command": ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"],
+      "interval": 30,
+      "timeout": 5,
+      "retries": 3,
+      "startPeriod": 60
     }
   }]
 }
