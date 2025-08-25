@@ -43,7 +43,7 @@
       {"name": "MONGODB_PORT", "value": "27017"},
       {"name": "MONGODB_DATABASE", "value": "survey_read_db"},
       {"name": "MONGODB_AUTHDB", "value": "admin"},
-      {"name": "ELASTIC_URIS", "value": "http://elastic.survey-elastic.local:9200"},
+      {"name": "ELASTIC_URIS", "value": "http://elasticsearch-srv.survey-cluster.local:9200"},
       {"name": "ELASTICSEARCH_ENABLED", "value": "true"},
       {"name": "SPRING_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_MAIL_ENABLED", "value": "false"},
