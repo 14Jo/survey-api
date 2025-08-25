@@ -1,0 +1,27 @@
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}
+
+dependencies {
+    // shared-kernel 의존성
+    implementation project(':shared-kernel')
+
+    // 데이터베이스
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // MongoDB (CQRS 읽기 모델용)
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+
+    // QueryDSL
+    implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
+    // 테스트 의존성
+    testImplementation 'org.springframework.security:spring-security-test'
+}

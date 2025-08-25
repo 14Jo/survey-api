@@ -1,0 +1,61 @@
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}
+
+dependencies {
+    // Spring 기본 (API로 전이)
+    api 'org.springframework.boot:spring-boot-starter'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-security'
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // JWT
+    api 'io.jsonwebtoken:jjwt-api:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
+
+    // 암호화
+    api 'at.favre.lib:bcrypt:0.10.2'
+
+    // Redis
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // RabbitMQ
+    api 'org.springframework.boot:spring-boot-starter-amqp'
+
+    // QueryDSL
+    api 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
+    // HTTP Client
+    api 'org.apache.httpcomponents.client5:httpclient5:5.2.1'
+
+    // Firebase
+    api 'com.google.firebase:firebase-admin:9.2.0'
+
+    // Elasticsearch
+    api 'co.elastic.clients:elasticsearch-java:8.11.0'
+    api 'org.springframework.data:spring-data-elasticsearch:5.1.10'
+
+    // 메일
+    api 'org.springframework.boot:spring-boot-starter-mail'
+
+    // 모니터링
+    api 'org.springframework.boot:spring-boot-starter-actuator'
+    api 'io.micrometer:micrometer-registry-prometheus'
+
+    // 테스트 의존성
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:mongodb'
+    testImplementation 'org.springframework.test:spring-test'
+}

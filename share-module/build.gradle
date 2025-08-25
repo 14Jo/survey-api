@@ -1,0 +1,30 @@
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}
+
+dependencies {
+    // shared-kernel 의존성
+    implementation project(':shared-kernel')
+
+    // 데이터베이스
+    runtimeOnly 'org.postgresql:postgresql'
+
+    // 메일 (공유 알림용)
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    // Firebase (푸시 알림용)
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
+
+    // QueryDSL
+    implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
+    // 테스트 의존성
+    testImplementation 'org.springframework.security:spring-security-test'
+}

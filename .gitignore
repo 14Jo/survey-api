@@ -1,30 +1,17 @@
-HELP.md
-.gradle
-build/classes
-build/generated
-build/reports
-build/resolvedMainClassName
-build/test-results
-build/tmp
-build/resources
+# Gradle 빌드 결과물
+.gradle/
+**/build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# Maven 빌드 결과물 (혹시 사용하는 경우)
+target/
+!**/src/main/**/target/
+!**/src/test/**/target/
 
-### IntelliJ IDEA ###
-.idea
+# IDE 파일들
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -32,14 +19,103 @@ out/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
-### NetBeans ###
+# Eclipse STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# VS Code
+.vscode/
+
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
-.vscode/
+# OS 파일들
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
 
-*.env
+# 로그 파일들
+logs/
+*.log
+*.log.*
+hs_err_pid*
+
+# 임시 파일들
+*.tmp
+*.temp
+tmp/
+temp/
+
+# 환경 설정 파일들 (중요!)
+.env
+.env.*
+properties.env
+application-*.yml
+application-*.properties
+!application.yml
+!application.properties
+!application-test.yml
+
+# 테스트 결과물
+**/test-results/
+**/coverage/
+**/jacoco/
+junit.xml
+TEST-*.xml
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Node.js (프론트엔드가 있는 경우)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Docker 런타임 파일들
+.docker/
+docker-data/
+
+# 모니터링 및 배포 관련
+grafana/data/
+prometheus/data/
+
+# 개발 도구
+.factorypath
+.apt_generated_tests
+
+# QueryDSL 생성 파일들
+**/generated/
+**/querydsl/
+
+# 기타
+HELP.md
+*.pid
+*.seed
+*.pid.lock
