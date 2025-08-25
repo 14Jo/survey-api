@@ -8,9 +8,5 @@ public interface ShareEventPort {
 
 	void handleProjectCreateEvent(ShareCreateRequest request);
 
-	void handleProjectManagerEvent(ShareCreateRequest request);
-
-	void handleProjectMemberEvent(ShareCreateRequest request);
-
 	void handleProjectDeleteEvent(ShareDeleteRequest request);
 }

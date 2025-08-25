@@ -46,26 +46,6 @@ public class ShareEventHandler implements ShareEventPort {
 	}
 
 	@Override
-	public void handleProjectManagerEvent(ShareCreateRequest request) {
-		shareService.createShare(
-			ShareSourceType.PROJECT_MANAGER,
-			request.getSourceId(),
-			request.getCreatorId(),
-			request.getExpirationDate()
-		);
-	}
-
-	@Override
-	public void handleProjectMemberEvent(ShareCreateRequest request) {
-		shareService.createShare(
-			ShareSourceType.PROJECT_MEMBER,
-			request.getSourceId(),
-			request.getCreatorId(),
-			request.getExpirationDate()
-		);
-	}
-
-	@Override
 	public void handleProjectDeleteEvent(ShareDeleteRequest request) {
 		List<Share> shares = shareService.getShareBySourceId(request.getProjectId());
 
