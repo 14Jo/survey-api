@@ -17,8 +17,8 @@ import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleStateChan
 import com.example.surveyapi.domain.survey.domain.survey.event.UpdatedEvent;
 import com.example.surveyapi.global.event.RabbitConst;
 import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
-import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
 import com.example.surveyapi.global.event.survey.SurveyEndDueEvent;
+import com.example.surveyapi.global.event.survey.SurveyStartDueEvent;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,8 +73,10 @@ public class SurveyEventListener {
 	public void handle(UpdatedEvent event) {
 		log.info("UpdatedEvent 수신 - 지연이벤트 아웃박스 저장 및 읽기 동기화 처리: surveyId={}", event.getSurveyId());
 
-		saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
-			event.getDuration().getStartDate(), event.getDuration().getEndDate());
+		if (event.getIsDuration()) {
+			saveDelayedEvents(event.getSurveyId(), event.getCreatorId(),
+				event.getDuration().getStartDate(), event.getDuration().getEndDate());
+		}
 
 		List<QuestionSyncDto> questionList = event.getQuestions().stream().map(QuestionSyncDto::from).toList();
 		surveyReadSync.updateSurveyRead(SurveySyncDto.from(
