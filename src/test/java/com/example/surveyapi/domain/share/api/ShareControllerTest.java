@@ -40,7 +40,7 @@ class ShareControllerTest {
 	@MockBean
 	private NotificationService notificationService;
 
-	private final String URI = "/api/v2/share-tasks";
+	private final String URI = "/share-tasks";
 
 	private final Long sourceId = 1L;
 	private final Long creatorId = 1L;
