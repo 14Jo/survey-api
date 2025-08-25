@@ -20,7 +20,7 @@ import com.example.surveyapi.domain.share.domain.notification.repository.Notific
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -48,7 +48,8 @@ class MailSendTest {
 			1L,
 			LocalDateTime.of(2025, 12, 31, 23, 59, 59)
 		);
-		savedShareId = response.getId();
+		Share savedShare = shareRepository.findBySource(ShareSourceType.PROJECT_MEMBER, 1L);
+		savedShareId = savedShare.getId();
 	}
 
 	@Test

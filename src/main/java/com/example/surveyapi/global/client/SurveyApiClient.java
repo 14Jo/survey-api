@@ -19,12 +19,6 @@ public interface SurveyApiClient {
 		@PathVariable Long surveyId
 	);
 
-	// @GetExchange("/api/v1/survey/{surveyId}/detail")
-	// ExternalApiResponse getSurveyDetail(
-	// 	@RequestHeader("Authorization") String authHeader,
-	// 	@PathVariable Long surveyId
-	// );
-
 	@GetExchange("/api/v2/survey/find-surveys")
 	ExternalApiResponse getSurveyInfoList(
 		@RequestHeader("Authorization") String authHeader,

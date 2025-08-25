@@ -10,7 +10,7 @@ import com.example.surveyapi.global.dto.ExternalApiResponse;
 @HttpExchange
 public interface UserApiClient {
 
-	@GetExchange("/api/v2/users/{userId}/snapshot")
+	@GetExchange("/users/{userId}/snapshot")
 	ExternalApiResponse getParticipantInfo(
 		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long userId
