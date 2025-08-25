@@ -28,6 +28,10 @@ jobs:
   build-and-deploy:
     name: Build and Deploy
     runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write # AWS OIDC 인증을 위해 토큰 발급 권한을 부여합니다.
+      contents: read   # actions/checkout이 코드를 읽을 수 있도록 권한을 부여합니다.
 
     steps:
     - name: Checkout
@@ -109,9 +113,9 @@ jobs:
       run: |
         if [ "${{ job.status }}" = "success" ]; then
           echo "API 배포가 성공적으로 완료되었습니다!"
-          echo "   - 이미지: ${{ steps.build-image.outputs.image }}"
-          echo "   - 서비스: ${{ env.ECS_SERVICE }}"
-          echo "   - 클러스터: ${{ env.ECS_CLUSTER }}"
+          echo "  - 이미지: ${{ steps.build-image.outputs.image }}"
+          echo "  - 서비스: ${{ env.ECS_SERVICE }}"
+          echo "  - 클러스터: ${{ env.ECS_CLUSTER }}"
         else
           echo "API 배포 중 오류가 발생했습니다."
         fi
