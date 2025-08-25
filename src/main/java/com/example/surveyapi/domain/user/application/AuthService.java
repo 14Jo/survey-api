@@ -22,7 +22,7 @@ import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
 import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
 import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
-import com.example.surveyapi.domain.user.domain.user.UserRedisRepository;
+import com.example.surveyapi.domain.user.application.client.port.UserRedisPort;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
 import com.example.surveyapi.global.auth.jwt.JwtUtil;
 import com.example.surveyapi.global.auth.oauth.GoogleOAuthProperties;
@@ -48,7 +48,7 @@ public class AuthService {
     private final KakaoOAuthProperties kakaoOAuthProperties;
     private final NaverOAuthProperties naverOAuthProperties;
     private final GoogleOAuthProperties googleOAuthProperties;
-    private final UserRedisRepository userRedisRepository;
+    private final UserRedisPort userRedisPort;
 
     @Transactional
     public SignupResponse signup(SignupRequest request) {
@@ -80,27 +80,18 @@ public class AuthService {
         }
 
         user.delete();
-        user.registerUserWithdrawEvent();
-        userRepository.withdrawSave(user);
+        userRepository.save(user);
 
-        String accessToken = jwtUtil.subStringToken(authHeader);
-
-        validateTokenType(accessToken, "access");
-
-        addBlackLists(accessToken);
-
-        userRedisRepository.delete(userId);
+        addBlackLists(authHeader);
+        userRedisPort.delete(userId);
     }
 
     @Transactional
     public void logout(String authHeader, Long userId) {
 
-        String accessToken = jwtUtil.subStringToken(authHeader);
+        addBlackLists(authHeader);
 
-        validateTokenType(accessToken, "access");
-        addBlackLists(accessToken);
-
-        userRedisRepository.delete(userId);
+        userRedisPort.delete(userId);
     }
 
     @Transactional
@@ -108,30 +99,27 @@ public class AuthService {
         String accessToken = jwtUtil.subStringToken(authHeader);
         String refreshToken = jwtUtil.subStringToken(bearerRefreshToken);
 
-        Claims refreshClaims = jwtUtil.extractClaims(refreshToken);
-
-        validateTokenType(accessToken, "access");
-        validateTokenType(refreshToken, "refresh");
-
-        String blackListKey = "blackListToken" + accessToken;
-        String saveBlackListKey = userRedisRepository.getRedisKey(blackListKey);
-
-        if (saveBlackListKey != null) {
-            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
-        }
+        jwtUtil.validateToken(refreshToken);
 
         if (!jwtUtil.isTokenExpired(accessToken)) {
             throw new CustomException(CustomErrorCode.ACCESS_TOKEN_NOT_EXPIRED);
         }
 
-        jwtUtil.validateToken(refreshToken);
+        String accessTokenCheckKey = "blackListToken" + accessToken;
+        String accessTokenCheckResult  = userRedisPort.getRedisKey(accessTokenCheckKey);
 
+        if (accessTokenCheckResult  != null) {
+            throw new CustomException(CustomErrorCode.INVALID_TOKEN);
+        }
+
+        Claims refreshClaims = jwtUtil.extractClaims(refreshToken);
         long userId = Long.parseLong(refreshClaims.getSubject());
+
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        String redisKey = "refreshToken" + userId;
-        String storedBearerRefreshToken = userRedisRepository.getRedisKey(redisKey);
+        String refreshTokenCheckKey = "refreshToken" + userId;
+        String storedBearerRefreshToken = userRedisPort.getRedisKey(refreshTokenCheckKey);
 
         if (storedBearerRefreshToken == null) {
             throw new CustomException(CustomErrorCode.NOT_FOUND_REFRESH_TOKEN);
@@ -141,8 +129,7 @@ public class AuthService {
             throw new CustomException(CustomErrorCode.MISMATCH_REFRESH_TOKEN);
         }
 
-        userRedisRepository.delete(userId);
-
+        userRedisPort.delete(userId);
         return createAccessAndSaveRefresh(user);
     }
 
@@ -253,24 +240,19 @@ public class AuthService {
         String newRefreshToken = jwtUtil.createRefreshToken(user.getId(), user.getRole().name());
 
         String redisKey = "refreshToken" + user.getId();
-        userRedisRepository.saveRedisKey(redisKey, newRefreshToken, Duration.ofDays(7));
+        userRedisPort.saveRedisKey(redisKey, newRefreshToken, Duration.ofDays(7));
 
         return LoginResponse.of(newAccessToken, newRefreshToken, user);
     }
 
-    private void addBlackLists(String accessToken) {
+    private void addBlackLists(String authHeader) {
+
+        String accessToken = jwtUtil.subStringToken(authHeader);
 
         Long remainingTime = jwtUtil.getExpiration(accessToken);
         String blackListTokenKey = "blackListToken" + accessToken;
 
-        userRedisRepository.saveRedisKey(blackListTokenKey, "logout", Duration.ofMillis(remainingTime));
-    }
-
-    private void validateTokenType(String token, String expectedType) {
-        String type = jwtUtil.extractClaims(token).get("type", String.class);
-        if (!expectedType.equals(type)) {
-            throw new CustomException(CustomErrorCode.INVALID_TOKEN_TYPE);
-        }
+        userRedisPort.saveRedisKey(blackListTokenKey, "logout", Duration.ofMillis(remainingTime));
     }
 
     private KakaoAccessResponse getKakaoAccessToken(String code) {

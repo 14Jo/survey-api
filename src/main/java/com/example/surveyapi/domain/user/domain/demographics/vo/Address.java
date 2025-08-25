@@ -1,12 +1,11 @@
 package com.example.surveyapi.domain.user.domain.demographics.vo;
 
-import com.example.surveyapi.global.util.MaskingUtils;
+import com.example.surveyapi.domain.user.domain.util.MaskingUtils;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 
 @Embeddable
 @NoArgsConstructor
@@ -35,7 +34,7 @@ public class Address {
     public void updateAddress(
         String province, String district,
         String detailAddress, String postalCode
-    ){
+    ) {
         if (province != null) {
             this.province = province;
         }
@@ -53,7 +52,7 @@ public class Address {
         }
     }
 
-    public void masking(){
+    public void masking() {
         this.district = MaskingUtils.maskDistrict(district);
         this.detailAddress = MaskingUtils.maskDetailAddress(detailAddress);
         this.postalCode = MaskingUtils.maskPostalCode(postalCode);
