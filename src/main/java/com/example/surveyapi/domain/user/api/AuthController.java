@@ -22,62 +22,62 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("auth")
+@RequestMapping("/api/auth")
 public class AuthController {
 
-    private final AuthService authService;
+	private final AuthService authService;
 
-    @PostMapping("/signup")
-    public ResponseEntity<ApiResponse<SignupResponse>> signup(
-        @Valid @RequestBody SignupRequest request
-    ) {
-        SignupResponse signup = authService.signup(request);
+	@PostMapping("/signup")
+	public ResponseEntity<ApiResponse<SignupResponse>> signup(
+		@Valid @RequestBody SignupRequest request
+	) {
+		SignupResponse signup = authService.signup(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success("회원가입 성공", signup));
-    }
+		return ResponseEntity.status(HttpStatus.CREATED)
+			.body(ApiResponse.success("회원가입 성공", signup));
+	}
 
-    @PostMapping("/login")
-    public ResponseEntity<ApiResponse<LoginResponse>> login(
-        @Valid @RequestBody LoginRequest request
-    ) {
-        LoginResponse login = authService.login(request);
+	@PostMapping("/login")
+	public ResponseEntity<ApiResponse<LoginResponse>> login(
+		@Valid @RequestBody LoginRequest request
+	) {
+		LoginResponse login = authService.login(request);
 
-        return ResponseEntity.status(HttpStatus.OK)
-            .body(ApiResponse.success("로그인 성공", login));
-    }
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("로그인 성공", login));
+	}
 
-    @PostMapping("/withdraw")
-    public ResponseEntity<ApiResponse<Void>> withdraw(
-        @Valid @RequestBody UserWithdrawRequest request,
-        @AuthenticationPrincipal Long userId,
-        @RequestHeader("Authorization") String authHeader
-    ) {
-        authService.withdraw(userId, request, authHeader);
+	@PostMapping("/withdraw")
+	public ResponseEntity<ApiResponse<Void>> withdraw(
+		@Valid @RequestBody UserWithdrawRequest request,
+		@AuthenticationPrincipal Long userId,
+		@RequestHeader("Authorization") String authHeader
+	) {
+		authService.withdraw(userId, request, authHeader);
 
-        return ResponseEntity.status(HttpStatus.OK)
-            .body(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));
-    }
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("회원 탈퇴가 완료되었습니다.", null));
+	}
 
-    @PostMapping("/logout")
-    public ResponseEntity<ApiResponse<Void>> logout(
-        @RequestHeader("Authorization") String authHeader,
-        @AuthenticationPrincipal Long userId
-    ) {
-        authService.logout(authHeader, userId);
+	@PostMapping("/logout")
+	public ResponseEntity<ApiResponse<Void>> logout(
+		@RequestHeader("Authorization") String authHeader,
+		@AuthenticationPrincipal Long userId
+	) {
+		authService.logout(authHeader, userId);
 
-        return ResponseEntity.status(HttpStatus.OK)
-            .body(ApiResponse.success("로그아웃 되었습니다.", null));
-    }
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("로그아웃 되었습니다.", null));
+	}
 
-    @PostMapping("/reissue")
-    public ResponseEntity<ApiResponse<LoginResponse>> reissue(
-        @RequestHeader("Authorization") String accessToken,
-        @RequestHeader("RefreshToken") String refreshToken // Bearer 까지 넣어서
-    ) {
-        LoginResponse reissue = authService.reissue(accessToken, refreshToken);
+	@PostMapping("/reissue")
+	public ResponseEntity<ApiResponse<LoginResponse>> reissue(
+		@RequestHeader("Authorization") String accessToken,
+		@RequestHeader("RefreshToken") String refreshToken // Bearer 까지 넣어서
+	) {
+		LoginResponse reissue = authService.reissue(accessToken, refreshToken);
 
-        return ResponseEntity.status(HttpStatus.OK)
-            .body(ApiResponse.success("토큰이 재발급되었습니다.", reissue));
-    }
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(ApiResponse.success("토큰이 재발급되었습니다.", reissue));
+	}
 }
