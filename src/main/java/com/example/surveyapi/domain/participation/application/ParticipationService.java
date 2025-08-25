@@ -51,7 +51,7 @@ public class ParticipationService {
 	private final UserServicePort userPort;
 	private final TaskExecutor taskExecutor;
 	private final TransactionTemplate writeTransactionTemplate;
-	private final TransactionTemplate readOnlyTransactionTemplate;
+	private final TransactionTemplate readTransactionTemplate;
 
 	public ParticipationService(ParticipationRepository participationRepository,
 		SurveyServicePort surveyPort,
@@ -64,13 +64,14 @@ public class ParticipationService {
 		this.userPort = userPort;
 		this.taskExecutor = taskExecutor;
 		this.writeTransactionTemplate = new TransactionTemplate(transactionManager);
-		this.readOnlyTransactionTemplate = new TransactionTemplate(transactionManager);
-		this.readOnlyTransactionTemplate.setReadOnly(true);
+		this.readTransactionTemplate = new TransactionTemplate(transactionManager);
+		this.readTransactionTemplate.setReadOnly(true);
 	}
 
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
 		log.debug("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
 		long totalStartTime = System.currentTimeMillis();
+
 		validateParticipationDuplicated(surveyId, userId);
 
 		List<ResponseData> responseDataList = request.getResponseDataList();
@@ -109,17 +110,17 @@ public class ParticipationService {
 		return writeTransactionTemplate.execute(status -> {
 			Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
 			Participation savedParticipation = participationRepository.save(participation);
-			savedParticipation.registerCreatedEvent();
-
 			long totalEndTime = System.currentTimeMillis();
 			log.debug("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
+
+			savedParticipation.registerCreatedEvent();
 
 			return savedParticipation.getId();
 		});
 	}
 
 	public Page<ParticipationInfoResponse> gets(String authHeader, Long userId, Pageable pageable) {
-		Page<ParticipationInfo> participationInfos = readOnlyTransactionTemplate.execute(status ->
+		Page<ParticipationInfo> participationInfos = readTransactionTemplate.execute(status ->
 			participationRepository.findParticipationInfos(userId, pageable)
 		);
 
