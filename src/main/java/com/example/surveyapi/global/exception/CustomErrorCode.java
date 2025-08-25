@@ -61,6 +61,7 @@ public enum CustomErrorCode {
 	REQUIRED_QUESTION_NOT_ANSWERED(HttpStatus.BAD_REQUEST, "필수 질문에 대해 답변하지 않았습니다."),
 	INVALID_SURVEY_QUESTION(HttpStatus.BAD_REQUEST, "설문의 질문들과 응답한 질문들이 일치하지 않습니다."),
 	INVALID_ANSWER_TYPE(HttpStatus.BAD_REQUEST, "질문과 답변의 형식이 일치하지 않습니다."),
+	INVALID_CHOICE_ID(HttpStatus.BAD_REQUEST, "질문과 선택지가 일치하지 않습니다."),
 
     // 서버 에러
     USER_LIST_EMPTY(HttpStatus.INTERNAL_SERVER_ERROR, "회원 목록이 비어 있습니다. 데이터 상태를 확인하세요."),
