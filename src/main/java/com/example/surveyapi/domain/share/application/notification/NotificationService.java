@@ -10,6 +10,7 @@ import com.example.surveyapi.domain.share.application.notification.dto.Notificat
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.notification.repository.NotificationRepository;
 import com.example.surveyapi.domain.share.domain.notification.repository.query.NotificationQueryRepository;
+import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +39,7 @@ public class NotificationService {
 		Long requesterId,
 		Pageable pageable
 	) {
+
 		Page<Notification> notifications = notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable);
 
 		return notifications.map(NotificationResponse::from);
@@ -49,11 +51,16 @@ public class NotificationService {
 		return new ShareValidationResponse(valid);
 	}
 
+	@Transactional
 	public Page<NotificationResponse> getMyNotifications(
 		Long currentId,
 		Pageable pageable
 	) {
 		Page<Notification> notifications = notificationQueryRepository.findPageByUserId(currentId, pageable);
+
+		notifications.stream()
+			.filter(n -> n.getStatus() == Status.SENT)
+			.forEach(Notification::setCheck);
 
 		return notifications.map(NotificationResponse::from);
 	}

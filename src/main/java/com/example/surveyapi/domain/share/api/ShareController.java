@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.share.api;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import com.example.surveyapi.domain.share.application.notification.dto.Notificat
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -19,40 +22,42 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping
 public class ShareController {
 	private final ShareService shareService;
 	private final NotificationService notificationService;
 
-	@PostMapping("/v2/share-tasks/{shareId}/notifications")
+	@PostMapping("/share-tasks/{shareId}/notifications")
 	public ResponseEntity<ApiResponse<Void>> createNotifications(
+		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long shareId,
 		@Valid @RequestBody NotificationEmailCreateRequest request,
 		@AuthenticationPrincipal Long creatorId
 	) {
 		shareService.createNotifications(
-			shareId, creatorId,
-			request.getShareMethod(), request.getEmails(),
-			request.getNotifyAt());
+			authHeader, shareId,
+			creatorId, request.getShareMethod(),
+			request.getEmails(), request.getNotifyAt());
 
 		return ResponseEntity
 			.status(HttpStatus.CREATED)
 			.body(ApiResponse.success("알림 생성 성공", null));
 	}
 
-	@GetMapping("/v1/share-tasks/{shareId}")
-	public ResponseEntity<ApiResponse<ShareResponse>> get(
-		@PathVariable Long shareId,
+	@GetMapping("/share-tasks/{sourceType}/{sourceId}")
+	public ResponseEntity<ApiResponse<List<ShareResponse>>> get(
+		@PathVariable String sourceType,
+		@PathVariable Long sourceId,
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		ShareResponse response = shareService.getShare(shareId, currentUserId);
+		List<ShareResponse> responses = shareService.getShare(sourceType, sourceId, currentUserId);
 
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(ApiResponse.success("공유 작업 조회 성공", response));
+			.body(ApiResponse.success("공유 작업 조회 성공", responses));
 	}
 
-	@GetMapping("/v1/share-tasks/{shareId}/notifications")
+	@GetMapping("/share-tasks/{shareId}/notifications")
 	public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAll(
 		@PathVariable Long shareId,
 		@AuthenticationPrincipal Long currentId,
@@ -63,7 +68,7 @@ public class ShareController {
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
 
-	@GetMapping("/v2/notifications")
+	@GetMapping("/notifications")
 	public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getMyNotifications(
 		@AuthenticationPrincipal Long currentId,
 		Pageable pageable

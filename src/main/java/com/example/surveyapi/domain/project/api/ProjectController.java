@@ -58,7 +58,7 @@ public class ProjectController {
 
 	@PostMapping("/{projectId}/open")
 	public ResponseEntity<ApiResponse<CreateProjectResponse>> openProject(
-		@RequestParam Long projectId
+		@PathVariable Long projectId
 	) {
 		projectService.openProject(projectId);
 
@@ -143,7 +143,7 @@ public class ProjectController {
 			.body(ApiResponse.success("담당자로 참여한 프로젝트 조회 성공", result));
 	}
 
-	@PostMapping("/{projectId}/managers")
+	@GetMapping("/{projectId}/managers")
 	public ResponseEntity<ApiResponse<Void>> joinProjectManager(
 		@PathVariable Long projectId,
 		@AuthenticationPrincipal Long currentUserId
@@ -201,7 +201,7 @@ public class ProjectController {
 			.body(ApiResponse.success("멤버로 참여한 프로젝트 조회 성공", result));
 	}
 
-	@PostMapping("/{projectId}/members")
+	@GetMapping("/{projectId}/members/join")
 	public ResponseEntity<ApiResponse<Void>> joinProjectMember(
 		@PathVariable Long projectId,
 		@AuthenticationPrincipal Long currentUserId
