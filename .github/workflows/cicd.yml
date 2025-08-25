@@ -1,10 +1,9 @@
-# 워크플로우의 전체 이름을 "CI/CD Docker to EC2"로 정했음.
-name: CI/CD Docker to EC2
+# API 이미지를 ECR에 배포하고 ECS 서비스를 업데이트하는 파이프라인
+name: Deploy API to ECS
 
-# 언제 이 워크플로우를 실행할지 정하는 부분임.
+# main 브랜치에 병합될 때 실행
 on:
   push:
-    # "main" 브랜치에 코드가 push 될 때마다 실행될 거임.
     branches: [ "main" ]
 
 # 워크플로우가 해야 할 작업(job)들을 정의함.
@@ -125,59 +124,101 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
-      # 7단계: 도커 빌드 환경 설정
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-
-      # 8단계: 도커 허브 로그인
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
+      # 7단계: AWS 자격 증명 구성
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-      # 9단계: 도커 이미지 빌드 및 푸시
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-spring-app:latest
+      # 8단계: ECR 로그인
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-      # 10단계: EC2 서버에 배포
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # EC2 서버에서도 Docker Hub에 로그인해야 이미지를 받을 수 있음.
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            # Docker Hub에서 방금 올린 최신 버전의 이미지를 내려받음.
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-spring-app:latest
-            # 기존에 실행 중이던 'my-app' 컨테이너가 있으면 중지시킴. 없으면 그냥 넘어감.
-            docker stop my-app || true
-            # 기존 'my-app' 컨테이너가 있으면 삭제함. 없으면 그냥 넘어감.
-            docker rm my-app || true
-            # 새로 받은 이미지로 'my-app'이라는 이름의 컨테이너를 실행함.
-            # -d: 백그라운드에서 실행, -p 8080:8080: 포트 연결
-            docker run -d -p 8080:8080 --name my-app \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              -e DB_HOST=${{ secrets.DB_HOST }} \
-              -e DB_PORT=${{ secrets.DB_PORT }} \
-              -e DB_SCHEME=${{ secrets.DB_SCHEME }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e REDIS_HOST=${{ secrets.REDIS_HOST }} \
-              -e REDIS_PORT=${{ secrets.REDIS_PORT }} \
-              -e MONGODB_HOST=${{ secrets.MONGODB_HOST }} \
-              -e MONGODB_PORT=${{ secrets.MONGODB_PORT }} \
-              -e MONGODB_DATABASE=${{ secrets.MONGODB_DATABASE }} \
-              -e MONGODB_USERNAME=${{ secrets.MONGODB_USERNAME }} \
-              -e MONGODB_PASSWORD=${{ secrets.MONGODB_PASSWORD }} \
-              -e MONGODB_AUTHDB=${{ secrets.MONGODB_AUTHDB }} \
-              -e SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
-              -e CLIENT_ID=${{ secrets.CLIENT_ID }} \
-              -e REDIRECT_URL=${{ secrets.REDIRECT_URL }} \
-              ${{ secrets.DOCKERHUB_USERNAME }}/my-spring-app:latest
+      # 9단계: Docker 이미지 태그 생성 (타임스탬프 + 커밋 해시)
+      - name: Generate image tag
+        id: image-tag
+        run: |
+          echo "IMAGE_TAG=$(date +%Y%m%d%H%M%S)-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "TIMESTAMP=$(date +%Y%m%d%H%M%S)" >> $GITHUB_OUTPUT
+
+      # 10단계: Docker 이미지 빌드 및 ECR에 푸시
+      - name: Build, tag, and push image to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAG }}
+        run: |
+          # 이미지 빌드
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          # ECR에 푸시
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          
+          # 출력 변수 설정
+          echo "IMAGE_URI=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      # 11단계: ECS 태스크 정의 업데이트
+      - name: Update ECS task definition
+        id: update-task-def
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
+          IMAGE_TAG: ${{ steps.image-tag.outputs.IMAGE_TAG }}
+          ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
+        run: |
+          # 현재 태스크 정의 가져오기
+          aws ecs describe-task-definition --task-definition $ECS_TASK_DEFINITION \
+            --query taskDefinition --output json > task-def.json
+          
+          # 새로운 이미지 URI로 태스크 정의 업데이트
+          NEW_IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          
+          # jq를 사용하여 컨테이너 이미지 업데이트
+          jq --arg IMAGE_URI "$NEW_IMAGE_URI" \
+            '.containerDefinitions[0].image = $IMAGE_URI | 
+             del(.taskDefinitionArn) | 
+             del(.revision) | 
+             del(.status) | 
+             del(.requiresAttributes) | 
+             del(.placementConstraints) | 
+             del(.compatibilities) | 
+             del(.registeredAt) | 
+             del(.registeredBy)' \
+            task-def.json > updated-task-def.json
+
+      # 12단계: ECS 서비스 업데이트
+      - name: Deploy to Amazon ECS
+        env:
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+          ECS_TASK_DEFINITION: ${{ secrets.ECS_TASK_DEFINITION }}
+        run: |
+          # 새로운 태스크 정의 등록
+          aws ecs register-task-definition --cli-input-json file://updated-task-def.json
+          
+          # 서비스 업데이트
+          aws ecs update-service \
+            --cluster $ECS_CLUSTER \
+            --service $ECS_SERVICE \
+            --task-definition $ECS_TASK_DEFINITION \
+            --force-new-deployment
+
+      # 13단계: 배포 상태 확인
+      - name: Wait for service deployment
+        env:
+          ECS_CLUSTER: ${{ secrets.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ secrets.ECS_SERVICE }}
+        run: |
+          echo "배포 상태 확인 중..."
+          aws ecs wait services-stable \
+            --cluster $ECS_CLUSTER \
+            --services $ECS_SERVICE \
+            --cli-read-timeout 1200 \
+            --cli-connect-timeout 60
+          
+          echo "🎉 API 서비스가 성공적으로 배포되었습니다!"
