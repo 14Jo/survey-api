@@ -7,13 +7,9 @@ import org.springframework.transaction.event.TransactionalEventListener;
 
 import com.example.surveyapi.domain.project.domain.project.event.ProjectCreatedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedDomainEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectManagerAddedDomainEvent;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectMemberAddedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.global.event.project.ProjectCreatedEvent;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
-import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
-import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectStateChangedEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,20 +42,6 @@ public class ProjectEventListener {
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handleProjectDeleted(ProjectDeletedDomainEvent internalEvent) {
 		ProjectDeletedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectDeletedEvent.class);
-		projectEventPublisher.convertAndSend(globalEvent);
-	}
-
-	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handleManagerAdded(ProjectManagerAddedDomainEvent internalEvent) {
-		ProjectManagerAddedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectManagerAddedEvent.class);
-		projectEventPublisher.convertAndSend(globalEvent);
-	}
-
-	@Async
-	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-	public void handleMemberAdded(ProjectMemberAddedDomainEvent internalEvent) {
-		ProjectMemberAddedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectMemberAddedEvent.class);
 		projectEventPublisher.convertAndSend(globalEvent);
 	}
 }
