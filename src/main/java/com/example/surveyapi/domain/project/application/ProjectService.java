@@ -48,6 +48,7 @@ public class ProjectService {
 	public void openProject(Long projectId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.openProject();
+		projectRepository.save(project);
 	}
 
 	@Transactional
