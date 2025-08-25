@@ -82,7 +82,6 @@ server:
       max: 50
       min-spare: 20
 
-# Actuator 설정 (운영환경에서는 제한적으로 노출)
 management:
   endpoints:
     web:

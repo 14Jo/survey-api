@@ -67,7 +67,6 @@ temp/
 .env
 .env.*
 properties.env
-application-*.yml
 application-*.properties
 !application.yml
 !application.properties
