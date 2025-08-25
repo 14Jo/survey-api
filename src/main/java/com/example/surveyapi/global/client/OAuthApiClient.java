@@ -21,7 +21,7 @@ public interface OAuthApiClient {
 		@RequestParam("code") String code
 	);
 
-	@GetExchange(url = "https://kapi.kakao.com/user/me")
+	@GetExchange(url = "https://kapi.kakao.com/v2/user/me")
 	Map<String, Object> getKakaoUserInfo(
 		@RequestHeader("Authorization") String accessToken);
 
@@ -36,7 +36,7 @@ public interface OAuthApiClient {
 		@RequestParam("state") String state
 	);
 
-	@GetExchange(url = "https://openapi.naver.com/nid/me")
+	@GetExchange(url = "https://openapi.naver.com/v1/nid/me")
 	Map<String, Object> getNaverUserInfo(
 		@RequestHeader("Authorization") String accessToken);
 
@@ -51,7 +51,7 @@ public interface OAuthApiClient {
 		@RequestParam("code") String code
 	);
 
-	@GetExchange(url = "https://openidconnect.googleapis.com/userinfo")
+	@GetExchange(url = "https://openidconnect.googleapis.com/v1/userinfo")
 	Map<String, Object> getGoogleUserInfo(
 		@RequestHeader("Authorization") String accessToken);
 
