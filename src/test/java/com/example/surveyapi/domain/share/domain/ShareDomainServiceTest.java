@@ -42,8 +42,8 @@ class ShareDomainServiceTest {
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getLink()).startsWith("http://localhost:8080/api/v2/share/surveys/");
-		assertThat(share.getLink().length()).isGreaterThan("http://localhost:8080/api/v2/share/surveys/".length());
+		assertThat(share.getLink()).startsWith("https://localhost:8080/share/surveys/");
+		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/share/surveys/".length());
 	}
 
 	@Test
@@ -63,8 +63,8 @@ class ShareDomainServiceTest {
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getLink()).startsWith("http://localhost:8080/api/v2/share/projects/");
-		assertThat(share.getLink().length()).isGreaterThan("http://localhost:8080/api/v2/share/projects/".length());
+		assertThat(share.getLink()).startsWith("https://localhost:8080/share/projects/");
+		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/share/projects/".length());
 	}
 
 	@Test
@@ -79,7 +79,7 @@ class ShareDomainServiceTest {
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
 
-		assertThat(url).isEqualTo("api/v1/survey/1/detail");
+		assertThat(url).isEqualTo("survey/1/detail");
 	}
 
 	@Test
@@ -94,7 +94,7 @@ class ShareDomainServiceTest {
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
 
-		assertThat(url).isEqualTo("/api/projects/members/1");
+		assertThat(url).isEqualTo("/projects/members/1");
 	}
 
 	@Test
@@ -109,7 +109,7 @@ class ShareDomainServiceTest {
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
 
-		assertThat(url).isEqualTo("/api/projects/managers/1");
+		assertThat(url).isEqualTo("/projects/managers/1");
 	}
 
 	@Test

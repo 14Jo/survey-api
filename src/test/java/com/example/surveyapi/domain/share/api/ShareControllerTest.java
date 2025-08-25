@@ -40,7 +40,7 @@ class ShareControllerTest {
 	@MockBean
 	private NotificationService notificationService;
 
-	private final String URI = "/api/v2/share-tasks";
+	private final String URI = "/share-tasks";
 
 	private final Long sourceId = 1L;
 	private final Long creatorId = 1L;
@@ -74,7 +74,7 @@ class ShareControllerTest {
 			eq(PageRequest.of(page, size)))).willReturn(responses);
 
 		//when, then
-		mockMvc.perform(get("/api/v1/share-tasks/{shareId}/notifications", shareId)
+		mockMvc.perform(get("/share-tasks/{shareId}/notifications", shareId)
 				.param("page", String.valueOf(page))
 				.param("size", String.valueOf(size)))
 			.andExpect(status().isOk())
@@ -98,7 +98,7 @@ class ShareControllerTest {
 			.willThrow(new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
 
 		//when, then
-		mockMvc.perform(get("/api/v1/share-tasks/{shareId}/notifications", invalidShareId)
+		mockMvc.perform(get("/share-tasks/{shareId}/notifications", invalidShareId)
 				.param("page", String.valueOf(page))
 				.param("size", String.valueOf(size)))
 			.andExpect(status().isNotFound())

@@ -78,6 +78,14 @@ public class RabbitMQBindingConfig {
 	}
 
 	@Bean
+	public Binding bindingShareProject(Queue queueShare, TopicExchange exchange) {
+		return BindingBuilder
+			.bind(queueShare)
+			.to(exchange)
+			.with(RabbitConst.ROUTING_KEY_PROJECT_CREATED);
+	}
+
+	@Bean
 	public Binding bindingUser(Queue queueUser, TopicExchange exchange) {
 		return BindingBuilder
 			.bind(queueUser)
