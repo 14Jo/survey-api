@@ -94,7 +94,7 @@ class ShareDomainServiceTest {
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
 
-		assertThat(url).isEqualTo("/api/v2/projects/members/1");
+		assertThat(url).isEqualTo("/api/projects/members/1");
 	}
 
 	@Test
@@ -109,7 +109,7 @@ class ShareDomainServiceTest {
 		//when, then
 		String url = shareDomainService.getRedirectUrl(share);
 
-		assertThat(url).isEqualTo("/api/v2/projects/managers/1");
+		assertThat(url).isEqualTo("/api/projects/managers/1");
 	}
 
 	@Test
