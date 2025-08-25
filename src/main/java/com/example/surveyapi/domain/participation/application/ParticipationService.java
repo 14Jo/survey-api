@@ -12,9 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
@@ -40,21 +38,19 @@ public class ParticipationService {
 	private final SurveyServicePort surveyPort;
 	private final UserServicePort userPort;
 	private final TaskExecutor taskExecutor;
-	private final TransactionTemplate writeTransactionTemplate;
 
 	public ParticipationService(ParticipationRepository participationRepository,
 		SurveyServicePort surveyPort,
 		UserServicePort userPort,
-		@Qualifier("externalAPI") TaskExecutor taskExecutor,
-		PlatformTransactionManager transactionManager
+		@Qualifier("externalAPI") TaskExecutor taskExecutor
 	) {
 		this.participationRepository = participationRepository;
 		this.surveyPort = surveyPort;
 		this.userPort = userPort;
 		this.taskExecutor = taskExecutor;
-		this.writeTransactionTemplate = new TransactionTemplate(transactionManager);
 	}
 
+	@Transactional
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
 		log.debug("설문 참여 생성 시작. surveyId: {}, userId: {}", surveyId, userId);
 		long totalStartTime = System.currentTimeMillis();
@@ -94,14 +90,17 @@ public class ParticipationService {
 		ParticipantInfo participantInfo = ParticipantInfo.of(userSnapshot.getBirth(), userSnapshot.getGender(),
 			userSnapshot.getRegion());
 
-		return writeTransactionTemplate.execute(status -> {
-			Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
-			Participation savedParticipation = participationRepository.save(participation);
-			long totalEndTime = System.currentTimeMillis();
-			log.debug("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
+		Participation participation = Participation.create(userId, surveyId, participantInfo, responseDataList);
+		Participation savedParticipation = participationRepository.save(participation);
 
-			return savedParticipation.getId();
-		});
+		savedParticipation.registerCreatedEvent();
+
+		participationRepository.save(savedParticipation);
+
+		long totalEndTime = System.currentTimeMillis();
+		log.debug("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
+
+		return savedParticipation.getId();
 	}
 
 	@Transactional

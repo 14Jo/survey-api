@@ -1,6 +1,5 @@
 package com.example.surveyapi.domain.participation.application.event;
 
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -22,8 +21,7 @@ public class ParticipationEventListener {
 
 	private final ParticipationEventPublisherPort rabbitPublisher;
 	private final ObjectMapper objectMapper;
-
-	@Async
+	
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
 	public void handle(ParticipationEvent event) {
 		if (event instanceof ParticipationCreatedEvent) {

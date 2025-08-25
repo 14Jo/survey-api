@@ -19,7 +19,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PostPersist;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -59,7 +58,6 @@ public class Participation extends AbstractRoot<Participation> {
 		return participation;
 	}
 
-	@PostPersist
 	public void registerCreatedEvent() {
 		registerEvent(ParticipationCreatedEvent.from(this));
 	}
