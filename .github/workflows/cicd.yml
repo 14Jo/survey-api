@@ -7,7 +7,7 @@ on:
       - 'src/**'
       - 'build.gradle'
       - 'Dockerfile'
-      - 'ecs-task-definitions/api-task-definition.json'
+      - 'api-task-definition.json' # 수정된 부분
       - '.github/workflows/deploy-api.yml'
   workflow_dispatch:
     inputs:
@@ -21,7 +21,7 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: survey-api/service
   ECS_CLUSTER: survey-cluster
-  ECS_SERVICE: api-service
+  ECS_SERVICE: api-task-service-v12
   ECS_TASK_DEFINITION: api-task-definition.json
 
 jobs:
@@ -59,10 +59,24 @@ jobs:
     - name: Build application
       run: ./gradlew bootJar -x test
 
+    - name: 'Debug: Dump OIDC Token Payload'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          try {
+            const token = await core.getIDToken();
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            console.log('--- OIDC Token Payload ---');
+            console.log(JSON.stringify(payload, null, 2));
+            console.log('--------------------------');
+          } catch (error) {
+            core.setFailed(`Error dumping OIDC token: ${error.message}`);
+          }
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::025861172546:role/github-actions-role # 실제 ARN으로 교체 필요
+        role-to-assume: arn:aws:iam::025861172546:role/github-actions-role
         role-session-name: GitHub-Actions-Survey-API
         aws-region: ${{ env.AWS_REGION }}
 
@@ -97,7 +111,7 @@ jobs:
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ecs-task-definitions/${{ env.ECS_TASK_DEFINITION }}
+        task-definition: ${{ env.ECS_TASK_DEFINITION }} # 수정된 부분
         container-name: api-container
         image: ${{ steps.build-image.outputs.image }}
 
