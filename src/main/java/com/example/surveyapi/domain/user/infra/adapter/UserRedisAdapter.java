@@ -1,17 +1,17 @@
-package com.example.surveyapi.domain.user.infra.user;
+package com.example.surveyapi.domain.user.infra.adapter;
 
 import java.time.Duration;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.example.surveyapi.domain.user.domain.user.UserRedisRepository;
+import com.example.surveyapi.domain.user.application.client.port.UserRedisPort;
 
 import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
-public class UserRedisRepositoryImpl implements UserRedisRepository {
+public class UserRedisAdapter implements UserRedisPort {
 
     private final RedisTemplate<String, String> redisTemplate;
 
