@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.survey.application.command.dto.response;
+package com.example.surveyapi.domain.survey.application.dto.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -7,6 +7,7 @@ import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
@@ -24,6 +25,7 @@ public class SearchSurveyDetailResponse {
 	private String title;
 	private String description;
 	private SurveyStatus status;
+	private ScheduleState scheduleState;
 	private Duration duration;
 	private Option option;
 	private Integer participationCount;
@@ -35,6 +37,7 @@ public class SearchSurveyDetailResponse {
 		response.title = surveyDetail.getTitle();
 		response.description = surveyDetail.getDescription();
 		response.status = surveyDetail.getStatus();
+		response.scheduleState = surveyDetail.getScheduleState();
 		response.duration = Duration.from(surveyDetail.getDuration());
 		response.option = Option.from(surveyDetail.getOption());
 		response.questions = surveyDetail.getQuestions().stream()
@@ -50,6 +53,7 @@ public class SearchSurveyDetailResponse {
 		response.title = entity.getTitle();
 		response.description = entity.getDescription();
 		response.status = SurveyStatus.valueOf(entity.getStatus());
+		response.scheduleState = ScheduleState.valueOf(entity.getScheduleState());
 		response.participationCount = participationCount != null ? participationCount : entity.getParticipationCount();
 
 		if (entity.getOptions() != null) {

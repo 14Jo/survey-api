@@ -9,13 +9,13 @@ import lombok.Getter;
 @Getter
 public class ActivateEvent {
 	private Long surveyId;
-	private Long creatorID;
+	private Long creatorId;
 	private SurveyStatus surveyStatus;
 	private LocalDateTime endTime;
 
-	public ActivateEvent(Long surveyId, Long creatorID, SurveyStatus surveyStatus, LocalDateTime endTime) {
+	public ActivateEvent(Long surveyId, Long creatorId, SurveyStatus surveyStatus, LocalDateTime endTime) {
 		this.surveyId = surveyId;
-		this.creatorID = creatorID;
+		this.creatorId = creatorId;
 		this.surveyStatus = surveyStatus;
 		this.endTime = endTime;
 	}

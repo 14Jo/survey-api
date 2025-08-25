@@ -32,7 +32,7 @@ public class ShareConsumer {
 
 			ShareCreateRequest request = new ShareCreateRequest(
 				event.getSurveyId(),
-				event.getCreatorID(),
+				event.getCreatorId(),
 				event.getEndTime()
 			);
 
