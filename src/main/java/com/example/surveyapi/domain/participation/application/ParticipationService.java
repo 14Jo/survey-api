@@ -100,8 +100,6 @@ public class ParticipationService {
 			long totalEndTime = System.currentTimeMillis();
 			log.debug("설문 참여 생성 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
 
-			savedParticipation.registerCreatedEvent();
-
 			return savedParticipation.getId();
 		});
 	}
