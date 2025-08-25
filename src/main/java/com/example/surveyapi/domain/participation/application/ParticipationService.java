@@ -1,8 +1,6 @@
 package com.example.surveyapi.domain.participation.application;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -13,29 +11,21 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
-import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyServicePort;
 import com.example.surveyapi.domain.participation.application.client.UserServicePort;
 import com.example.surveyapi.domain.participation.application.client.UserSnapshotDto;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiQuestionType;
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
 import com.example.surveyapi.domain.participation.application.dto.request.CreateParticipationRequest;
-import com.example.surveyapi.domain.participation.application.dto.response.ParticipationDetailResponse;
-import com.example.surveyapi.domain.participation.application.dto.response.ParticipationGroupResponse;
-import com.example.surveyapi.domain.participation.application.dto.response.ParticipationInfoResponse;
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 import com.example.surveyapi.domain.participation.domain.participation.ParticipationRepository;
-import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
@@ -51,7 +41,6 @@ public class ParticipationService {
 	private final UserServicePort userPort;
 	private final TaskExecutor taskExecutor;
 	private final TransactionTemplate writeTransactionTemplate;
-	private final TransactionTemplate readTransactionTemplate;
 
 	public ParticipationService(ParticipationRepository participationRepository,
 		SurveyServicePort surveyPort,
@@ -64,8 +53,6 @@ public class ParticipationService {
 		this.userPort = userPort;
 		this.taskExecutor = taskExecutor;
 		this.writeTransactionTemplate = new TransactionTemplate(transactionManager);
-		this.readTransactionTemplate = new TransactionTemplate(transactionManager);
-		this.readTransactionTemplate.setReadOnly(true);
 	}
 
 	public Long create(String authHeader, Long surveyId, Long userId, CreateParticipationRequest request) {
@@ -119,70 +106,6 @@ public class ParticipationService {
 		});
 	}
 
-	public Page<ParticipationInfoResponse> gets(String authHeader, Long userId, Pageable pageable) {
-		Page<ParticipationInfo> participationInfos = readTransactionTemplate.execute(status ->
-			participationRepository.findParticipationInfos(userId, pageable)
-		);
-
-		if (participationInfos == null || participationInfos.isEmpty()) {
-			return Page.empty();
-		}
-
-		List<Long> surveyIds = participationInfos.getContent().stream()
-			.map(ParticipationInfo::getSurveyId)
-			.distinct()
-			.toList();
-
-		List<SurveyInfoDto> surveyInfoList = surveyPort.getSurveyInfoList(authHeader, surveyIds);
-
-		List<ParticipationInfoResponse.SurveyInfoOfParticipation> surveyInfoOfParticipations = surveyInfoList.stream()
-			.map(ParticipationInfoResponse.SurveyInfoOfParticipation::from)
-			.toList();
-
-		Map<Long, ParticipationInfoResponse.SurveyInfoOfParticipation> surveyInfoMap = surveyInfoOfParticipations.stream()
-			.collect(Collectors.toMap(
-				ParticipationInfoResponse.SurveyInfoOfParticipation::getSurveyId,
-				surveyInfo -> surveyInfo
-			));
-
-		return participationInfos.map(p -> {
-			ParticipationInfoResponse.SurveyInfoOfParticipation surveyInfo = surveyInfoMap.get(p.getSurveyId());
-
-			return ParticipationInfoResponse.of(p, surveyInfo);
-		});
-	}
-
-	@Transactional(readOnly = true)
-	public List<ParticipationGroupResponse> getAllBySurveyIds(List<Long> surveyIds) {
-		List<ParticipationProjection> projections = participationRepository.findParticipationProjectionsBySurveyIds(
-			surveyIds);
-
-		// surveyId 기준으로 참여 기록을 Map 으로 그룹핑
-		Map<Long, List<ParticipationProjection>> participationGroupBySurveyId = projections.stream()
-			.collect(Collectors.groupingBy(ParticipationProjection::getSurveyId));
-
-		List<ParticipationGroupResponse> result = new ArrayList<>();
-
-		for (Long surveyId : surveyIds) {
-			List<ParticipationProjection> participationGroup = participationGroupBySurveyId.getOrDefault(surveyId,
-				Collections.emptyList());
-
-			List<ParticipationDetailResponse> participationDtos = participationGroup.stream()
-				.map(ParticipationDetailResponse::fromProjection)
-				.toList();
-
-			result.add(ParticipationGroupResponse.of(surveyId, participationDtos));
-		}
-		return result;
-	}
-
-	@Transactional(readOnly = true)
-	public ParticipationDetailResponse get(Long userId, Long participationId) {
-		return participationRepository.findParticipationProjectionByIdAndUserId(participationId, userId)
-			.map(ParticipationDetailResponse::fromProjection)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_PARTICIPATION));
-	}
-
 	@Transactional
 	public void update(String authHeader, Long userId, Long participationId,
 		CreateParticipationRequest request) {
@@ -203,11 +126,6 @@ public class ParticipationService {
 
 		long totalEndTime = System.currentTimeMillis();
 		log.debug("설문 참여 수정 완료. 총 처리 시간: {}ms", (totalEndTime - totalStartTime));
-	}
-
-	@Transactional(readOnly = true)
-	public Map<Long, Long> getCountsBySurveyIds(List<Long> surveyIds) {
-		return participationRepository.countsBySurveyIds(surveyIds);
 	}
 
 	/*
