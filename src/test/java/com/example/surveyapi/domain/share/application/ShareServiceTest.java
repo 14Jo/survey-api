@@ -133,6 +133,31 @@ class ShareServiceTest {
 	}
 
 	@Test
+	@DisplayName("APP 알림 생성")
+	void createNotification_APP_success() {
+		//given
+		Long creatorId = 1L;
+		List<String> emails = List.of("test1@test.com", "test2@test.com");
+		LocalDateTime notifyAt = LocalDateTime.now();
+		ShareMethod shareMethod = ShareMethod.APP;
+
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), anyString()))
+			.thenReturn(new UserEmailDto(100L, "test1@test.com"));
+
+		//when
+		shareService.createNotifications(AUTH_HEADER, savedShareId, creatorId, shareMethod, emails, notifyAt);
+
+		//then
+		verify(userServicePort, atLeastOnce()).getUserByEmail(eq(AUTH_HEADER), anyString());
+		Share share = shareRepository.findById(savedShareId).orElseThrow();
+		assertThat(share.getNotifications()).hasSize(2);
+		for (Notification notification : share.getNotifications()) {
+			assertThat(notification.getShareMethod()).isEqualTo(ShareMethod.APP);
+			assertThat(notification.getNotifyAt()).isEqualTo(notifyAt);
+		}
+	}
+
+	@Test
 	@DisplayName("공유 조회 성공")
 	void getShare_success() {
 		ShareResponse response = shareService.getShare(savedShareId, 1L);

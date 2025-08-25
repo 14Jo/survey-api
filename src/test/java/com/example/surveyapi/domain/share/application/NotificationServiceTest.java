@@ -191,4 +191,26 @@ class NotificationServiceTest {
 		assertThat(result.getContent()).hasSize(1);
 		assertThat(notification.getStatus()).isEqualTo(Status.CHECK);
 	}
+
+	@Test
+	@DisplayName("알림 조회 - SENT가 아닌 상태")
+	void getMyNotification_noChange() {
+		//given
+		Long userId = 1L;
+		Pageable pageable = PageRequest.of(0, 10);
+		Notification notification = Notification.createForShare(
+			mock(Share.class), ShareMethod.APP, 1L, "test@test.com", LocalDateTime.now()
+		);
+		ReflectionTestUtils.setField(notification, "status", Status.READY_TO_SEND);
+
+		Page<Notification> mockPage = new PageImpl<>(List.of(notification), pageable, 1);
+		given(notificationQueryRepository.findPageByUserId(userId, pageable)).willReturn(mockPage);
+
+		//when
+		Page<NotificationResponse> result = notificationService.getMyNotifications(userId, pageable);
+
+		//then
+		assertThat(result.getContent()).hasSize(1);
+		assertThat(notification.getStatus()).isEqualTo(Status.READY_TO_SEND);
+	}
 }
