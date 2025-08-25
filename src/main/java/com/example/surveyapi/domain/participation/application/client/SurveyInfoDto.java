@@ -1,5 +1,6 @@
 package com.example.surveyapi.domain.participation.application.client;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 import com.example.surveyapi.domain.participation.application.client.enums.SurveyApiStatus;
@@ -7,8 +8,8 @@ import com.example.surveyapi.domain.participation.application.client.enums.Surve
 import lombok.Getter;
 
 @Getter
-public class SurveyInfoDto {
-	
+public class SurveyInfoDto implements Serializable {
+
 	private Long surveyId;
 	private String title;
 	private SurveyApiStatus status;
@@ -16,12 +17,12 @@ public class SurveyInfoDto {
 	private Duration duration;
 
 	@Getter
-	public static class Duration {
+	public static class Duration implements Serializable {
 		private LocalDateTime endDate;
 	}
 
 	@Getter
-	public static class Option {
+	public static class Option implements Serializable {
 		private boolean allowResponseUpdate;
 	}
 }
