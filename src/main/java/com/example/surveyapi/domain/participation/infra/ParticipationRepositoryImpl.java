@@ -30,11 +30,6 @@ public class ParticipationRepositoryImpl implements ParticipationRepository {
 	}
 
 	@Override
-	public List<Participation> findAllBySurveyIdIn(List<Long> surveyIds) {
-		return jpaParticipationRepository.findAllBySurveyIdInAndIsDeleted(surveyIds, false);
-	}
-
-	@Override
 	public Optional<Participation> findById(Long participationId) {
 		return jpaParticipationRepository.findByIdAndIsDeletedFalse(participationId);
 	}
