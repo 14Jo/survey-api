@@ -30,9 +30,9 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      id-token: write # AWS OIDC 인증을 위해 토큰 발급 권한 부여
-      contents: read   # actions/checkout이 코드를 읽을 수 있는 권한 부여
-    
+      id-token: write # AWS OIDC 인증을 위해 토큰 발급 권한을 부여합니다.
+      contents: read   # actions/checkout이 코드를 읽을 수 있도록 권한을 부여합니다.
+
     steps:
     - name: Checkout
       uses: actions/checkout@v4
