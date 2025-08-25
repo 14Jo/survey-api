@@ -1,9 +1,17 @@
 package com.example.surveyapi.domain.user.api;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -18,17 +26,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import static org.mockito.ArgumentMatchers.any;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import static org.mockito.BDDMockito.given;
-
-import java.time.LocalDateTime;
-import java.util.List;
-
 import com.example.surveyapi.domain.user.application.AuthService;
 import com.example.surveyapi.domain.user.application.UserService;
 import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
@@ -39,7 +36,6 @@ import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
-
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
@@ -49,302 +45,302 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 @ExtendWith(MockitoExtension.class)
 public class UserControllerTest {
 
-    @Mock
-    UserService userService;
+	@Mock
+	UserService userService;
 
-    @Mock
-    AuthService authService;
+	@Mock
+	AuthService authService;
 
-    @InjectMocks
-    private AuthController authController;
+	@InjectMocks
+	private AuthController authController;
 
-    @InjectMocks
-    private UserController userController;
+	@InjectMocks
+	private UserController userController;
 
-    private MockMvc mockMvc;
-    ObjectMapper objectMapper;
+	private MockMvc mockMvc;
+	ObjectMapper objectMapper;
 
-    @BeforeEach
-    void setup() {
-        PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver();
+	@BeforeEach
+	void setup() {
+		PageableHandlerMethodArgumentResolver pageableResolver = new PageableHandlerMethodArgumentResolver();
 
-        mockMvc = MockMvcBuilders.standaloneSetup(authController, userController)
-            .setControllerAdvice(new GlobalExceptionHandler())
-            .setCustomArgumentResolvers(pageableResolver)
-            .build();
+		mockMvc = MockMvcBuilders.standaloneSetup(authController, userController)
+			.setControllerAdvice(new GlobalExceptionHandler())
+			.setCustomArgumentResolvers(pageableResolver)
+			.build();
 
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-    }
+		objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+	}
 
-    @Test
-    @DisplayName("회원가입 - 성공")
-    void signup_success() throws Exception {
-        //given
-        String requestJson = """
-            {
-              "auth": {
-                "email": "user@example.com",
-                "password": "Password123",
-                "provider" : "LOCAL"
-              },
-              "profile": {
-                "name": "홍길동",
-                "phoneNumber" : "010-1234-5678",
-                "nickName": "길동이123",
-                "birthDate": "1990-01-01T09:00:00",
-                "gender": "MALE",
-                "address": {
-                  "province": "서울특별시",
-                  "district": "강남구",
-                  "detailAddress": "테헤란로 123",
-                  "postalCode": "06134"
-                }
-              }
-            }
-            """;
+	@Test
+	@DisplayName("회원가입 - 성공")
+	void signup_success() throws Exception {
+		//given
+		String requestJson = """
+			{
+			  "auth": {
+			    "email": "user@example.com",
+			    "password": "Password123",
+			    "provider" : "LOCAL"
+			  },
+			  "profile": {
+			    "name": "홍길동",
+			    "phoneNumber" : "010-1234-5678",
+			    "nickName": "길동이123",
+			    "birthDate": "1990-01-01T09:00:00",
+			    "gender": "MALE",
+			    "address": {
+			      "province": "서울특별시",
+			      "district": "강남구",
+			      "detailAddress": "테헤란로 123",
+			      "postalCode": "06134"
+			    }
+			  }
+			}
+			""";
 
-        // when & then
-        mockMvc.perform(post("/auth/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
-            .andDo(print())
-            .andExpect(status().isCreated())
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.message").value("회원가입 성공"));
+		// when & then
+		mockMvc.perform(post("/api/auth/signup")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(requestJson))
+			.andDo(print())
+			.andExpect(status().isCreated())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.message").value("회원가입 성공"));
 
-    }
+	}
 
-    @Test
-    @DisplayName("회원가입 - 실패 (이메일 유효성 검사)")
-    void signup_fail_email() throws Exception {
-        // given
-        String requestJson = """
-            {
-              "auth": {
-                "email": "",
-                "password": "Password123",
-                "provider" : "LOCAL"
-              },
-              "profile": {
-                "name": "홍길동",
-                "phoneNumber" : "010-1234-5678",
-                "nickName": "길동이123",
-                "birthDate": "1990-01-01T09:00:00",
-                "gender": "MALE",
-                "address": {
-                  "province": "서울특별시",
-                  "district": "강남구",
-                  "detailAddress": "테헤란로 123",
-                  "postalCode": "06134"
-                }
-              }
-            }
-            """;
+	@Test
+	@DisplayName("회원가입 - 실패 (이메일 유효성 검사)")
+	void signup_fail_email() throws Exception {
+		// given
+		String requestJson = """
+			{
+			  "auth": {
+			    "email": "",
+			    "password": "Password123",
+			    "provider" : "LOCAL"
+			  },
+			  "profile": {
+			    "name": "홍길동",
+			    "phoneNumber" : "010-1234-5678",
+			    "nickName": "길동이123",
+			    "birthDate": "1990-01-01T09:00:00",
+			    "gender": "MALE",
+			    "address": {
+			      "province": "서울특별시",
+			      "district": "강남구",
+			      "detailAddress": "테헤란로 123",
+			      "postalCode": "06134"
+			    }
+			  }
+			}
+			""";
 
-        // when & then
-        mockMvc.perform(post("/auth/signup")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(requestJson))
-            .andExpect(status().isBadRequest());
-    }
+		// when & then
+		mockMvc.perform(post("/api/auth/signup")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(requestJson))
+			.andExpect(status().isBadRequest());
+	}
 
-    @Test
-    @DisplayName("모든 회원 조회 - 성공")
-    void getAllUsers_success() throws Exception {
-        //given
-        SignupRequest rq1 = createSignupRequest("user@example.com");
-        SignupRequest rq2 = createSignupRequest("user@example1.com");
+	@Test
+	@DisplayName("모든 회원 조회 - 성공")
+	void getAllUsers_success() throws Exception {
+		//given
+		SignupRequest rq1 = createSignupRequest("user@example.com");
+		SignupRequest rq2 = createSignupRequest("user@example1.com");
 
-        User user1 = create(rq1);
-        User user2 = create(rq2);
+		User user1 = create(rq1);
+		User user2 = create(rq2);
 
-        List<UserInfoResponse> users = List.of(
-            UserInfoResponse.from(user1),
-            UserInfoResponse.from(user2)
-        );
+		List<UserInfoResponse> users = List.of(
+			UserInfoResponse.from(user1),
+			UserInfoResponse.from(user2)
+		);
 
-        PageRequest pageable = PageRequest.of(0, 10);
+		PageRequest pageable = PageRequest.of(0, 10);
 
-        Page<UserInfoResponse> userPage = new PageImpl<>(users, pageable, users.size());
+		Page<UserInfoResponse> userPage = new PageImpl<>(users, pageable, users.size());
 
-        given(userService.getAll(any(Pageable.class))).willReturn(userPage);
+		given(userService.getAll(any(Pageable.class))).willReturn(userPage);
 
-        // when * then
-        mockMvc.perform(get("/users?page=0&size=10"))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.content").isArray())
-            .andExpect(jsonPath("$.data.content.length()").value(2))
-            .andExpect(jsonPath("$.message").value("회원 전체 조회 성공"));
-    }
+		// when * then
+		mockMvc.perform(get("/api/users?page=0&size=10"))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content").isArray())
+			.andExpect(jsonPath("$.data.content.length()").value(2))
+			.andExpect(jsonPath("$.message").value("회원 전체 조회 성공"));
+	}
 
-    @Test
-    @DisplayName("모든 회원 조회 - 실패 (인원이 맞지 않을 때)")
-    void getAllUsers_fail() throws Exception {
-        //given
-        SignupRequest rq1 = createSignupRequest("user@example.com");
-        SignupRequest rq2 = createSignupRequest("user@example1.com");
+	@Test
+	@DisplayName("모든 회원 조회 - 실패 (인원이 맞지 않을 때)")
+	void getAllUsers_fail() throws Exception {
+		//given
+		SignupRequest rq1 = createSignupRequest("user@example.com");
+		SignupRequest rq2 = createSignupRequest("user@example1.com");
 
-        User user1 = create(rq1);
-        User user2 = create(rq2);
+		User user1 = create(rq1);
+		User user2 = create(rq2);
 
-        UserInfoResponse.from(user1);
-        UserInfoResponse.from(user2);
+		UserInfoResponse.from(user1);
+		UserInfoResponse.from(user2);
 
-        given(userService.getAll(any(Pageable.class)))
-            .willThrow(new CustomException(CustomErrorCode.USER_LIST_EMPTY));
+		given(userService.getAll(any(Pageable.class)))
+			.willThrow(new CustomException(CustomErrorCode.USER_LIST_EMPTY));
 
-        // when * then
-        mockMvc.perform(get("/users?page=0&size=10"))
-            .andDo(print())
-            .andExpect(status().isInternalServerError());
-    }
+		// when * then
+		mockMvc.perform(get("/api/users?page=0&size=10"))
+			.andDo(print())
+			.andExpect(status().isInternalServerError());
+	}
 
-    @Test
-    @DisplayName("회원조회 - 성공 (프로필 조회)")
-    void get_profile() throws Exception {
-        // given
-        SignupRequest rq1 = createSignupRequest("user@example.com");
-        User user = create(rq1);
+	@Test
+	@DisplayName("회원조회 - 성공 (프로필 조회)")
+	void get_profile() throws Exception {
+		// given
+		SignupRequest rq1 = createSignupRequest("user@example.com");
+		User user = create(rq1);
 
-        UserInfoResponse member = UserInfoResponse.from(user);
+		UserInfoResponse member = UserInfoResponse.from(user);
 
-        given(userService.getUser(user.getId())).willReturn(member);
+		given(userService.getUser(user.getId())).willReturn(member);
 
-        // then
-        mockMvc.perform(get("/users/me"))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.profile.name").value("홍길동"));
-    }
+		// then
+		mockMvc.perform(get("/api/users/me"))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.profile.name").value("홍길동"));
+	}
 
-    @Test
-    @DisplayName("회원조회 - 실패 (프로필 조회)")
-    void get_profile_fail() throws Exception {
-        // given
-        SignupRequest rq1 = createSignupRequest("user@example.com");
-        User user = create(rq1);
+	@Test
+	@DisplayName("회원조회 - 실패 (프로필 조회)")
+	void get_profile_fail() throws Exception {
+		// given
+		SignupRequest rq1 = createSignupRequest("user@example.com");
+		User user = create(rq1);
 
-        given(userService.getUser(user.getId()))
-            .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
+		given(userService.getUser(user.getId()))
+			.willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        // then
-        mockMvc.perform(get("/users/me"))
-            .andDo(print())
-            .andExpect(status().isNotFound());
-    }
+		// then
+		mockMvc.perform(get("/api/users/me"))
+			.andDo(print())
+			.andExpect(status().isNotFound());
+	}
 
-    @Test
-    @DisplayName("등급 조회 - 성공")
-    void grade_success() throws Exception {
-        // given
-        SignupRequest rq1 = createSignupRequest("user@example.com");
-        User user = create(rq1);
-        UserInfoResponse member = UserInfoResponse.from(user);
-        UserGradePoint userGradePoint = new UserGradePoint(user.getGrade(), user.getPoint());
-        UserGradeResponse grade = UserGradeResponse.from(userGradePoint);
+	@Test
+	@DisplayName("등급 조회 - 성공")
+	void grade_success() throws Exception {
+		// given
+		SignupRequest rq1 = createSignupRequest("user@example.com");
+		User user = create(rq1);
+		UserInfoResponse member = UserInfoResponse.from(user);
+		UserGradePoint userGradePoint = new UserGradePoint(user.getGrade(), user.getPoint());
+		UserGradeResponse grade = UserGradeResponse.from(userGradePoint);
 
-        given(userService.getGradeAndPoint(member.getMemberId()))
-            .willReturn(grade);
+		given(userService.getGradeAndPoint(member.getMemberId()))
+			.willReturn(grade);
 
-        // when & then
-        mockMvc.perform(get("/users/grade"))
-            .andDo(print())
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.grade").value("BRONZE"));
-    }
+		// when & then
+		mockMvc.perform(get("/api/users/grade"))
+			.andDo(print())
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.grade").value("BRONZE"));
+	}
 
-    @Test
-    @DisplayName("등급 조회 - 실패 (다른사람, 탈퇴한 회원)")
-    void grade_fail() throws Exception {
-        SignupRequest rq1 = createSignupRequest("user@example.com");
-        User user = create(rq1);
-        UserInfoResponse member = UserInfoResponse.from(user);
+	@Test
+	@DisplayName("등급 조회 - 실패 (다른사람, 탈퇴한 회원)")
+	void grade_fail() throws Exception {
+		SignupRequest rq1 = createSignupRequest("user@example.com");
+		User user = create(rq1);
+		UserInfoResponse member = UserInfoResponse.from(user);
 
-        given(userService.getGradeAndPoint(member.getMemberId()))
-            .willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
+		given(userService.getGradeAndPoint(member.getMemberId()))
+			.willThrow(new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        // then
-        mockMvc.perform(get("/users/grade"))
-            .andDo(print())
-            .andExpect(status().isNotFound());
-    }
+		// then
+		mockMvc.perform(get("/api/users/grade"))
+			.andDo(print())
+			.andExpect(status().isNotFound());
+	}
 
-    @DisplayName("회원정보 수정 - 실패 (@Valid 유효성 검사)")
-    @Test
-    void updateUser_invalidRequest_returns400() throws Exception {
-        // given
-        String longName = "a".repeat(21);
-        UpdateUserRequest invalidRequest = updateRequest(longName);
+	@DisplayName("회원정보 수정 - 실패 (@Valid 유효성 검사)")
+	@Test
+	void updateUser_invalidRequest_returns400() throws Exception {
+		// given
+		String longName = "a".repeat(21);
+		UpdateUserRequest invalidRequest = updateRequest(longName);
 
-        // when & then
-        mockMvc.perform(patch("/users/me")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(invalidRequest)))
-            .andDo(print())
-            .andExpect(status().isBadRequest())
-            .andExpect(jsonPath("$.message").value("요청 데이터 검증에 실패하였습니다."));
-    }
+		// when & then
+		mockMvc.perform(patch("/api/users/me")
+				.contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(invalidRequest)))
+			.andDo(print())
+			.andExpect(status().isBadRequest())
+			.andExpect(jsonPath("$.message").value("요청 데이터 검증에 실패하였습니다."));
+	}
 
-    private SignupRequest createSignupRequest(String email) {
-        SignupRequest signupRequest = new SignupRequest();
+	private SignupRequest createSignupRequest(String email) {
+		SignupRequest signupRequest = new SignupRequest();
 
-        SignupRequest.AuthRequest auth = new SignupRequest.AuthRequest();
-        ReflectionTestUtils.setField(auth, "email", email);
-        ReflectionTestUtils.setField(auth, "password", "Password123");
-        ReflectionTestUtils.setField(auth, "provider", Provider.LOCAL);
+		SignupRequest.AuthRequest auth = new SignupRequest.AuthRequest();
+		ReflectionTestUtils.setField(auth, "email", email);
+		ReflectionTestUtils.setField(auth, "password", "Password123");
+		ReflectionTestUtils.setField(auth, "provider", Provider.LOCAL);
 
-        SignupRequest.AddressRequest address = new SignupRequest.AddressRequest();
-        ReflectionTestUtils.setField(address, "province", "서울특별시");
-        ReflectionTestUtils.setField(address, "district", "강남구");
-        ReflectionTestUtils.setField(address, "detailAddress", "테헤란로 123");
-        ReflectionTestUtils.setField(address, "postalCode", "06134");
+		SignupRequest.AddressRequest address = new SignupRequest.AddressRequest();
+		ReflectionTestUtils.setField(address, "province", "서울특별시");
+		ReflectionTestUtils.setField(address, "district", "강남구");
+		ReflectionTestUtils.setField(address, "detailAddress", "테헤란로 123");
+		ReflectionTestUtils.setField(address, "postalCode", "06134");
 
-        SignupRequest.ProfileRequest profile = new SignupRequest.ProfileRequest();
-        ReflectionTestUtils.setField(profile, "name", "홍길동");
-        ReflectionTestUtils.setField(profile, "phoneNumber", "010-1234-5678");
-        ReflectionTestUtils.setField(profile, "nickName", "길동이123");
-        ReflectionTestUtils.setField(profile, "birthDate", LocalDateTime.parse("1990-01-01T09:00:00"));
-        ReflectionTestUtils.setField(profile, "gender", Gender.MALE);
-        ReflectionTestUtils.setField(profile, "address", address);
+		SignupRequest.ProfileRequest profile = new SignupRequest.ProfileRequest();
+		ReflectionTestUtils.setField(profile, "name", "홍길동");
+		ReflectionTestUtils.setField(profile, "phoneNumber", "010-1234-5678");
+		ReflectionTestUtils.setField(profile, "nickName", "길동이123");
+		ReflectionTestUtils.setField(profile, "birthDate", LocalDateTime.parse("1990-01-01T09:00:00"));
+		ReflectionTestUtils.setField(profile, "gender", Gender.MALE);
+		ReflectionTestUtils.setField(profile, "address", address);
 
-        ReflectionTestUtils.setField(signupRequest, "auth", auth);
-        ReflectionTestUtils.setField(signupRequest, "profile", profile);
+		ReflectionTestUtils.setField(signupRequest, "auth", auth);
+		ReflectionTestUtils.setField(signupRequest, "profile", profile);
 
-        return signupRequest;
-    }
+		return signupRequest;
+	}
 
-    private User create(SignupRequest request) {
+	private User create(SignupRequest request) {
 
-        return User.create(
-            request.getAuth().getEmail(),
-            request.getAuth().getPassword(),
-            request.getProfile().getName(),
-            request.getProfile().getPhoneNumber(),
-            request.getProfile().getNickName(),
-            request.getProfile().getBirthDate(),
-            request.getProfile().getGender(),
-            request.getProfile().getAddress().getProvince(),
-            request.getProfile().getAddress().getDistrict(),
-            request.getProfile().getAddress().getDetailAddress(),
-            request.getProfile().getAddress().getPostalCode(),
-            request.getAuth().getProvider()
-        );
-    }
+		return User.create(
+			request.getAuth().getEmail(),
+			request.getAuth().getPassword(),
+			request.getProfile().getName(),
+			request.getProfile().getPhoneNumber(),
+			request.getProfile().getNickName(),
+			request.getProfile().getBirthDate(),
+			request.getProfile().getGender(),
+			request.getProfile().getAddress().getProvince(),
+			request.getProfile().getAddress().getDistrict(),
+			request.getProfile().getAddress().getDetailAddress(),
+			request.getProfile().getAddress().getPostalCode(),
+			request.getAuth().getProvider()
+		);
+	}
 
-    private UpdateUserRequest updateRequest(String name) {
-        UpdateUserRequest updateUserRequest = new UpdateUserRequest();
+	private UpdateUserRequest updateRequest(String name) {
+		UpdateUserRequest updateUserRequest = new UpdateUserRequest();
 
-        ReflectionTestUtils.setField(updateUserRequest, "password", null);
-        ReflectionTestUtils.setField(updateUserRequest, "name", name);
-        ReflectionTestUtils.setField(updateUserRequest, "phoneNumber", null);
-        ReflectionTestUtils.setField(updateUserRequest, "nickName", null);
-        ReflectionTestUtils.setField(updateUserRequest, "province", null);
-        ReflectionTestUtils.setField(updateUserRequest, "district", null);
-        ReflectionTestUtils.setField(updateUserRequest, "detailAddress", null);
-        ReflectionTestUtils.setField(updateUserRequest, "postalCode", null);
+		ReflectionTestUtils.setField(updateUserRequest, "password", null);
+		ReflectionTestUtils.setField(updateUserRequest, "name", name);
+		ReflectionTestUtils.setField(updateUserRequest, "phoneNumber", null);
+		ReflectionTestUtils.setField(updateUserRequest, "nickName", null);
+		ReflectionTestUtils.setField(updateUserRequest, "province", null);
+		ReflectionTestUtils.setField(updateUserRequest, "district", null);
+		ReflectionTestUtils.setField(updateUserRequest, "detailAddress", null);
+		ReflectionTestUtils.setField(updateUserRequest, "postalCode", null);
 
-        return updateUserRequest;
-    }
+		return updateUserRequest;
+	}
 }
