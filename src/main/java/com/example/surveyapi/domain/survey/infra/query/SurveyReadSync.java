@@ -8,12 +8,12 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
 import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
 import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
 import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
-import com.example.surveyapi.domain.survey.application.client.ParticipationPort;
-import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
+import com.example.surveyapi.domain.survey.domain.query.SurveyReadRepository;
 import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
@@ -52,7 +52,6 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 
 			questionReadSync(save.getSurveyId(), questions);
 
-
 		} catch (Exception e) {
 			log.error("설문 조회 테이블 동기화 실패 {}", e.getMessage());
 		}
@@ -64,17 +63,15 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 		try {
 			log.debug("설문 조회 테이블 업데이트 시작");
 
-			SurveySyncDto.SurveyOptions options = dto.getOptions();
-			SurveyReadEntity.SurveyOptions surveyOptions = new SurveyReadEntity.SurveyOptions(options.isAnonymous(),
-				options.isAllowResponseUpdate(), options.getStartDate(), options.getEndDate());
+			SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(dto.getSurveyId())
+				.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SURVEY));
 
-			SurveyReadEntity surveyRead = SurveyReadEntity.create(
-				dto.getSurveyId(), dto.getProjectId(), dto.getTitle(),
-				dto.getDescription(), dto.getStatus(), dto.getScheduleState(),
-				0, surveyOptions
-			);
+			surveyRead.update(dto.getSurveyId(), dto.getProjectId(), dto.getTitle(), dto.getDescription(),
+				dto.getStatus(), dto.getScheduleState(), dto.getOptions().isAnonymous(),
+				dto.getOptions().isAllowResponseUpdate(), dto.getOptions().getStartDate(),
+				dto.getOptions().getEndDate());
 
-			surveyReadRepository.updateBySurveyId(surveyRead);
+			surveyReadRepository.save(surveyRead);
 			log.debug("설문 조회 테이블 업데이트 종료");
 
 		} catch (Exception e) {
@@ -132,7 +129,7 @@ public class SurveyReadSync implements SurveyReadSyncPort {
 	@Transactional
 	public void updateScheduleState(Long surveyId, ScheduleState scheduleState, SurveyStatus surveyStatus) {
 		try {
-			log.debug("설문 스케줄 상태 업데이트 시작: surveyId={}, scheduleState={}, surveyStatus={}", 
+			log.debug("설문 스케줄 상태 업데이트 시작: surveyId={}, scheduleState={}, surveyStatus={}",
 				surveyId, scheduleState, surveyStatus);
 
 			SurveyReadEntity surveyRead = surveyReadRepository.findBySurveyId(surveyId)
