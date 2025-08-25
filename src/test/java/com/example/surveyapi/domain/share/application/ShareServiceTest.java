@@ -176,16 +176,16 @@ class ShareServiceTest {
 	@Test
 	@DisplayName("공유 조회 성공")
 	void getShare_success() {
-		ShareResponse response = shareService.getShare(savedShareId, 1L);
+		List<ShareResponse> responses = shareService.getShare("project", 1L, 1L);
     
 		Share share = shareService.getShareEntity(savedShareId, 1L);
-		assertThat(response.getShareLink()).isEqualTo(share.getLink());
+		assertThat(responses.get(0).getShareLink()).isEqualTo(share.getLink());
 	}
 
 	@Test
 	@DisplayName("공유 조회 실패 - 권한 없음")
 	void getShare_fail() {
-		assertThatThrownBy(() -> shareService.getShare(savedShareId, 1234L))
+		assertThatThrownBy(() -> shareService.getShare("project", 1234L, 1L))
 			.isInstanceOf(CustomException.class)
 			.hasMessageContaining(CustomErrorCode.NOT_FOUND_SHARE.getMessage());
 	}
