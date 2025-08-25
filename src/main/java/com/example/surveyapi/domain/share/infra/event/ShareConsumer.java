@@ -8,9 +8,8 @@ import com.example.surveyapi.domain.share.application.event.dto.ShareCreateReque
 import com.example.surveyapi.domain.share.application.event.dto.ShareDeleteRequest;
 import com.example.surveyapi.domain.share.application.event.port.ShareEventPort;
 import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.project.ProjectCreatedEvent;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
-import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
-import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
 import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -59,13 +58,13 @@ public class ShareConsumer {
 	}
 
 	@RabbitHandler
-	public void handleProjectCreatedEvent(ProjectMemberAddedEvent event) {//프로젝트 생성 이벤트 작성 후 해당 내역 반영 예정
+	public void handleProjectCreatedEvent(ProjectCreatedEvent event) {
 		try {
 			log.info("Received project create event");
 
 			ShareCreateRequest request = new ShareCreateRequest(
 				event.getProjectId(),
-				event.getProjectOwnerId(),
+				event.getOwnerId(),
 				event.getPeriodEnd()
 			);
 
