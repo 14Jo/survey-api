@@ -1,5 +1,4 @@
 dependencies {
-    // 모든 모듈 의존성
     implementation project(':shared-kernel')
     implementation project(':user-module')
     implementation project(':project-module')
@@ -8,10 +7,8 @@ dependencies {
     implementation project(':statistic-module')
     implementation project(':share-module')
 
-    // 데이터베이스
     runtimeOnly 'org.postgresql:postgresql'
 
-    // 테스트컨테이너
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.testcontainers:mongodb'

@@ -1,26 +1,20 @@
-# Statistic Module Dockerfile
 FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /app
 
-# Copy Gradle wrapper and build files
 COPY gradle/ gradle/
 COPY gradlew .
 COPY build.gradle .
 COPY settings.gradle .
 
-# Copy shared dependencies
 COPY shared-kernel/build.gradle shared-kernel/
 COPY shared-kernel/src/ shared-kernel/src/
 
-# Copy statistic module
 COPY statistic-module/build.gradle statistic-module/
 COPY statistic-module/src/ statistic-module/src/
 
-# Build statistic module
 RUN ./gradlew :statistic-module:bootJar --no-daemon
 
-# Runtime stage
 FROM eclipse-temurin:17-jre-alpine AS runtime
 
 RUN apk add --no-cache curl

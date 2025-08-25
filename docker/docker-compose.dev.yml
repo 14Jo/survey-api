@@ -1,12 +1,11 @@
 version: '3.8'
 
-# Development overrides
 services:
   survey-api:
     build:
       context: ..
       dockerfile: Dockerfile
-      target: builder  # Use build stage for development hot reload
+      target: builder
     volumes:
       - ../web-app/src:/app/web-app/src
       - ../shared-kernel/src:/app/shared-kernel/src
@@ -25,7 +24,7 @@ services:
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
     ports:
       - "8080:8080"
-      - "5005:5005"  # Debug port
+      - "5005:5005"
     command: >
       sh -c "
         ./gradlew :web-app:bootRun --args='--spring.profiles.active=dev'
@@ -55,7 +54,7 @@ services:
 
   elasticsearch:
     environment:
-      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"  # Reduced memory for development
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
     ports:
       - "9200:9200"
     command: >
@@ -64,7 +63,6 @@ services:
         /usr/local/bin/docker-entrypoint.sh
       "
 
-  # Development tools
   redis-commander:
     image: rediscommander/redis-commander:latest
     environment:

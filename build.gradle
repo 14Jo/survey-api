@@ -30,7 +30,6 @@ subprojects {
         maven { url 'https://artifacts.elastic.co/maven' }
     }
 
-    // 공통 의존성
     dependencies {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'

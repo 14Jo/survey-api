@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Main Application (Production)
   survey-api:
     build:
       context: ..
@@ -75,7 +74,6 @@ services:
     networks:
       - survey-network
 
-  # PostgreSQL Database (Production)
   postgres:
     image: postgres:15-alpine
     restart: unless-stopped
@@ -107,7 +105,6 @@ services:
     networks:
       - survey-network
 
-  # Redis Cache (Production)
   redis:
     image: redis:7-alpine
     restart: unless-stopped
@@ -133,7 +130,6 @@ services:
     networks:
       - survey-network
 
-  # MongoDB (Production)
   mongodb:
     image: mongo:7
     restart: unless-stopped
@@ -163,7 +159,6 @@ services:
     networks:
       - survey-network
 
-  # RabbitMQ (Production)
   rabbitmq:
     image: rabbitmq:3.12-management
     restart: unless-stopped
@@ -199,7 +194,6 @@ services:
     networks:
       - survey-network
 
-  # Elasticsearch (Production)
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     restart: unless-stopped
@@ -237,7 +231,6 @@ services:
     networks:
       - survey-network
 
-  # Prometheus (Production Monitoring)
   prometheus:
     image: prom/prometheus:latest
     restart: unless-stopped
@@ -266,7 +259,6 @@ services:
     networks:
       - survey-network
 
-  # Grafana (Production Dashboard)
   grafana:
     image: grafana/grafana:latest
     restart: unless-stopped

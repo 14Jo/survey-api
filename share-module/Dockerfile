@@ -1,26 +1,20 @@
-# Share Module Dockerfile
 FROM eclipse-temurin:17-jdk AS builder
 
 WORKDIR /app
 
-# Copy Gradle wrapper and build files
 COPY gradle/ gradle/
 COPY gradlew .
 COPY build.gradle .
 COPY settings.gradle .
 
-# Copy shared dependencies
 COPY shared-kernel/build.gradle shared-kernel/
 COPY shared-kernel/src/ shared-kernel/src/
 
-# Copy share module
 COPY share-module/build.gradle share-module/
 COPY share-module/src/ share-module/src/
 
-# Build share module
 RUN ./gradlew :share-module:bootJar --no-daemon
 
-# Runtime stage
 FROM eclipse-temurin:17-jre-alpine AS runtime
 
 RUN apk add --no-cache curl

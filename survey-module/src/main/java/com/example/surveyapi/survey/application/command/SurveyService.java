@@ -143,8 +143,16 @@ public class SurveyService {
 	}
 
 	private void validateProjectAccess(String authHeader, Long projectId, Long userId) {
-		validateProjectState(authHeader, projectId);
-		validateProjectMembership(authHeader, projectId, userId);
+		try {
+			log.debug("프로젝트 접근 권한 검증 시작: projectId={}, userId={}", projectId, userId);
+			validateProjectState(authHeader, projectId);
+			validateProjectMembership(authHeader, projectId, userId);
+			log.debug("프로젝트 접근 권한 검증 완료: projectId={}, userId={}", projectId, userId);
+		} catch (Exception e) {
+			log.error("프로젝트 접근 권한 검증 실패: projectId={}, userId={}, error={}", 
+				projectId, userId, e.getMessage(), e);
+			throw e; // 예외를 다시 던져서 상위에서 처리하도록
+		}
 	}
 
 	private void validateProjectMembership(String authHeader, Long projectId, Long userId) {

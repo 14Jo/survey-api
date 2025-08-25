@@ -1,7 +1,6 @@
 version: '3.8'
 
 services:
-  # Main Application
   survey-api:
     build:
       context: ..
@@ -61,7 +60,6 @@ services:
     networks:
       - survey-network
 
-  # PostgreSQL Database
   postgres:
     image: postgres:15-alpine
     environment:
@@ -81,7 +79,6 @@ services:
     networks:
       - survey-network
 
-  # Redis Cache
   redis:
     image: redis:7-alpine
     ports:
@@ -96,7 +93,6 @@ services:
     networks:
       - survey-network
 
-  # MongoDB (Read Database)
   mongodb:
     image: mongo:7
     environment:
@@ -115,7 +111,6 @@ services:
     networks:
       - survey-network
 
-  # RabbitMQ Message Broker
   rabbitmq:
     image: rabbitmq:3.12-management
     environment:
@@ -140,7 +135,6 @@ services:
     networks:
       - survey-network
 
-  # Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
     environment:
@@ -165,7 +159,6 @@ services:
     networks:
       - survey-network
 
-  # Prometheus (Monitoring)
   prometheus:
     image: prom/prometheus:latest
     ports:
@@ -182,7 +175,6 @@ services:
     networks:
       - survey-network
 
-  # Grafana (Dashboard)
   grafana:
     image: grafana/grafana:latest
     ports:

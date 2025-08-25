@@ -8,21 +8,16 @@ bootJar {
 }
 
 dependencies {
-    // shared-kernel 의존성
     implementation project(':shared-kernel')
 
-    // 데이터베이스
     runtimeOnly 'org.postgresql:postgresql'
 
-    // Elasticsearch (통계 데이터용)
     implementation 'co.elastic.clients:elasticsearch-java:8.11.0'
     implementation 'org.springframework.data:spring-data-elasticsearch:5.1.10'
 
-    // QueryDSL
     implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
     annotationProcessor("jakarta.persistence:jakarta.persistence-api")
 
-    // 테스트 의존성
     testImplementation 'org.springframework.security:spring-security-test'
 }

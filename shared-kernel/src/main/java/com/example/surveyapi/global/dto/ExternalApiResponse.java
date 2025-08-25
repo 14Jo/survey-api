@@ -6,10 +6,12 @@ import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Getter
 @Slf4j
+@NoArgsConstructor
 public class ExternalApiResponse {
 	private boolean success;
 	private String message;
