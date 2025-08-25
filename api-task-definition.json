@@ -44,6 +44,7 @@
       {"name": "MONGODB_DATABASE", "value": "survey_read_db"},
       {"name": "MONGODB_AUTHDB", "value": "admin"},
       {"name": "ELASTIC_URIS", "value": "https://elastic.survey-elastic.local:9200"},
+      {"name": "ELASTICSEARCH_ENABLED", "value": "true"},
       {"name": "SPRING_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED", "value": "false"},
