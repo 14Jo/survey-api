@@ -78,72 +78,54 @@ public class SurveyEventOrchestrator {
 		}
 	}
 
-	/**
-	 * 아웃박스 콜백과 함께 활성화 이벤트 처리
-	 */
 	public void orchestrateActivateEventWithOutboxCallback(ActivateEvent activateEvent, OutboxEvent outboxEvent) {
 		try {
 			orchestrateActivateEvent(activateEvent);
-			
-			// 성공 시 아웃박스 이벤트를 PUBLISHED로 변경하고 5분 내 성공이면 스케줄 상태 복구
+
 			markOutboxAsPublishedAndRestoreScheduleIfNeeded(outboxEvent);
-			
+
 		} catch (Exception e) {
-			log.error("아웃박스 콜백 활성화 이벤트 실패: surveyId={}, error={}", 
+			log.error("아웃박스 콜백 활성화 이벤트 실패: surveyId={}, error={}",
 				activateEvent.getSurveyId(), e.getMessage());
-			
-			// 실패 시 폴백 처리 (수동 모드 전환)
+
 			fallbackService.handleFinalFailure(activateEvent.getSurveyId(), e.getMessage());
 			throw e;
 		}
 	}
 
-	/**
-	 * 아웃박스 콜백과 함께 지연 이벤트 처리 
-	 */
 	public void orchestrateDelayedEventWithOutboxCallback(Long surveyId, Long creatorId,
 		String routingKey, LocalDateTime scheduledAt, OutboxEvent outboxEvent) {
 		try {
 			orchestrateDelayedEvent(surveyId, creatorId, routingKey, scheduledAt);
-			
-			// 성공 시 아웃박스 이벤트를 PUBLISHED로 변경하고 5분 내 성공이면 스케줄 상태 복구
+
 			markOutboxAsPublishedAndRestoreScheduleIfNeeded(outboxEvent);
-			
+
 		} catch (Exception e) {
-			log.error("아웃박스 콜백 지연 이벤트 실패: surveyId={}, routingKey={}, error={}", 
+			log.error("아웃박스 콜백 지연 이벤트 실패: surveyId={}, routingKey={}, error={}",
 				surveyId, routingKey, e.getMessage());
-			
-			// 실패 시 폴백 처리 (수동 모드 전환)
+
 			fallbackService.handleFinalFailure(surveyId, e.getMessage());
 			throw e;
 		}
 	}
 
-	/**
-	 * 아웃박스 이벤트를 PUBLISHED로 변경하고 5분 내 성공이면 스케줄 상태 복구
-	 */
 	private void markOutboxAsPublishedAndRestoreScheduleIfNeeded(OutboxEvent outboxEvent) {
-		// 아웃박스 상태를 PUBLISHED로 변경
 		outboxEvent.asPublish();
 		outboxEventRepository.save(outboxEvent);
-		
-		// 5분 내 성공이면 스케줄 상태를 자동으로 복구
+
 		LocalDateTime fiveMinutesAgo = LocalDateTime.now().minusMinutes(5);
 		if (outboxEvent.getCreatedAt().isAfter(fiveMinutesAgo)) {
 			restoreAutoScheduleMode(outboxEvent.getAggregateId());
 		}
 	}
 
-	/**
-	 * 설문 스케줄 상태를 자동 모드로 복구
-	 */
 	private void restoreAutoScheduleMode(Long surveyId) {
 		try {
 			Survey survey = surveyRepository.findById(surveyId).orElse(null);
 			if (survey != null && survey.getScheduleState() == ScheduleState.MANUAL_CONTROL) {
 				survey.restoreAutoScheduleMode("5분 내 이벤트 발행 성공으로 자동 모드 복구");
 				surveyRepository.save(survey);
-				
+
 				log.info("스케줄 상태 자동 모드 복구 완료: surveyId={}", surveyId);
 			}
 		} catch (Exception e) {
