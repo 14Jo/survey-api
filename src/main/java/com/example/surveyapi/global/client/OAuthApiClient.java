@@ -1,17 +1,12 @@
 package com.example.surveyapi.global.client;
 
+import java.util.Map;
+
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
 import org.springframework.web.service.annotation.PostExchange;
-
-import com.example.surveyapi.domain.user.application.client.response.GoogleAccessResponse;
-import com.example.surveyapi.domain.user.application.client.response.GoogleUserInfoResponse;
-import com.example.surveyapi.domain.user.application.client.response.KakaoAccessResponse;
-import com.example.surveyapi.domain.user.application.client.response.KakaoUserInfoResponse;
-import com.example.surveyapi.domain.user.application.client.response.NaverAccessResponse;
-import com.example.surveyapi.domain.user.application.client.response.NaverUserInfoResponse;
 
 @HttpExchange
 public interface OAuthApiClient {
@@ -19,22 +14,21 @@ public interface OAuthApiClient {
     @PostExchange(
         url = "https://kauth.kakao.com/oauth/token",
         contentType = "application/x-www-form-urlencoded;charset=utf-8")
-    KakaoAccessResponse getKakaoAccessToken(
-        @RequestParam("grant_type") String grant_type ,
+    Map<String, Object> getKakaoAccessToken(
+        @RequestParam("grant_type") String grant_type,
         @RequestParam("client_id") String client_id,
         @RequestParam("redirect_uri") String redirect_uri,
         @RequestParam("code") String code
     );
 
     @GetExchange(url = "https://kapi.kakao.com/v2/user/me")
-    KakaoUserInfoResponse getKakaoUserInfo(
+    Map<String, Object> getKakaoUserInfo(
         @RequestHeader("Authorization") String accessToken);
-
 
     @PostExchange(
         url = "https://nid.naver.com/oauth2.0/token",
         contentType = "application/x-www-form-urlencoded;charset=utf-8")
-    NaverAccessResponse getNaverAccessToken(
+    Map<String, Object> getNaverAccessToken(
         @RequestParam("grant_type") String grant_type,
         @RequestParam("client_id") String client_id,
         @RequestParam("client_secret") String client_secret,
@@ -43,23 +37,22 @@ public interface OAuthApiClient {
     );
 
     @GetExchange(url = "https://openapi.naver.com/v1/nid/me")
-    NaverUserInfoResponse getNaverUserInfo(
+    Map<String, Object> getNaverUserInfo(
         @RequestHeader("Authorization") String accessToken);
-
 
     @PostExchange(
         url = "https://oauth2.googleapis.com/token",
         contentType = "application/x-www-form-urlencoded;charset=utf-8")
-    GoogleAccessResponse getGoogleAccessToken(
-        @RequestParam("grant_type") String grant_type ,
+    Map<String, Object> getGoogleAccessToken(
+        @RequestParam("grant_type") String grant_type,
         @RequestParam("client_id") String client_id,
-        @RequestParam("client_secret")  String client_secret,
+        @RequestParam("client_secret") String client_secret,
         @RequestParam("redirect_uri") String redirect_uri,
         @RequestParam("code") String code
     );
 
     @GetExchange(url = "https://openidconnect.googleapis.com/v1/userinfo")
-    GoogleUserInfoResponse getGoogleUserInfo(
+    Map<String, Object> getGoogleUserInfo(
         @RequestHeader("Authorization") String accessToken);
 
 }

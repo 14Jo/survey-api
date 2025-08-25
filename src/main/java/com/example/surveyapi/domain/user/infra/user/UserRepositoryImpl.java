@@ -38,11 +38,6 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public User withdrawSave(User user) {
-        return userJpaRepository.save(user);
-    }
-
-    @Override
     public Optional<User> findByEmailAndIsDeletedFalse(String email) {
         return userJpaRepository.findByAuthEmailAndIsDeletedFalse(email);
     }
@@ -70,6 +65,11 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String providerId) {
         return userJpaRepository.findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(provider, providerId);
+    }
+
+    @Override
+    public Optional<Long> findIdByAuthEmail(String email) {
+        return userJpaRepository.findIdByAuthEmail(email);
     }
 
 }
