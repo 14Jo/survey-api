@@ -43,40 +43,6 @@ public class ShareConsumer {
 	}
 
 	@RabbitHandler
-	public void handleProjectManagerEvent(ProjectManagerAddedEvent event) {
-		try {
-			log.info("Received project manager event");
-
-			ShareCreateRequest request = new ShareCreateRequest(
-				event.getProjectId(),
-				event.getProjectOwnerId(),
-				event.getPeriodEnd()
-			);
-
-			shareEventPort.handleProjectManagerEvent(request);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
-
-	@RabbitHandler
-	public void handleProjectMemberEvent(ProjectMemberAddedEvent event) {
-		try {
-			log.info("Received project member event");
-
-			ShareCreateRequest request = new ShareCreateRequest(
-				event.getProjectId(),
-				event.getProjectOwnerId(),
-				event.getPeriodEnd()
-			);
-
-			shareEventPort.handleProjectMemberEvent(request);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
-
-	@RabbitHandler
 	public void handleProjectDeleteEvent(ProjectDeletedEvent event) {
 		try {
 			log.info("Received project delete event");
