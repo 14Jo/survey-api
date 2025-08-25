@@ -37,7 +37,7 @@ public class SecurityConfig {
 				.authenticationEntryPoint(jwtAuthenticationEntryPoint)
 				.accessDeniedHandler(jwtAccessDeniedHandler))
 			.authorizeHttpRequests(auth -> auth
-				.requestMatchers("/api/auth/signup", "/api/auth/login").permitAll()
+				.requestMatchers("/auth/signup", "/auth/login").permitAll()
 				.requestMatchers("/api/surveys/participations/count").permitAll()
 				.requestMatchers("/api/auth/kakao/login").permitAll()
 				.requestMatchers("/api/auth/naver/login").permitAll()
