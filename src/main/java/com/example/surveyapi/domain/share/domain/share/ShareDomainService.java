@@ -12,9 +12,9 @@ import com.example.surveyapi.global.exception.CustomException;
 
 @Service
 public class ShareDomainService {
-	private static final String SURVEY_URL = "https://localhost:8080/share/surveys/";
-	private static final String PROJECT_MEMBER_URL = "https://localhost:8080/share/projects/members/";
-	private static final String PROJECT_MANAGER_URL = "https://localhost:8080/share/projects/managers/";
+	private static final String SURVEY_URL = "http://localhost:8080/share/surveys/";
+	private static final String PROJECT_MEMBER_URL = "http://localhost:8080/share/projects/members/";
+	private static final String PROJECT_MANAGER_URL = "http://localhost:8080/share/projects/managers/";
 
 	public Share createShare(ShareSourceType sourceType, Long sourceId,
 		Long creatorId,	LocalDateTime expirationDate) {
@@ -40,11 +40,11 @@ public class ShareDomainService {
 
 	public String getRedirectUrl(Share share) {
 		if (share.getSourceType() == ShareSourceType.PROJECT_MEMBER) {
-			return "https://localhost:8080/api/projects/" + share.getSourceId() + "/members";
+			return "http://localhost:8080/api/projects/" + share.getSourceId() + "/members/join";
 		} else if(share.getSourceType() == ShareSourceType.PROJECT_MANAGER) {
-			return "https://localhost:8080/api/projects/" + share.getSourceId() + "/managers";
+			return "http://localhost:8080/api/projects/" + share.getSourceId() + "/managers";
 		} else if (share.getSourceType() == ShareSourceType.SURVEY) {
-			return "https://localhost:8080/surveys/" + share.getSourceId();
+			return "http://localhost:8080/api/v1/surveys/" + share.getSourceId();
 		}
 		throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
 	}

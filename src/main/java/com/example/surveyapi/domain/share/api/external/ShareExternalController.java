@@ -42,11 +42,19 @@ public class ShareExternalController {
 			.location(URI.create(redirectUrl)).build();
 	}
 
-	@GetMapping("/projects/{token}")
-	public ResponseEntity<Void> redirectToProject(@PathVariable String token) {
+	@GetMapping("/projects/members/{token}")
+	public ResponseEntity<Void> redirectToProjectMember(@PathVariable String token) {
 		String redirectUrl = shareService.getRedirectUrl(token, ShareSourceType.PROJECT_MEMBER);
 
-		return ResponseEntity.status(HttpStatus.FOUND)
+		return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
+			.location(URI.create(redirectUrl)).build();
+	}
+
+	@GetMapping("/projects/managers/{token}")
+	public ResponseEntity<Void> redirectToProjectManager(@PathVariable String token) {
+		String redirectUrl = shareService.getRedirectUrl(token, ShareSourceType.PROJECT_MANAGER);
+
+		return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
 			.location(URI.create(redirectUrl)).build();
 	}
 }

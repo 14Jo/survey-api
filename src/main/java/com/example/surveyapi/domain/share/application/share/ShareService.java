@@ -1,10 +1,13 @@
 package com.example.surveyapi.domain.share.application.share;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,15 +79,41 @@ public class ShareService {
 	}
 
 	@Transactional(readOnly = true)
-	public ShareResponse getShare(Long shareId, Long currentUserId) {
-		Share share = shareRepository.findById(shareId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+	public List<ShareResponse> getShare(String sourceType, Long sourceId, Long currentUserId) {
+		List<Share> shares;
 
-		if (!share.isOwner(currentUserId)) {
+		if ("project".equalsIgnoreCase(sourceType)) {
+			Share managerShare = shareRepository.findBySource(ShareSourceType.PROJECT_MANAGER, sourceId);
+			Share memberShare = shareRepository.findBySource(ShareSourceType.PROJECT_MEMBER, sourceId);
+
+			shares = new ArrayList<>();
+			if (managerShare != null) shares.add(managerShare);
+			if (memberShare != null) shares.add(memberShare);
+		} else if ("survey".equalsIgnoreCase(sourceType)) {
+			Share surveyShare = shareRepository.findBySource(ShareSourceType.SURVEY, sourceId);
+
+			if (surveyShare != null) {
+				shares = List.of(surveyShare);
+			} else {
+				shares = Collections.emptyList();
+			}
+		} else {
+			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
+		}
+
+		if (shares.isEmpty()) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 
-		return ShareResponse.from(share);
+		shares.forEach(share -> {
+			if (!share.isOwner(currentUserId)) {
+				throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+			}
+		});
+
+
+		return shares.stream().map(ShareResponse::from)
+			.collect(Collectors.toList());
 	}
 
 	@Transactional(readOnly = true)

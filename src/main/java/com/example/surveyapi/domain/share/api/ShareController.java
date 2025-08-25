@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.share.api;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,6 +14,7 @@ import com.example.surveyapi.domain.share.application.notification.dto.Notificat
 import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.dto.ApiResponse;
 
 import jakarta.validation.Valid;
@@ -41,16 +44,17 @@ public class ShareController {
 			.body(ApiResponse.success("알림 생성 성공", null));
 	}
 
-	@GetMapping("/share-tasks/{shareId}")
-	public ResponseEntity<ApiResponse<ShareResponse>> get(
-		@PathVariable Long shareId,
+	@GetMapping("/share-tasks/{sourceType}/{sourceId}")
+	public ResponseEntity<ApiResponse<List<ShareResponse>>> get(
+		@PathVariable String sourceType,
+		@PathVariable Long sourceId,
 		@AuthenticationPrincipal Long currentUserId
 	) {
-		ShareResponse response = shareService.getShare(shareId, currentUserId);
+		List<ShareResponse> responses = shareService.getShare(sourceType, sourceId, currentUserId);
 
 		return ResponseEntity
 			.status(HttpStatus.OK)
-			.body(ApiResponse.success("공유 작업 조회 성공", response));
+			.body(ApiResponse.success("공유 작업 조회 성공", responses));
 	}
 
 	@GetMapping("/share-tasks/{shareId}/notifications")
