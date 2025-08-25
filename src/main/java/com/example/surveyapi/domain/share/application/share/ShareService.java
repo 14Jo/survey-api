@@ -63,8 +63,8 @@ public class ShareService {
 			for (String email : emails) {
 				try {
 					UserEmailDto userEmailDto = userServicePort.getUserByEmail(authHeader, email);
-					if (userEmailDto != null && userEmailDto.getId() != null) {
-						emailToUserIdMap.put(email, userEmailDto.getId());
+					if (userEmailDto != null && userEmailDto.getUserId() != null) {
+						emailToUserIdMap.put(email, userEmailDto.getUserId());
 					}
 				} catch (Exception e) {
 					throw new CustomException(CustomErrorCode.CANNOT_CREATE_NOTIFICATION);
