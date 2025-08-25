@@ -1,10 +1,13 @@
 package com.example.surveyapi.domain.share.domain.share.entity;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.CascadeType;
@@ -29,23 +32,33 @@ public class Share extends BaseEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id")
 	private Long id;
-	@Column(name = "survey_id", nullable = false)
-	private Long surveyId;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "source_type", nullable = false)
+	private ShareSourceType sourceType;
+	@Column(name = "source_id", nullable = false)
+	private Long sourceId;
 	@Column(name = "creator_id", nullable = false)
 	private Long creatorId;
-	@Enumerated(EnumType.STRING)
-	@Column(name = "method", nullable = false)
-	private ShareMethod shareMethod;
+	@Column(name = "token", nullable = false)
+	private String token;
 	@Column(name = "link", nullable = false, unique = true)
 	private String link;
+	@Column(name = "expiration", nullable = false)
+	private LocalDateTime expirationDate;
 
+	@OneToMany(mappedBy = "share", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<Notification> notifications = new ArrayList<>();
 
-
-	public Share(Long surveyId, Long creatorId, ShareMethod shareMethod, String linkUrl) {
-		this.surveyId = surveyId;
+	public Share(ShareSourceType sourceType, Long sourceId,
+		Long creatorId,	String token,
+		String link, LocalDateTime expirationDate) {
+		this.sourceType = sourceType;
+		this.sourceId = sourceId;
 		this.creatorId = creatorId;
-		this.shareMethod = shareMethod;
-		this.link = linkUrl;
+		this.token = token;
+		this.link = link;
+		this.expirationDate = expirationDate;
+
 	}
 
 	public boolean isAlreadyExist(String link) {
@@ -54,9 +67,41 @@ public class Share extends BaseEntity {
 	}
 
 	public boolean isOwner(Long currentUserId) {
-		if (!creatorId.equals(currentUserId)) {
+		if (creatorId.equals(currentUserId)) {
 			return true;
 		}
 		return false;
+	}
+
+	public void createNotifications(ShareMethod shareMethod, List<String> emails,
+		LocalDateTime notifyAt, Map<String, Long> emailToUserIdMap) {
+		if(shareMethod == ShareMethod.URL) {
+			return;
+		}
+
+		if(emails == null || emails.isEmpty()) {
+			notifications.add(
+				Notification.createForShare(
+					this, shareMethod,
+					this.creatorId, null,
+					notifyAt)
+			);
+
+			return;
+		}
+
+		emails.forEach(email -> {
+			Long recipientId = emailToUserIdMap.get(email);
+			notifications.add(
+				Notification.createForShare(
+					this, shareMethod,
+					recipientId, email,
+					notifyAt)
+			);
+		});
+	}
+
+	public boolean isDeleted() {
+		return isDeleted;
 	}
 }

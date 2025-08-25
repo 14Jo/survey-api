@@ -1,10 +1,16 @@
 package com.example.surveyapi.domain.share.application.notification;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.share.application.notification.dto.NotificationPageResponse;
+import com.example.surveyapi.domain.share.application.client.ShareValidationResponse;
+import com.example.surveyapi.domain.share.application.notification.dto.NotificationResponse;
+import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
+import com.example.surveyapi.domain.share.domain.notification.repository.NotificationRepository;
 import com.example.surveyapi.domain.share.domain.notification.repository.query.NotificationQueryRepository;
+import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 
 import lombok.RequiredArgsConstructor;
 
@@ -13,14 +19,49 @@ import lombok.RequiredArgsConstructor;
 @Transactional(readOnly = true)
 public class NotificationService {
 	private final NotificationQueryRepository notificationQueryRepository;
+	private final NotificationRepository notificationRepository;
+	private final NotificationSendService notificationSendService;
 
-	public NotificationPageResponse gets(Long shareId, Long requesterId, int page, int size) {
-		return notificationQueryRepository.findPageByShareId(shareId, requesterId, page, size);
+	@Transactional
+	public void send(Notification notification) {
+		try {
+			notificationSendService.send(notification);
+			notification.setSent();
+		} catch (Exception e) {
+			notification.setFailed(e.getMessage());
+		}
+
+		notificationRepository.save(notification);
 	}
 
-	private boolean isAdmin(Long userId) {
-		//TODO : 관리자 권한 조회 기능, 접근 권한 확인 기능 구현 시 동시에 구현 및 사용
+	public Page<NotificationResponse> gets(
+		Long shareId,
+		Long requesterId,
+		Pageable pageable
+	) {
 
-		return false;
+		Page<Notification> notifications = notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable);
+
+		return notifications.map(NotificationResponse::from);
+	}
+
+	public ShareValidationResponse isRecipient(Long sourceId, Long recipientId) {
+		boolean valid = notificationQueryRepository.isRecipient(sourceId, recipientId);
+
+		return new ShareValidationResponse(valid);
+	}
+
+	@Transactional
+	public Page<NotificationResponse> getMyNotifications(
+		Long currentId,
+		Pageable pageable
+	) {
+		Page<Notification> notifications = notificationQueryRepository.findPageByUserId(currentId, pageable);
+
+		notifications.stream()
+			.filter(n -> n.getStatus() == Status.SENT)
+			.forEach(Notification::setCheck);
+
+		return notifications.map(NotificationResponse::from);
 	}
 }

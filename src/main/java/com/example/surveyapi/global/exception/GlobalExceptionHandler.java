@@ -14,10 +14,13 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 
-import com.example.surveyapi.global.enums.CustomErrorCode;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.global.dto.ApiResponse;
 
+import io.jsonwebtoken.JwtException;
+import jakarta.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -57,16 +60,42 @@ public class GlobalExceptionHandler {
 			.body(ApiResponse.error(CustomErrorCode.ACCESS_DENIED.getMessage()));
 	}
 
+	@ExceptionHandler(OptimisticLockException.class)
+	public ResponseEntity<ApiResponse<Void>> handleOptimisticLockException(OptimisticLockException e) {
+		return ResponseEntity.status(CustomErrorCode.OPTIMISTIC_LOCK_CONFLICT.getHttpStatus())
+			.body(ApiResponse.error(CustomErrorCode.OPTIMISTIC_LOCK_CONFLICT.getMessage()));
+	}
+
 	@ExceptionHandler(HttpMessageNotReadableException.class)
 	public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
 			.body(ApiResponse.error("요청 데이터의 타입이 올바르지 않습니다."));
 	}
 
+	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+	public ResponseEntity<ApiResponse<Void>> handleHttpMediaTypeNotSupportedException(
+		HttpMediaTypeNotSupportedException e) {
+		return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+			.body(ApiResponse.error("지원하지 않는 Content-Type 입니다."));
+	}
+
+	@ExceptionHandler(MissingRequestHeaderException.class)
+	public ResponseEntity<ApiResponse<Void>> handleMissingRequestHeaderException(MissingRequestHeaderException e) {
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+			.body(ApiResponse.error("필수 헤더가 누락되었습니다."));
+	}
+
+	@ExceptionHandler(JwtException.class)
+	public ResponseEntity<ApiResponse<Void>> handleJwtException(JwtException ex) {
+		return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+			.body(ApiResponse.error("토큰이 유효하지 않습니다."));
+	}
+
 	@ExceptionHandler(Exception.class)
-	protected ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+	protected ResponseEntity<ApiResponse<String>> handleException(Exception e) {
+		log.error(e.getMessage());
 		return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
-			.body(ApiResponse.error(e.getMessage()));
+			.body(ApiResponse.error("알 수 없는 오류 message : {}", e.getMessage()));
 	}
 
 	// @PathVariable, @RequestParam

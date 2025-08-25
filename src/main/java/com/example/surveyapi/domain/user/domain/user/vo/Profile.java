@@ -1,33 +1,48 @@
 package com.example.surveyapi.domain.user.domain.user.vo;
 
-import java.time.LocalDateTime;
-
-import com.example.surveyapi.domain.user.domain.user.enums.Gender;
+import com.example.surveyapi.domain.user.domain.util.MaskingUtils;
 
 import jakarta.persistence.Embeddable;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Embeddable
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class Profile {
 
     private String name;
-    private LocalDateTime birthDate;
-    private Gender gender;
-    private Address address;
+    private String phoneNumber;
+    private String nickName;
 
-    public void setName(String name) {
-        this.name = name;
+    public static Profile create(
+        String name, String phoneNumber, String nickName) {
+        Profile profile = new Profile();
+        profile.name = name;
+        profile.phoneNumber = phoneNumber;
+        profile.nickName = nickName;
+
+        return profile;
     }
 
-    public static Profile of(
-        String name, LocalDateTime birthDate, Gender gender, Address address) {
-        return new Profile(
-            name, birthDate, gender, address);
+    public void updateProfile(String name, String phoneNumber, String nickName) {
+        if (name != null) {
+            this.name = name;
+        }
+
+        if (phoneNumber != null) {
+            this.phoneNumber = phoneNumber;
+        }
+
+        if (nickName != null) {
+            this.nickName = nickName;
+        }
+    }
+
+    public void masking() {
+        this.name = MaskingUtils.maskName(name);
+        this.phoneNumber = MaskingUtils.maskPhoneNumber(phoneNumber);
     }
 
 }

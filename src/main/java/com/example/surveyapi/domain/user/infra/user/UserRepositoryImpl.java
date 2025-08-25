@@ -6,9 +6,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.infra.user.dsl.QueryDslRepository;
 import com.example.surveyapi.domain.user.infra.user.jpa.UserJpaRepository;
 
@@ -27,13 +28,18 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
+    public boolean existsByProfileNickName(String nickname) {
+        return userJpaRepository.existsByProfileNickName(nickname);
+    }
+
+    @Override
     public User save(User user) {
         return userJpaRepository.save(user);
     }
 
     @Override
-    public Optional<User> findByEmail(String email) {
-        return userJpaRepository.findByAuthEmail(email);
+    public Optional<User> findByEmailAndIsDeletedFalse(String email) {
+        return userJpaRepository.findByAuthEmailAndIsDeletedFalse(email);
     }
 
     @Override
@@ -47,8 +53,23 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public Optional<Grade> findByGrade(Long userId) {
-        return userJpaRepository.findByGrade(userId);
+    public Optional<User> findById(Long userId) {
+        return userJpaRepository.findById(userId);
+    }
+
+    @Override
+    public Optional<UserGradePoint> findByGradeAndPoint(Long userId) {
+        return userJpaRepository.findByGradeAndPoint(userId);
+    }
+
+    @Override
+    public Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String providerId) {
+        return userJpaRepository.findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(provider, providerId);
+    }
+
+    @Override
+    public Optional<Long> findIdByAuthEmail(String email) {
+        return userJpaRepository.findIdByAuthEmail(email);
     }
 
 }

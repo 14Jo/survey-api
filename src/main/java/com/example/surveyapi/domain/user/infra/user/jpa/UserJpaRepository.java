@@ -6,18 +6,30 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
 import com.example.surveyapi.domain.user.domain.user.User;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 
 public interface UserJpaRepository extends JpaRepository<User, Long> {
 
     boolean existsByAuthEmail(String email);
 
-    Optional<User> findByAuthEmail(String authEmail);
+    boolean existsByProfileNickName(String nickname);
 
-    Optional<User> findByIdAndIsDeletedFalse(Long id);
+    @Query("SELECT u FROM User u join fetch u.auth a join fetch u.demographics d WHERE a.email = :authEmail AND a.isDeleted = false")
+    Optional<User> findByAuthEmailAndIsDeletedFalse(@Param("authEmail") String authEmail);
 
-    @Query("SELECT u.grade FROM User u WHERE u.id = :userId")
-    Optional<Grade> findByGrade(@Param("userId") Long userId);
+    @Query("SELECT u FROM User u join fetch u.auth a join fetch u.demographics d WHERE u.id = :userId AND u.isDeleted = false")
+    Optional<User> findByIdAndIsDeletedFalse(Long userId);
+
+    Optional<User> findById(Long usreId);
+
+    @Query("SELECT u.grade, u.point FROM User u WHERE u.id = :userId")
+    Optional<UserGradePoint> findByGradeAndPoint(@Param("userId") Long userId);
+
+    Optional<User> findByAuthProviderAndAuthProviderIdAndIsDeletedFalse(Provider provider, String authProviderId);
+
+    @Query("SELECT u.id FROM User u join u.auth a WHERE a.email = :email")
+    Optional<Long> findIdByAuthEmail(@Param("email") String email);
 
 }

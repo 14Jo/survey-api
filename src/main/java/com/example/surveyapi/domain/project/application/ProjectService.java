@@ -5,29 +5,27 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.project.application.dto.request.CreateManagerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.CreateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateManagerRoleRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectOwnerRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectRequest;
 import com.example.surveyapi.domain.project.application.dto.request.UpdateProjectStateRequest;
-import com.example.surveyapi.domain.project.application.dto.response.CreateManagerResponse;
 import com.example.surveyapi.domain.project.application.dto.response.CreateProjectResponse;
-import com.example.surveyapi.domain.project.application.dto.response.ProjectInfoResponse;
 import com.example.surveyapi.domain.project.domain.project.entity.Project;
+import com.example.surveyapi.domain.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.domain.project.domain.project.repository.ProjectRepository;
-import com.example.surveyapi.domain.project.domain.project.event.ProjectEventPublisher;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProjectService {
 
 	private final ProjectRepository projectRepository;
-	private final ProjectEventPublisher projectEventPublisher;
 
 	@Transactional
 	public CreateProjectResponse createProject(CreateProjectRequest request, Long currentUserId) {
@@ -46,52 +44,54 @@ public class ProjectService {
 		return CreateProjectResponse.of(project.getId(), project.getMaxMembers());
 	}
 
-	@Transactional(readOnly = true)
-	public List<ProjectInfoResponse> getMyProjects(Long currentUserId) {
-		return projectRepository.findMyProjects(currentUserId)
-			.stream()
-			.map(ProjectInfoResponse::from)
-			.toList();
+	@Transactional
+	public void openProject(Long projectId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.openProject();
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void updateProject(Long projectId, UpdateProjectRequest request) {
-		validateDuplicateName(request.getName());
 		Project project = findByIdOrElseThrow(projectId);
-		project.updateProject(request.getName(), request.getDescription(), request.getPeriodStart(),
-			request.getPeriodEnd());
+
+		if (request.getName() != null && !request.getName().equals(project.getName())) {
+			validateDuplicateName(request.getName());
+		}
+
+		project.updateProject(
+			request.getName(), request.getDescription(),
+			request.getPeriodStart(), request.getPeriodEnd()
+		);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void updateState(Long projectId, UpdateProjectStateRequest request) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateState(request.getState());
-		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void updateOwner(Long projectId, UpdateProjectOwnerRequest request, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateOwner(currentUserId, request.getNewOwnerId());
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void deleteProject(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.softDelete(currentUserId);
-		project.pullDomainEvents().forEach(projectEventPublisher::publish);
+		projectRepository.save(project);
 	}
 
 	@Transactional
-	public CreateManagerResponse addManager(Long projectId, CreateManagerRequest request, Long currentUserId) {
+	public void joinProjectManager(Long projectId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
-
-		// TODO: 회원 존재 여부
-
-		project.addManager(currentUserId, request.getUserId());
+		project.addManager(currentUserId);
 		projectRepository.save(project);
-
-		return CreateManagerResponse.from(project.getManagers().get(project.getManagers().size() - 1).getId());
 	}
 
 	@Transactional
@@ -99,12 +99,61 @@ public class ProjectService {
 		Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.updateManagerRole(currentUserId, managerId, request.getNewRole());
+		projectRepository.save(project);
 	}
 
 	@Transactional
 	public void deleteManager(Long projectId, Long managerId, Long currentUserId) {
 		Project project = findByIdOrElseThrow(projectId);
 		project.deleteManager(currentUserId, managerId);
+		projectRepository.save(project);
+	}
+
+	@Transactional
+	public void joinProjectMember(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.addMember(currentUserId);
+		projectRepository.save(project);
+	}
+
+	@Transactional
+	public void leaveProjectManager(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.removeManager(currentUserId);
+		projectRepository.save(project);
+	}
+
+	@Transactional
+	public void leaveProjectMember(Long projectId, Long currentUserId) {
+		Project project = findByIdOrElseThrow(projectId);
+		project.removeMember(currentUserId);
+		projectRepository.save(project);
+	}
+
+	@Transactional
+	public void handleUserWithdraw(Long userId) {
+		// 카테시안 곱 발생
+		List<Project> projects = projectRepository.findAllWithParticipantsByUserId(userId);
+
+		for (Project project : projects) {
+			boolean isManager = project.getProjectManagers().stream()
+				.anyMatch(m -> m.isSameUser(userId) && !m.getIsDeleted());
+			if (isManager) {
+				project.removeManager(userId);
+			}
+
+			boolean isMember = project.getProjectMembers().stream()
+				.anyMatch(m -> m.isSameUser(userId) && !m.getIsDeleted());
+			if (isMember) {
+				project.removeMember(userId);
+			}
+
+			if (project.getOwnerId().equals(userId)) {
+				project.softDelete(userId);
+			}
+		}
+
+		projectRepository.saveAll(projects);
 	}
 
 	private void validateDuplicateName(String name) {

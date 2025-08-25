@@ -7,7 +7,7 @@ import org.hibernate.type.SqlTypes;
 
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
-import com.example.surveyapi.domain.user.domain.user.vo.Address;
+import com.example.surveyapi.domain.user.domain.demographics.vo.Address;
 import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
@@ -29,7 +29,7 @@ public class Demographics extends BaseEntity {
 
     @OneToOne
     @MapsId
-    @JoinColumn(name = "member_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "birth_date", nullable = false)
@@ -63,4 +63,7 @@ public class Demographics extends BaseEntity {
         return demographics;
     }
 
+    public void masking(){
+        this.address.masking();
+    }
 }

@@ -1,32 +1,51 @@
 package com.example.surveyapi.domain.share.domain.share;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 @Service
 public class ShareDomainService {
-	private static final String BASE_URL = "https://everysurvey.com/surveys/share/";
-	private static final String BASE_EMAIL = "email://";
+	private static final String SURVEY_URL = "http://localhost:8080/share/surveys/";
+	private static final String PROJECT_MEMBER_URL = "http://localhost:8080/share/projects/members/";
+	private static final String PROJECT_MANAGER_URL = "http://localhost:8080/share/projects/managers/";
 
-	public Share createShare(Long surveyId, Long creatorId, ShareMethod shareMethod) {
-		String link = generateLink(shareMethod);
-		return new Share(surveyId, creatorId, shareMethod, link);
+	public Share createShare(ShareSourceType sourceType, Long sourceId,
+		Long creatorId, LocalDateTime expirationDate) {
+		String token = UUID.randomUUID().toString().replace("-", "");
+		String link = generateLink(sourceType, token);
+
+		return new Share(sourceType, sourceId,
+			creatorId, token,
+			link, expirationDate);
 	}
 
-	public String generateLink(ShareMethod shareMethod) {
-		String token = UUID.randomUUID().toString().replace("-", "");
+	public String generateLink(ShareSourceType sourceType, String token) {
 
-		if(shareMethod == ShareMethod.URL) {
-			return BASE_URL + token;
-		} else if(shareMethod == ShareMethod.EMAIL) {
-			return BASE_EMAIL + token;
+		if (sourceType == ShareSourceType.SURVEY) {
+			return SURVEY_URL + token;
+		} else if (sourceType == ShareSourceType.PROJECT_MEMBER) {
+			return PROJECT_MEMBER_URL + token;
+		} else if (sourceType == ShareSourceType.PROJECT_MANAGER) {
+			return PROJECT_MANAGER_URL + token;
 		}
 		throw new CustomException(CustomErrorCode.UNSUPPORTED_SHARE_METHOD);
+	}
+
+	public String getRedirectUrl(Share share) {
+		if (share.getSourceType() == ShareSourceType.PROJECT_MEMBER) {
+			return "http://localhost:8080/api/projects/" + share.getSourceId() + "/members/join";
+		} else if (share.getSourceType() == ShareSourceType.PROJECT_MANAGER) {
+			return "http://localhost:8080/api/projects/" + share.getSourceId() + "/managers";
+		} else if (share.getSourceType() == ShareSourceType.SURVEY) {
+			return "http://localhost:8080/api/surveys/" + share.getSourceId();
+		}
+		throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
 	}
 }

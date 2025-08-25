@@ -1,17 +1,18 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: create
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: true
-  datasource:
-    url: jdbc:postgresql://localhost:5432/testdb
-    username: ljy
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: org.postgresql.Driver
+        format_sql: false
+    show-sql: false
+  data:
+    mongodb:
+      auto-index-creation: true
+
+firebase:
+  credentials:
+    path: classpath:firebase-survey-account.json
 
 # JWT Secret Key for test environment
 jwt:
