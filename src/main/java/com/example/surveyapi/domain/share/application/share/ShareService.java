@@ -1,11 +1,19 @@
 package com.example.surveyapi.domain.share.application.share;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.share.application.client.UserEmailDto;
+import com.example.surveyapi.domain.share.application.client.UserServicePort;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.ShareDomainService;
@@ -23,9 +31,16 @@ import lombok.RequiredArgsConstructor;
 public class ShareService {
 	private final ShareRepository shareRepository;
 	private final ShareDomainService shareDomainService;
+	private final UserServicePort userServicePort;
 
 	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
 		Long creatorId, LocalDateTime expirationDate) {
+		Share existingShare = shareRepository.findBySource(sourceType, sourceId);
+
+		if(existingShare != null) {
+			throw new CustomException(CustomErrorCode.ALREADY_EXISTED_SHARE);
+		}
+
 		Share share = shareDomainService.createShare(
 			sourceType, sourceId,
 			creatorId, expirationDate);
@@ -34,7 +49,7 @@ public class ShareService {
 		return ShareResponse.from(saved);
 	}
 
-	public void createNotifications(Long shareId, Long creatorId,
+	public void createNotifications(String authHeader, Long shareId, Long creatorId,
 		ShareMethod shareMethod, List<String> emails,
 		LocalDateTime notifyAt) {
 		Share share = shareRepository.findById(shareId)
@@ -44,19 +59,61 @@ public class ShareService {
 			throw new CustomException(CustomErrorCode.ACCESS_DENIED_SHARE);
 		}
 
-		share.createNotifications(shareMethod, emails, notifyAt);
+		Map<String, Long> emailToUserIdMap = new HashMap<>();
+
+		if ((shareMethod == ShareMethod.PUSH || shareMethod == ShareMethod.APP)
+			&& emails != null && !emails.isEmpty()) {
+			for (String email : emails) {
+				try {
+					UserEmailDto userEmailDto = userServicePort.getUserByEmail(authHeader, email);
+					if (userEmailDto != null && userEmailDto.getUserId() != null) {
+						emailToUserIdMap.put(email, userEmailDto.getUserId());
+					}
+				} catch (Exception e) {
+					throw new CustomException(CustomErrorCode.CANNOT_CREATE_NOTIFICATION);
+				}
+			}
+		}
+
+		share.createNotifications(shareMethod, emails, notifyAt, emailToUserIdMap);
 	}
 
 	@Transactional(readOnly = true)
-	public ShareResponse getShare(Long shareId, Long currentUserId) {
-		Share share = shareRepository.findById(shareId)
-			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+	public List<ShareResponse> getShare(String sourceType, Long sourceId, Long currentUserId) {
+		List<Share> shares;
 
-		if (!share.isOwner(currentUserId)) {
+		if ("project".equalsIgnoreCase(sourceType)) {
+			Share managerShare = shareRepository.findBySource(ShareSourceType.PROJECT_MANAGER, sourceId);
+			Share memberShare = shareRepository.findBySource(ShareSourceType.PROJECT_MEMBER, sourceId);
+
+			shares = new ArrayList<>();
+			if (managerShare != null) shares.add(managerShare);
+			if (memberShare != null) shares.add(memberShare);
+		} else if ("survey".equalsIgnoreCase(sourceType)) {
+			Share surveyShare = shareRepository.findBySource(ShareSourceType.SURVEY, sourceId);
+
+			if (surveyShare != null) {
+				shares = List.of(surveyShare);
+			} else {
+				shares = Collections.emptyList();
+			}
+		} else {
+			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
+		}
+
+		if (shares.isEmpty()) {
 			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
 		}
 
-		return ShareResponse.from(share);
+		shares.forEach(share -> {
+			if (!share.isOwner(currentUserId)) {
+				throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+			}
+		});
+
+
+		return shares.stream().map(ShareResponse::from)
+			.collect(Collectors.toList());
 	}
 
 	@Transactional(readOnly = true)
@@ -117,7 +174,13 @@ public class ShareService {
 		return share;
 	}
 
-	public String getRedirectUrl(Share share) {
+	public String getRedirectUrl(String token, ShareSourceType sourceType) {
+		Share share = getShareByToken(token);
+
+		if (share.getSourceType() != sourceType) {
+			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
+		}
+
 		return shareDomainService.getRedirectUrl(share);
 	}
 }

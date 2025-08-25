@@ -9,6 +9,7 @@ import com.example.surveyapi.global.model.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -32,14 +33,14 @@ public class Notification extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "share_id")
 	private Share share;
-	@Enumerated
+	@Enumerated(EnumType.STRING)
 	@Column(name = "share_method")
 	private ShareMethod shareMethod;
 	@Column(name = "recipient_id")
 	private Long recipientId;
 	@Column(name = "recipient_email")
 	private String recipientEmail;
-	@Enumerated
+	@Enumerated(EnumType.STRING)
 	@Column(name = "status", nullable = false)
 	private Status status;
 	@Column(name = "sent_at")
@@ -81,5 +82,9 @@ public class Notification extends BaseEntity {
 	public void setFailed(String failedReason) {
 		this.status = Status.FAILED;
 		this.failedReason = failedReason;
+	}
+
+	public void setCheck() {
+		this.status = Status.CHECK;
 	}
 }

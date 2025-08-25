@@ -3,6 +3,7 @@ package com.example.surveyapi.domain.share.domain.share.entity;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
 import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
@@ -72,7 +73,8 @@ public class Share extends BaseEntity {
 		return false;
 	}
 
-	public void createNotifications(ShareMethod shareMethod, List<String> emails, LocalDateTime notifyAt) {
+	public void createNotifications(ShareMethod shareMethod, List<String> emails,
+		LocalDateTime notifyAt, Map<String, Long> emailToUserIdMap) {
 		if(shareMethod == ShareMethod.URL) {
 			return;
 		}
@@ -87,11 +89,13 @@ public class Share extends BaseEntity {
 
 			return;
 		}
+
 		emails.forEach(email -> {
+			Long recipientId = emailToUserIdMap.get(email);
 			notifications.add(
 				Notification.createForShare(
 					this, shareMethod,
-					null, email,
+					recipientId, email,
 					notifyAt)
 			);
 		});

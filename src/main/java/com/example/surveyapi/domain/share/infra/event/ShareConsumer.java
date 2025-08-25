@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.share.application.event;
+package com.example.surveyapi.domain.share.infra.event;
 
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
@@ -8,9 +8,8 @@ import com.example.surveyapi.domain.share.application.event.dto.ShareCreateReque
 import com.example.surveyapi.domain.share.application.event.dto.ShareDeleteRequest;
 import com.example.surveyapi.domain.share.application.event.port.ShareEventPort;
 import com.example.surveyapi.global.event.RabbitConst;
+import com.example.surveyapi.global.event.project.ProjectCreatedEvent;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
-import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
-import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
 import com.example.surveyapi.global.event.survey.SurveyActivateEvent;
 
 import lombok.RequiredArgsConstructor;
@@ -43,40 +42,6 @@ public class ShareConsumer {
 	}
 
 	@RabbitHandler
-	public void handleProjectManagerEvent(ProjectManagerAddedEvent event) {
-		try {
-			log.info("Received project manager event");
-
-			ShareCreateRequest request = new ShareCreateRequest(
-				event.getProjectId(),
-				event.getProjectOwnerId(),
-				event.getPeriodEnd()
-			);
-
-			shareEventPort.handleProjectManagerEvent(request);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
-
-	@RabbitHandler
-	public void handleProjectMemberEvent(ProjectMemberAddedEvent event) {
-		try {
-			log.info("Received project member event");
-
-			ShareCreateRequest request = new ShareCreateRequest(
-				event.getProjectId(),
-				event.getProjectOwnerId(),
-				event.getPeriodEnd()
-			);
-
-			shareEventPort.handleProjectMemberEvent(request);
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
-
-	@RabbitHandler
 	public void handleProjectDeleteEvent(ProjectDeletedEvent event) {
 		try {
 			log.info("Received project delete event");
@@ -87,6 +52,23 @@ public class ShareConsumer {
 			);
 
 			shareEventPort.handleProjectDeleteEvent(request);
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+	}
+
+	@RabbitHandler
+	public void handleProjectCreatedEvent(ProjectCreatedEvent event) {
+		try {
+			log.info("Received project create event");
+
+			ShareCreateRequest request = new ShareCreateRequest(
+				event.getProjectId(),
+				event.getOwnerId(),
+				event.getPeriodEnd()
+			);
+
+			shareEventPort.handleProjectCreateEvent(request);
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		}

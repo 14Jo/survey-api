@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v2/share")
+@RequestMapping("/share")
 public class ShareExternalController {
 	private final ShareService shareService;
 
@@ -36,29 +36,25 @@ public class ShareExternalController {
 
 	@GetMapping("/surveys/{token}")
 	public ResponseEntity<Void> redirectToSurvey(@PathVariable String token) {
-		Share share = shareService.getShareByToken(token);
-
-		if (share.getSourceType() != ShareSourceType.SURVEY) {
-			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
-		}
-
-		String redirectUrl = shareService.getRedirectUrl(share);
+		String redirectUrl = shareService.getRedirectUrl(token, ShareSourceType.SURVEY);
 
 		return ResponseEntity.status(HttpStatus.FOUND)
 			.location(URI.create(redirectUrl)).build();
 	}
 
-	@GetMapping("/projects/{token}")
-	public ResponseEntity<Void> redirectToProject(@PathVariable String token) {
-		Share share = shareService.getShareByToken(token);
+	@GetMapping("/projects/members/{token}")
+	public ResponseEntity<Void> redirectToProjectMember(@PathVariable String token) {
+		String redirectUrl = shareService.getRedirectUrl(token, ShareSourceType.PROJECT_MEMBER);
 
-		if (share.getSourceType() != ShareSourceType.PROJECT_MEMBER) {
-			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
-		}
+		return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
+			.location(URI.create(redirectUrl)).build();
+	}
 
-		String redirectUrl = shareService.getRedirectUrl(share);
+	@GetMapping("/projects/managers/{token}")
+	public ResponseEntity<Void> redirectToProjectManager(@PathVariable String token) {
+		String redirectUrl = shareService.getRedirectUrl(token, ShareSourceType.PROJECT_MANAGER);
 
-		return ResponseEntity.status(HttpStatus.FOUND)
+		return ResponseEntity.status(HttpStatus.TEMPORARY_REDIRECT)
 			.location(URI.create(redirectUrl)).build();
 	}
 }

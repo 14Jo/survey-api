@@ -1,6 +1,7 @@
 package com.example.surveyapi.domain.share.application;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -13,11 +14,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.test.annotation.Rollback;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.surveyapi.domain.share.application.client.UserEmailDto;
+import com.example.surveyapi.domain.share.application.client.UserServicePort;
 import com.example.surveyapi.domain.share.application.share.ShareService;
 import com.example.surveyapi.domain.share.application.share.dto.ShareResponse;
 import com.example.surveyapi.domain.share.domain.notification.entity.Notification;
@@ -27,11 +28,11 @@ import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
 import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
+import com.example.surveyapi.global.exception.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
 
 @Transactional
-@ActiveProfiles("test")
 @SpringBootTest
-@Rollback(value = false)
 @TestPropertySource(properties = "management.health.mail.enabled=false")
 class ShareServiceTest {
 	@Autowired
@@ -44,8 +45,11 @@ class ShareServiceTest {
 	private NotificationRepository notificationRepository;
 	@MockBean
 	private JavaMailSender javaMailSender;
+	@MockBean
+	private UserServicePort userServicePort;
 
 	private Long savedShareId;
+	private static final String AUTH_HEADER = "Bearer test-token";
 
 	@BeforeEach
 	void setUp() {
@@ -70,6 +74,20 @@ class ShareServiceTest {
 	}
 
 	@Test
+	@DisplayName("공유 생성 실패 - 이미 존재하는 공유")
+	void createShare_duplicate_fail() {
+		//given
+		Long sourceId = 1L;
+
+		//when, then
+		assertThatThrownBy(() -> shareService.createShare(
+			ShareSourceType.PROJECT_MEMBER, sourceId,
+			1L, LocalDateTime.of(2025, 12, 31, 23, 59, 59)
+		)).isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.ALREADY_EXISTED_SHARE.getMessage());
+	}
+
+	@Test
 	@DisplayName("이메일 알림 생성")
 	void createNotifications_success() {
 		//given
@@ -77,8 +95,9 @@ class ShareServiceTest {
 		List<String> emails = List.of("user1@example.com", "user2@example.com");
 		LocalDateTime notifyAt = LocalDateTime.now();
 		ShareMethod shareMethod= ShareMethod.EMAIL;
+
 		//when
-		shareService.createNotifications(savedShareId, creatorId, shareMethod, emails, notifyAt);
+		shareService.createNotifications(AUTH_HEADER, savedShareId, creatorId, shareMethod, emails, notifyAt);
 
 		//then
 		Share share = shareRepository.findById(savedShareId).orElseThrow();
@@ -92,14 +111,83 @@ class ShareServiceTest {
 		}
 	}
 
-	//TODO 에러떄메 주석처리함
+	@Test
+	@DisplayName("PUSH 알림 생성 성공 - 호출 확인")
+	void createNotification_push_success() {
+		//given
+		Long creatorId = 1L;
+		List<String> emails = List.of("test1@test.com", "test2@test.com");
+		LocalDateTime notifyAt = LocalDateTime.now();
+		ShareMethod shareMethod = ShareMethod.PUSH;
+
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test1@test.com")))
+			.thenReturn(new UserEmailDto(100L, "test1@test.com"));
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test2@test.com")))
+			.thenReturn(new UserEmailDto(200L, "test2@test.com"));
+
+		//when
+		shareService.createNotifications(AUTH_HEADER, savedShareId, creatorId, shareMethod, emails, notifyAt);
+
+		//then
+		verify(userServicePort, times(2)).getUserByEmail(eq(AUTH_HEADER), anyString());
+		Share share = shareRepository.findById(savedShareId).orElseThrow();
+		assertThat(share.getNotifications()).hasSize(2);
+		assertThat(share.getNotifications())
+			.extracting("recipientEmail")
+			.containsExactlyInAnyOrder("test1@test.com", "test2@test.com");
+		assertThat(share.getNotifications())
+			.extracting("shareMethod")
+			.containsOnly(ShareMethod.PUSH);
+		assertThat(share.getNotifications())
+			.extracting("recipientId")
+			.containsExactlyInAnyOrder(100L, 200L);
+	}
+
+	@Test
+	@DisplayName("APP 알림 생성")
+	void createNotification_APP_success() {
+		//given
+		Long creatorId = 1L;
+		List<String> emails = List.of("test1@test.com", "test2@test.com");
+		LocalDateTime notifyAt = LocalDateTime.now();
+		ShareMethod shareMethod = ShareMethod.APP;
+
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test1@test.com")))
+			.thenReturn(new UserEmailDto(100L, "test1@test.com"));
+		when(userServicePort.getUserByEmail(eq(AUTH_HEADER), eq("test2@test.com")))
+			.thenReturn(new UserEmailDto(200L, "test2@test.com"));
+
+		//when
+		shareService.createNotifications(AUTH_HEADER, savedShareId, creatorId, shareMethod, emails, notifyAt);
+
+		//then
+		verify(userServicePort, times(2)).getUserByEmail(eq(AUTH_HEADER), anyString());
+		Share share = shareRepository.findById(savedShareId).orElseThrow();
+		assertThat(share.getNotifications()).hasSize(2);
+		for (Notification notification : share.getNotifications()) {
+			assertThat(notification.getShareMethod()).isEqualTo(ShareMethod.APP);
+			assertThat(notification.getNotifyAt()).isEqualTo(notifyAt);
+		}
+		assertThat(share.getNotifications())
+			.extracting("recipientId")
+			.containsExactlyInAnyOrder(100L, 200L);
+	}
+
 	@Test
 	@DisplayName("공유 조회 성공")
 	void getShare_success() {
-		ShareResponse response = shareService.getShare(savedShareId, 1L);
+		List<ShareResponse> responses = shareService.getShare("project", 1L, 1L);
     
 		Share share = shareService.getShareEntity(savedShareId, 1L);
-		assertThat(response.getShareLink()).isEqualTo(share.getLink());
+		assertThat(responses.get(0).getShareLink()).isEqualTo(share.getLink());
+	}
+
+	@Test
+	@DisplayName("공유 조회 실패 - 권한 없음")
+	void getShare_fail() {
+		assertThatThrownBy(() -> shareService.getShare("project", 1234L, 1L))
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.NOT_FOUND_SHARE.getMessage());
 	}
 
 	@Test
@@ -136,6 +224,25 @@ class ShareServiceTest {
 		//then
 		assertThat(result.getId()).isEqualTo(savedShareId);
 		assertThat(result.isDeleted()).isFalse();
+	}
+
+	@Test
+	@DisplayName("토큰 조회 실패 - 만료")
+	void getShareByToken_fail() {
+		//given
+		ShareResponse expiredShare = shareService.createShare(
+			ShareSourceType.PROJECT_MEMBER, 20L, 1L,
+			LocalDateTime.now().minusDays(1)
+		);
+
+		Share saved = shareRepository.findBySource(ShareSourceType.PROJECT_MEMBER, 20L);
+		savedShareId = saved.getId();
+		Share share = shareRepository.findById(savedShareId).orElseThrow();
+
+		//when, then
+		assertThatThrownBy(() -> shareService.getShareByToken(share.getToken()))
+			.isInstanceOf(CustomException.class)
+			.hasMessageContaining(CustomErrorCode.SHARE_EXPIRED.getMessage());
 	}
 
 	@Test
