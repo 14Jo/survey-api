@@ -59,6 +59,20 @@ jobs:
     - name: Build application
       run: ./gradlew bootJar -x test
 
+    - name: 'Debug: Dump OIDC Token Payload'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          try {
+            const token = await core.getIDToken();
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            console.log('--- OIDC Token Payload ---');
+            console.log(JSON.stringify(payload, null, 2));
+            console.log('--------------------------');
+          } catch (error) {
+            core.setFailed(`Error dumping OIDC token: ${error.message}`);
+          }
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
