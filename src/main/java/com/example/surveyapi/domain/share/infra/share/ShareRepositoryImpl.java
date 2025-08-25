@@ -1,11 +1,13 @@
 package com.example.surveyapi.domain.share.infra.share;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
 import com.example.surveyapi.domain.share.domain.share.repository.ShareRepository;
+import com.example.surveyapi.domain.share.domain.share.vo.ShareSourceType;
 import com.example.surveyapi.domain.share.infra.share.jpa.ShareJpaRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -14,11 +16,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ShareRepositoryImpl implements ShareRepository {
 	private final ShareJpaRepository shareJpaRepository;
-
-	@Override
-	public Optional<Share> findBySurveyId(Long surveyId) {
-		return shareJpaRepository.findBySurveyId(surveyId);
-	}
 
 	@Override
 	public Optional<Share> findByLink(String link) {
@@ -33,5 +30,25 @@ public class ShareRepositoryImpl implements ShareRepository {
 	@Override
 	public Optional<Share> findById(Long id) {
 		return shareJpaRepository.findById(id);
+	}
+
+	@Override
+	public Optional<Share> findByToken(String token) {
+		return shareJpaRepository.findByToken(token);
+	}
+
+	@Override
+	public void delete(Share share) {
+		shareJpaRepository.delete(share);
+	}
+
+	@Override
+	public Share findBySource(ShareSourceType sourceType, Long sourceId) {
+		return shareJpaRepository.findBySourceTypeAndSourceId(sourceType, sourceId);
+	}
+
+	@Override
+	public List<Share> findBySourceId(Long sourceId) {
+		return shareJpaRepository.findBySourceId(sourceId);
 	}
 }

@@ -7,80 +7,29 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.user.application.dto.request.SignupRequest;
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
-import com.example.surveyapi.domain.user.application.dto.request.UserWithdrawRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserByEmailResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
-import com.example.surveyapi.domain.user.domain.auth.Auth;
-import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
-import com.example.surveyapi.domain.user.domain.demographics.Demographics;
-import com.example.surveyapi.domain.user.domain.user.enums.Grade;
-import com.example.surveyapi.domain.user.domain.user.vo.Address;
-import com.example.surveyapi.domain.user.domain.user.vo.Profile;
-import com.example.surveyapi.global.config.jwt.JwtUtil;
-import com.example.surveyapi.global.config.security.PasswordEncoder;
-import com.example.surveyapi.domain.user.application.dto.request.LoginRequest;
-import com.example.surveyapi.domain.user.application.dto.response.LoginResponse;
-import com.example.surveyapi.domain.user.application.dto.response.SignupResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserSnapShotResponse;
+import com.example.surveyapi.domain.user.domain.command.UserGradePoint;
+import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.domain.user.domain.user.UserRepository;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
-
-    @Transactional
-    public SignupResponse signup(SignupRequest request) {
-
-        if (userRepository.existsByEmail(request.getAuth().getEmail())) {
-            throw new CustomException(CustomErrorCode.EMAIL_NOT_FOUND);
-        }
-
-        String encryptedPassword = passwordEncoder.encode(request.getAuth().getPassword());
-
-        User user = User.create(
-            request.getAuth().getEmail(),
-            encryptedPassword,
-            request.getProfile().getName(),
-            request.getProfile().getBirthDate(),
-            request.getProfile().getGender(),
-            request.getProfile().getAddress().getProvince(),
-            request.getProfile().getAddress().getDistrict(),
-            request.getProfile().getAddress().getDetailAddress(),
-            request.getProfile().getAddress().getPostalCode()
-        );
-
-        User createUser = userRepository.save(user);
-
-        user.getAuth().updateProviderId(createUser.getId().toString());
-
-        return SignupResponse.from(createUser);
-    }
-
-    @Transactional(readOnly = true)
-    public LoginResponse login(LoginRequest request) {
-
-        User user = userRepository.findByEmail(request.getEmail())
-            .orElseThrow(() -> new CustomException(CustomErrorCode.EMAIL_NOT_FOUND));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getAuth().getPassword())) {
-            throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
-        }
-
-        String token = jwtUtil.createToken(user.getId(), user.getRole());
-
-        return LoginResponse.of(token, user);
-    }
 
     @Transactional(readOnly = true)
     public Page<UserInfoResponse> getAll(Pageable pageable) {
@@ -100,12 +49,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserGradeResponse getGrade(Long userId) {
+    public UserGradeResponse getGradeAndPoint(Long userId) {
 
-        Grade grade = userRepository.findByGrade(userId)
-            .orElseThrow(() -> new CustomException(CustomErrorCode.GRADE_NOT_FOUND));
+        UserGradePoint userGradePoint = userRepository.findByGradeAndPoint(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.GRADE_POINT_NOT_FOUND));
 
-        return UserGradeResponse.from(grade);
+        return UserGradeResponse.from(userGradePoint);
     }
 
     @Transactional
@@ -114,31 +63,44 @@ public class UserService {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        String encryptedPassword = Optional.ofNullable(request.getAuth().getPassword())
+        String encryptedPassword = Optional.ofNullable(request.getPassword())
             .map(passwordEncoder::encode)
-            .orElse(null);
+            .orElseGet(() -> user.getAuth().getPassword());
 
         UpdateUserRequest.UpdateData data = UpdateUserRequest.UpdateData.of(request, encryptedPassword);
 
         user.update(
             data.getPassword(), data.getName(),
+            data.getPhoneNumber(), data.getNickName(),
             data.getProvince(), data.getDistrict(),
-            data.getDetailAddress(), data.getPostalCode());
+            data.getDetailAddress(), data.getPostalCode()
+        );
+
+        userRepository.save(user);
 
         return UpdateUserResponse.from(user);
     }
 
-    @Transactional
-    public void withdraw(Long userId, UserWithdrawRequest request) {
-
+    @Transactional(readOnly = true)
+    public UserSnapShotResponse snapshot(Long userId) {
         User user = userRepository.findByIdAndIsDeletedFalse(userId)
             .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getAuth().getPassword())) {
-            throw new CustomException(CustomErrorCode.WRONG_PASSWORD);
-        }
-
-        user.delete();
+        return UserSnapShotResponse.from(user);
     }
 
+    public void updatePoint(Long userId) {
+        User user = userRepository.findByIdAndIsDeletedFalse(userId)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USER_NOT_FOUND));
+
+        user.increasePoint();
+        userRepository.save(user);
+    }
+
+    public UserByEmailResponse byEmail(String email){
+        Long userId = userRepository.findIdByAuthEmail(email)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USERID_NOT_FOUND));
+
+        return UserByEmailResponse.from(userId);
+    }
 }

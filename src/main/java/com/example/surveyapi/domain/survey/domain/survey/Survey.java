@@ -1,33 +1,37 @@
 package com.example.surveyapi.domain.survey.domain.survey;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
-
+import com.example.surveyapi.domain.survey.domain.question.Question;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyType;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyCreatedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyDeletedEvent;
-import com.example.surveyapi.domain.survey.domain.survey.event.SurveyUpdatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.ActivateEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.CreatedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.DeletedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.ScheduleStateChangedEvent;
+import com.example.surveyapi.domain.survey.domain.survey.event.UpdatedEvent;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
-import com.example.surveyapi.global.model.BaseEntity;
+import com.example.surveyapi.global.model.AbstractRoot;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Transient;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 @Entity
 @Getter
 @NoArgsConstructor
-public class Survey extends BaseEntity {
+public class Survey extends AbstractRoot<Survey> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,21 +62,26 @@ public class Survey extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "status", nullable = false)
 	private SurveyStatus status;
+	@Enumerated(EnumType.STRING)
+	@Column(name = "schedule_state", nullable = false)
+	private ScheduleState scheduleState = ScheduleState.AUTO_SCHEDULED;
 
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "survey_option", nullable = false, columnDefinition = "jsonb")
+	@Enumerated
 	private SurveyOption option;
-	@JdbcTypeCode(SqlTypes.JSON)
-	@Column(name = "survey_duration", nullable = false, columnDefinition = "jsonb")
+	@Enumerated
 	private SurveyDuration duration;
 
-	//TODO 필드 하나로 이벤트 관리할 수 있을까?
-	@Transient
-	private Optional<SurveyCreatedEvent> createdEvent = Optional.empty();
-	@Transient
-	private Optional<SurveyDeletedEvent> deletedEvent = Optional.empty();
-	@Transient
-	private Optional<SurveyUpdatedEvent> updatedEvent = Optional.empty();
+	@OneToMany(
+		mappedBy = "survey",
+		cascade = {
+			CascadeType.PERSIST,
+			CascadeType.MERGE,
+			CascadeType.REFRESH
+		},
+		fetch = FetchType.LAZY
+	)
+	@OrderBy("displayOrder ASC")
+	private List<Question> questions = new ArrayList<>();
 
 	public static Survey create(
 		Long projectId,
@@ -85,115 +94,120 @@ public class Survey extends BaseEntity {
 		List<QuestionInfo> questions
 	) {
 		Survey survey = new Survey();
-
-		try {
-			survey.projectId = projectId;
-			survey.creatorId = creatorId;
-			survey.title = title;
-			survey.description = description;
-			survey.type = type;
-			survey.status = decideStatus(duration.getStartDate());
-			survey.duration = duration;
-			survey.option = option;
-
-			survey.createdEvent = Optional.of(new SurveyCreatedEvent(questions));
-		} catch (NullPointerException ex) {
-			log.error(ex.getMessage(), ex);
-			throw new CustomException(CustomErrorCode.SERVER_ERROR);
-		}
+		survey.projectId = projectId;
+		survey.creatorId = creatorId;
+		survey.title = title;
+		survey.description = description;
+		survey.type = type;
+		survey.status = SurveyStatus.PREPARING;
+		survey.duration = duration;
+		survey.option = option;
+		survey.addQuestion(questions);
+		survey.addEvent();
 
 		return survey;
 	}
 
-	private static SurveyStatus decideStatus(LocalDateTime startDate) {
-		LocalDateTime now = LocalDateTime.now();
-		if (startDate.isAfter(now)) {
-			return SurveyStatus.PREPARING;
-		} else {
-			return SurveyStatus.IN_PROGRESS;
-		}
-	}
-
-	private <T> T validEvent(Optional<T> event) {
-		return event.orElseThrow(() -> {
-			log.error("이벤트가 존재하지 않습니다.");
-			return new CustomException(CustomErrorCode.SERVER_ERROR);
-		});
-	}
-
 	public void updateFields(Map<String, Object> fields) {
+		UpdatedEvent event = new UpdatedEvent(this, false);
 		fields.forEach((key, value) -> {
 			switch (key) {
 				case "title" -> this.title = (String)value;
 				case "description" -> this.description = (String)value;
 				case "type" -> this.type = (SurveyType)value;
-				case "duration" -> this.duration = (SurveyDuration)value;
+				case "duration" -> {
+					this.duration = (SurveyDuration)value;
+					event.setDuration(true);
+				}
 				case "option" -> this.option = (SurveyOption)value;
 				case "questions" -> {
 					List<QuestionInfo> questions = (List<QuestionInfo>)value;
-					registerUpdatedEvent(questions);
+					this.addQuestion(questions);
 				}
 			}
 		});
-	}
 
-	public SurveyCreatedEvent getCreatedEvent() {
-		SurveyCreatedEvent surveyCreatedEvent = validEvent(this.createdEvent);
-
-		if (surveyCreatedEvent.getSurveyId().isEmpty()) {
-			log.error("이벤트에 할당된 설문 ID가 없습니다.");
-			throw new CustomException(CustomErrorCode.SERVER_ERROR, "이벤트에 할당된 설문 ID가 없습니다.");
-		}
-
-		return surveyCreatedEvent;
-	}
-
-	public void registerCreatedEvent() {
-		this.createdEvent.ifPresent(surveyCreatedEvent ->
-			surveyCreatedEvent.setSurveyId(this.getSurveyId()));
-	}
-
-	public void clearCreatedEvent() {
-		this.createdEvent = Optional.empty();
-	}
-
-	public SurveyDeletedEvent getDeletedEvent() {
-		return validEvent(this.deletedEvent);
-	}
-
-	public void registerDeletedEvent() {
-		this.deletedEvent = Optional.of(new SurveyDeletedEvent(this.surveyId));
-	}
-
-	public void clearDeletedEvent() {
-		this.deletedEvent = Optional.empty();
-	}
-
-	public SurveyUpdatedEvent getUpdatedEvent() {
-		if (this.updatedEvent.isPresent()) {
-			return validEvent(this.updatedEvent);
-		}
-		return null;
-	}
-
-	public void registerUpdatedEvent(List<QuestionInfo> questions) {
-		this.updatedEvent = Optional.of(new SurveyUpdatedEvent(this.surveyId, questions));
-	}
-
-	public void clearUpdatedEvent() {
-		this.updatedEvent = Optional.empty();
-	}
-
-	public void open() {
-		this.status = SurveyStatus.IN_PROGRESS;
-	}
-
-	public void close() {
-		this.status = SurveyStatus.CLOSED;
+		registerEvent(event);
 	}
 
 	public void delete() {
 		this.status = SurveyStatus.DELETED;
+		this.duration = SurveyDuration.of(this.duration.getStartDate(), LocalDateTime.now());
 		this.isDeleted = true;
+		removeQuestions();
+		registerEvent(new DeletedEvent(this));
+	}
+
+	private void addQuestion(List<QuestionInfo> questions) {
+		try {
+			List<Question> questionList = questions.stream().map(questionInfo -> {
+				return Question.create(
+					this,
+					questionInfo.getContent(), questionInfo.getQuestionType(),
+					questionInfo.getDisplayOrder(), questionInfo.isRequired(),
+					questionInfo.getChoices());
+			}).toList();
+			this.questions.addAll(questionList);
+		} catch (NullPointerException e) {
+			log.error("질문 null {}", e.getMessage());
+			throw new CustomException(CustomErrorCode.SERVER_ERROR, e.getMessage());
+		}
+	}
+
+	private void removeQuestions() {
+		this.questions.forEach(Question::delete);
+	}
+
+	private void addEvent() {
+		registerEvent(new CreatedEvent(this));
+	}
+
+	public void applyDurationChange(SurveyDuration newDuration, LocalDateTime now) {
+		this.duration = newDuration;
+
+		LocalDateTime startAt = this.duration.getStartDate();
+		LocalDateTime endAt = this.duration.getEndDate();
+
+		if (startAt != null && startAt.isBefore(now) && this.status == SurveyStatus.PREPARING) {
+			openAt(startAt);
+		}
+
+		if (endAt != null && endAt.isBefore(now)) {
+			if (this.status == SurveyStatus.IN_PROGRESS) {
+				closeAt(endAt);
+			} else if (this.status == SurveyStatus.PREPARING) {
+				openAt(startAt != null ? startAt : now);
+				closeAt(endAt);
+			}
+		}
+	}
+
+	public void openAt(LocalDateTime startedAt) {
+		this.status = SurveyStatus.IN_PROGRESS;
+		this.duration = SurveyDuration.of(startedAt, this.duration.getEndDate());
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+	}
+
+	public void closeAt(LocalDateTime endedAt) {
+		this.status = SurveyStatus.CLOSED;
+		this.duration = SurveyDuration.of(this.duration.getStartDate(), endedAt);
+		registerEvent(new ActivateEvent(this.surveyId, this.creatorId, this.status, this.duration.getEndDate()));
+	}
+
+	public void changeToManualMode() {
+		changeToManualMode("폴백 처리로 인한 수동 모드 전환");
+	}
+
+	public void changeToManualMode(String reason) {
+		this.scheduleState = ScheduleState.MANUAL_CONTROL;
+		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId,
+			this.scheduleState, this.status, reason));
+	}
+
+	public void restoreAutoScheduleMode(String reason) {
+		this.scheduleState = ScheduleState.AUTO_SCHEDULED;
+		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId,
+			this.scheduleState, this.status, reason));
+		log.info("스케줄 상태가 자동 모드로 복구됨: surveyId={}, reason={}", this.surveyId, reason);
 	}
 }

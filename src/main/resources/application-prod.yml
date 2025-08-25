@@ -1,0 +1,116 @@
+# 운영(prod) 환경 전용 설정
+spring:
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_SCHEME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 30
+      connection-timeout: 10000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: false
+        show_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 100
+          batch_versioned_data: true
+          order_inserts: true
+          order_updates: true
+        batch_fetch_style: DYNAMIC
+        default_batch_fetch_size: 100
+
+  cache:
+    cache-names:
+      - projectMemberCache
+      - projectStateCache
+    caffeine:
+      spec: >
+        initialCapacity=200,
+        maximumSize=1000,
+        expireAfterWrite=10m,
+        expireAfterAccess=5m,
+        recordStats
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+
+  elasticsearch:
+    uris: ${ELASTIC_URIS}
+
+  data:
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+      database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}
+      authentication-database: ${MONGODB_AUTHDB}
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_ADDRESS}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+server:
+  tomcat:
+    threads:
+      max: 50
+      min-spare: 20
+
+# Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,info,metrics,prometheus"
+  endpoint:
+    health:
+      show-details: when_authorized
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5,0.95,0.99
+  health:
+    elasticsearch:
+      enabled: false
+
+jwt:
+  secret:
+    key: ${SECRET_KEY}
+
+oauth:
+  kakao:
+    client-id: ${KAKAO_CLIENT_ID}
+    redirect-uri: ${KAKAO_REDIRECT_URL}
+  naver:
+    client-id: ${NAVER_CLIENT_ID}
+    client-secret: ${NAVER_SECRET}
+    redirect-uri: ${NAVER_REDIRECT_URL}
+  google:
+    client-id: ${GOOGLE_CLIENT_ID}
+    client-secret: ${GOOGLE_SECRET}
+    redirect-uri: ${GOOGLE_REDIRECT_URL}

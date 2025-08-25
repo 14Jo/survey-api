@@ -1,147 +1,117 @@
-# 워크플로우의 전체 이름을 "CI/CD Docker to EC2"로 정했음.
-name: CI/CD Docker to EC2
+name: Deploy API to ECS
 
-# 언제 이 워크플로우를 실행할지 정하는 부분임.
 on:
   push:
-    # "main" 브랜치에 코드가 push 될 때마다 실행될 거임.
-    branches: [ "main" ]
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'Dockerfile'
+      - 'ecs-task-definitions/api-task-definition.json'
+      - '.github/workflows/deploy-api.yml'
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deploy without changes'
+        required: false
+        default: false
+        type: boolean
 
-# 워크플로우가 해야 할 작업(job)들을 정의함.
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REPOSITORY: survey-api/service
+  ECS_CLUSTER: survey-cluster
+  ECS_SERVICE: api-service
+  ECS_TASK_DEFINITION: api-task-definition.json
+
 jobs:
-  # "build-and-deploy"라는 이름의 작업을 하나 만들었음.
   build-and-deploy:
-    # 이 작업은 GitHub이 제공하는 최신 우분투 가상머신에서 돌아감.
+    name: Build and Deploy
     runs-on: ubuntu-latest
 
-    # 테스트를 위한 서비스 컨테이너(PostgreSQL) 설정
-    services:
-      # 서비스의 ID를 'postgres-test'로 지정
-      postgres-test:
-        # postgres 16 버전 이미지를 사용
-        image: postgres:16
-        # 컨테이너에 필요한 환경변수 설정
-        env:
-          POSTGRES_USER: ljy
-          POSTGRES_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
-          POSTGRES_DB: testdb
-        # 호스트의 5432 포트와 컨테이너의 5432 포트를 연결
-        ports:
-          - 5432:5432
-        # DB가 준비될 때까지 기다리기 위한 상태 확인 옵션 (사용자명 수정)
-        options: >-
-          --health-cmd="pg_isready --host=localhost --user=ljy --dbname=testdb"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
-    # 이 작업이 수행할 단계(step)들을 순서대로 나열함.
     steps:
-      # 1단계: 코드 내려받기
-      - name: Checkout
-        # GitHub 저장소에 있는 코드를 가상머신으로 복사해오는 액션을 사용함.
-        uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@v4
 
-      # 2단계: 자바(JDK) 설치
-      - name: Set up JDK 17
-        # 가상머신에 특정 버전의 자바를 설치하는 액션을 사용함.
-        uses: actions/setup-java@v3
-        with:
-          # 자바 버전을 '17'로 지정함.
-          java-version: '17'
-          # 'temurin'이라는 배포판을 사용함.
-          distribution: 'temurin'
-      
-      # 3단계: gradlew 파일에 실행 권한 주기
-      - name: Grant execute permission for gradlew
-        # gradlew 파일이 실행될 수 있도록 권한을 변경함. 리눅스 환경이라 필수임.
-        run: chmod +x gradlew
-      
-      # 4단계: PostgreSQL 준비 대기 (새로 추가)
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          echo "Waiting for PostgreSQL to be ready..."
-          for i in {1..30}; do
-            if pg_isready -h localhost -p 5432 -U ljy -d testdb; then
-              echo "PostgreSQL is ready!"
-              exit 0
-            fi
-            echo "Waiting for PostgreSQL... ($i/30)"
-            sleep 2
-          done
-          echo "PostgreSQL did not become ready in time!" >&2
-          exit 1
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Cache Gradle packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+    - name: Make gradlew executable
+      run: chmod +x ./gradlew
+
+    - name: Build application
+      run: ./gradlew bootJar -x test
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::025861172546:role/github-actions-role # 실제 ARN으로 교체 필요
+        role-session-name: GitHub-Actions-Survey-API
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Extract metadata and build image URI
+      id: meta
+      run: |
+        ECR_REGISTRY=${{ steps.login-ecr.outputs.registry }}
+        TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        SHORT_SHA=${GITHUB_SHA::8}
+        IMAGE_TAG="${TIMESTAMP}-${SHORT_SHA}"
+        echo "image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        echo "image-uri=${ECR_REGISTRY}/${ECR_REPOSITORY}:${IMAGE_TAG}" >> $GITHUB_OUTPUT
+        echo "latest-uri=${ECR_REGISTRY}/${ECR_REPOSITORY}:latest" >> $GITHUB_OUTPUT
+
+    - name: Build, tag, and push image to Amazon ECR
+      id: build-image
+      env:
+        IMAGE_URI: ${{ steps.meta.outputs.image-uri }}
+        LATEST_URI: ${{ steps.meta.outputs.latest-uri }}
+      run: |
+        docker build -t $IMAGE_URI .
+        docker tag $IMAGE_URI $LATEST_URI
+        docker push $IMAGE_URI
+        docker push $LATEST_URI
+        echo "image=$IMAGE_URI" >> $GITHUB_OUTPUT
+
+    - name: Update ECS Task Definition
+      id: task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ecs-task-definitions/${{ env.ECS_TASK_DEFINITION }}
+        container-name: api-container
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy to Amazon ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
         
-      # 5단계: Gradle로 테스트 실행 (서비스 컨테이너 DB 사용)
-      - name: Test with Gradle
-        # gradlew 명령어로 프로젝트의 테스트를 실행함. 테스트 실패 시 여기서 중단됨.
-        run: ./gradlew test
-        env:
-          SPRING_PROFILES_ACTIVE: test
-          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/testdb
-          SPRING_DATASOURCE_USERNAME: ljy
-          SPRING_DATASOURCE_PASSWORD: ${{ secrets.TEST_DB_PASSWORD }}
-          SECRET_KEY: test-secret-key-for-testing-only
-        
-      # 6단계: 프로젝트 빌드 (테스트 통과 후 실행)
-      - name: Build with Gradle
-        # gradlew 명령어로 스프링 부트 프로젝트를 빌드함. 이걸 해야 .jar 파일이 생김.
-        run: ./gradlew build
-
-      # 7단계: 도커 빌드 환경 설정
-      - name: Set up Docker Buildx
-        # 도커 이미지를 효율적으로 빌드하기 위한 Buildx라는 툴을 설정함.
-        uses: docker/setup-buildx-action@v2
-
-      # 8단계: 도커 허브 로그인
-      - name: Login to Docker Hub
-        # 도커 이미지를 올릴 Docker Hub에 로그인하는 액션을 사용함.
-        uses: docker/login-action@v2
-        with:
-          # 아이디는 GitHub Secrets에 저장된 DOCKERHUB_USERNAME 값을 사용함.
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          # 비밀번호는 GitHub Secrets에 저장된 DOCKERHUB_TOKEN 값을 사용함.
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # 9단계: 도커 이미지 빌드 및 푸시
-      - name: Build and push
-        # Dockerfile을 이용해 이미지를 만들고 Docker Hub에 올리는 액션을 사용함.
-        uses: docker/build-push-action@v4
-        with:
-          # 현재 폴더(.)에 있는 Dockerfile을 사용해서 빌드함.
-          context: .
-          # 빌드 성공하면 바로 Docker Hub로 푸시(업로드)함.
-          push: true
-          # 이미지 이름은 "아이디/my-spring-app:latest" 형식으로 지정함.
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-spring-app:latest
-
-      # 10단계: EC2 서버에 배포
-      - name: Deploy to EC2
-        # SSH를 통해 EC2에 접속해서 명령어를 실행하는 액션을 사용함.
-        uses: appleboy/ssh-action@master
-        with:
-          # 접속할 EC2 서버의 IP 주소. Secrets에서 값을 가져옴.
-          host: ${{ secrets.EC2_HOST }}
-          # EC2 서버의 사용자 이름 (지금은 ubuntu). Secrets에서 값을 가져옴.
-          username: ${{ secrets.EC2_USERNAME }}
-          # EC2 접속에 필요한 .pem 키. Secrets에서 값을 가져옴.
-          key: ${{ secrets.EC2_SSH_KEY }}
-          # EC2 서버에 접속해서 아래 스크립트를 순서대로 실행시킬 거임.
-          script: |
-            # EC2 서버에서도 Docker Hub에 로그인해야 이미지를 받을 수 있음.
-            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-            # Docker Hub에서 방금 올린 최신 버전의 이미지를 내려받음.
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/my-spring-app:latest
-            # 기존에 실행 중이던 'my-app' 컨테이너가 있으면 중지시킴. 없으면 그냥 넘어감.
-            docker stop my-app || true
-            # 기존 'my-app' 컨테이너가 있으면 삭제함. 없으면 그냥 넘어감.
-            docker rm my-app || true
-            # 새로 받은 이미지로 'my-app'이라는 이름의 컨테이너를 실행함.
-            # -d: 백그라운드에서 실행, -p 8080:8080: 포트 연결
-            docker run -d -p 8080:8080 --name my-app \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              -e DB_URL=${{ secrets.DB_URL }} \
-              -e DB_USERNAME=${{ secrets.DB_USERNAME }} \
-              -e DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
-              -e SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
-              ${{ secrets.DOCKERHUB_USERNAME }}/my-spring-app:latest
+    - name: Notify deployment result
+      if: always()
+      run: |
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "API 배포가 성공적으로 완료되었습니다!"
+          echo "   - 이미지: ${{ steps.build-image.outputs.image }}"
+          echo "   - 서비스: ${{ env.ECS_SERVICE }}"
+          echo "   - 클러스터: ${{ env.ECS_CLUSTER }}"
+        else
+          echo "API 배포 중 오류가 발생했습니다."
+        fi

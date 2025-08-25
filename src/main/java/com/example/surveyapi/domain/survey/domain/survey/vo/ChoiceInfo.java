@@ -1,16 +1,19 @@
 package com.example.surveyapi.domain.survey.domain.survey.vo;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Getter
-@NoArgsConstructor(force = true)
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ChoiceInfo {
-	private final String content;
-	private final int displayOrder;
+	private String content;
+	private Integer choiceId;
 
-	public ChoiceInfo(String content, int displayOrder) {
-		this.content = content;
-		this.displayOrder = displayOrder;
+	public static ChoiceInfo of(String content, int displayOrder) {
+		ChoiceInfo choiceInfo = new ChoiceInfo();
+		choiceInfo.content = content;
+		choiceInfo.choiceId = displayOrder;
+		return choiceInfo;
 	}
 }

@@ -10,36 +10,56 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.surveyapi.domain.survey.application.SurveyQueryService;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyDtailResponse;
-import com.example.surveyapi.domain.survey.application.response.SearchSurveyTitleResponse;
-import com.example.surveyapi.global.util.ApiResponse;
+import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyDetailResponse;
+import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyStatusResponse;
+import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyTitleResponse;
+import com.example.surveyapi.domain.survey.application.qeury.SurveyReadService;
+import com.example.surveyapi.global.dto.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/v1/survey")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SurveyQueryController {
 
-	private final SurveyQueryService surveyQueryService;
+	private final SurveyReadService surveyReadService;
 
-	@GetMapping("/{surveyId}/detail")
-	public ResponseEntity<ApiResponse<SearchSurveyDtailResponse>> getSurveyDetail(
+	@GetMapping("/surveys/{surveyId}")
+	public ResponseEntity<ApiResponse<SearchSurveyDetailResponse>> getSurveyDetail(
 		@PathVariable Long surveyId
 	) {
-		SearchSurveyDtailResponse surveyDetailById = surveyQueryService.findSurveyDetailById(surveyId);
+		SearchSurveyDetailResponse surveyDetailById = surveyReadService.findSurveyDetailById(surveyId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}
 
-	@GetMapping("/{projectId}/survey-list")
+	@GetMapping("/projects/{projectId}/surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@PathVariable Long projectId,
 		@RequestParam(required = false) Long lastSurveyId
 	) {
-		List<SearchSurveyTitleResponse> surveyByProjectId = surveyQueryService.findSurveyByProjectId(projectId, lastSurveyId);
+		List<SearchSurveyTitleResponse> surveyByProjectId = surveyReadService.findSurveyByProjectId(projectId,
+			lastSurveyId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
+	}
+
+	@GetMapping("/surveys/find-surveys")
+	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
+		@RequestParam List<Long> surveyIds
+	) {
+		List<SearchSurveyTitleResponse> surveys = surveyReadService.findSurveys(surveyIds);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveys));
+	}
+
+	@GetMapping("/surveys/find-status")
+	public ResponseEntity<ApiResponse<SearchSurveyStatusResponse>> getSurveyStatus(
+		@RequestParam String surveyStatus
+	) {
+		SearchSurveyStatusResponse bySurveyStatus = surveyReadService.findBySurveyStatus(surveyStatus);
+
+		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", bySurveyStatus));
 	}
 }

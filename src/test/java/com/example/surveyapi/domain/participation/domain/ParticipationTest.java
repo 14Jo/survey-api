@@ -12,27 +12,36 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.surveyapi.domain.participation.domain.command.ResponseData;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
+import com.example.surveyapi.domain.participation.domain.participation.enums.Gender;
 import com.example.surveyapi.domain.participation.domain.participation.vo.ParticipantInfo;
-import com.example.surveyapi.domain.participation.domain.response.Response;
-import com.example.surveyapi.global.enums.CustomErrorCode;
+import com.example.surveyapi.domain.participation.domain.participation.vo.Region;
+import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
 class ParticipationTest {
+
+	private ResponseData createResponseData(Long questionId, Map<String, Object> answer) {
+		ResponseData responseData = new ResponseData();
+		ReflectionTestUtils.setField(responseData, "questionId", questionId);
+		ReflectionTestUtils.setField(responseData, "answer", answer);
+		return responseData;
+	}
 
 	@Test
 	@DisplayName("참여 생성")
 	void createParticipation() {
 		// given
-		Long memberId = 1L;
+		Long userId = 1L;
 		Long surveyId = 1L;
-		ParticipantInfo participantInfo = new ParticipantInfo();
+		ParticipantInfo participantInfo = ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE,
+			Region.of("서울", "강남구"));
 
 		// when
-		Participation participation = Participation.create(memberId, surveyId, participantInfo,
+		Participation participation = Participation.create(userId, surveyId, participantInfo,
 			Collections.emptyList());
 
 		// then
-		assertThat(participation.getMemberId()).isEqualTo(memberId);
+		assertThat(participation.getUserId()).isEqualTo(userId);
 		assertThat(participation.getSurveyId()).isEqualTo(surveyId);
 		assertThat(participation.getParticipantInfo()).isEqualTo(participantInfo);
 	}
@@ -41,38 +50,33 @@ class ParticipationTest {
 	@DisplayName("응답이 추가된 참여 생성")
 	void addResponse() {
 		// given
-		Long memberId = 1L;
+		Long userId = 1L;
 		Long surveyId = 1L;
 
-		ResponseData responseData1 = new ResponseData();
-		ReflectionTestUtils.setField(responseData1, "questionId", 1L);
-		ReflectionTestUtils.setField(responseData1, "answer", Map.of("textAnswer", "주관식 및 서술형 답변입니다."));
-
-		ResponseData responseData2 = new ResponseData();
-		ReflectionTestUtils.setField(responseData2, "questionId", 2L);
-		ReflectionTestUtils.setField(responseData2, "answer", Map.of("choice", "2"));
+		ResponseData responseData1 = createResponseData(1L, Map.of("textAnswer", "주관식 및 서술형 답변입니다."));
+		ResponseData responseData2 = createResponseData(2L, Map.of("choice", "2"));
 
 		List<ResponseData> responseDataList = List.of(responseData1, responseData2);
 
 		// when
-		Participation participation = Participation.create(memberId, surveyId, new ParticipantInfo(), responseDataList);
+		Participation participation = Participation.create(userId, surveyId,
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, Region.of("서울", "강남구")), responseDataList);
 
 		// then
 		assertThat(participation).isNotNull();
 		assertThat(participation.getSurveyId()).isEqualTo(surveyId);
-		assertThat(participation.getMemberId()).isEqualTo(memberId);
-		assertThat(participation.getParticipantInfo()).isEqualTo(new ParticipantInfo());
+		assertThat(participation.getUserId()).isEqualTo(userId);
+		assertThat(participation.getParticipantInfo()).isEqualTo(
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, Region.of("서울", "강남구")));
 
-		assertThat(participation.getResponses()).hasSize(2);
-		Response createdResponse1 = participation.getResponses().get(0);
+		assertThat(participation.getAnswers()).hasSize(2);
+		ResponseData createdResponse1 = participation.getAnswers().get(0);
 		assertThat(createdResponse1.getQuestionId()).isEqualTo(responseData1.getQuestionId());
 		assertThat(createdResponse1.getAnswer()).isEqualTo(responseData1.getAnswer());
-		assertThat(createdResponse1.getParticipation()).isEqualTo(participation);
 
-		Response createdResponse2 = participation.getResponses().get(1);
+		ResponseData createdResponse2 = participation.getAnswers().get(1);
 		assertThat(createdResponse2.getQuestionId()).isEqualTo(responseData2.getQuestionId());
 		assertThat(createdResponse2.getAnswer()).isEqualTo(responseData2.getAnswer());
-		assertThat(createdResponse2.getParticipation()).isEqualTo(participation);
 	}
 
 	@Test
@@ -80,7 +84,9 @@ class ParticipationTest {
 	void validateOwner_notThrowException() {
 		// given
 		Long ownerId = 1L;
-		Participation participation = Participation.create(ownerId, 1L, new ParticipantInfo(), Collections.emptyList());
+		Participation participation = Participation.create(ownerId, 1L,
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, Region.of("서울", "강남구")),
+			Collections.emptyList());
 
 		// when & then
 		assertThatCode(() -> participation.validateOwner(ownerId))
@@ -93,7 +99,9 @@ class ParticipationTest {
 		// given
 		Long ownerId = 1L;
 		Long otherId = 2L;
-		Participation participation = Participation.create(ownerId, 1L, new ParticipantInfo(), Collections.emptyList());
+		Participation participation = Participation.create(ownerId, 1L,
+			ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE, Region.of("서울", "강남구")),
+			Collections.emptyList());
 
 		// when & then
 		assertThatThrownBy(() -> participation.validateOwner(otherId))
@@ -105,42 +113,38 @@ class ParticipationTest {
 	@DisplayName("참여 기록 수정")
 	void updateParticipation() {
 		// given
-		Long memberId = 1L;
+		Long userId = 1L;
 		Long surveyId = 1L;
-		ParticipantInfo participantInfo = new ParticipantInfo();
+		ParticipantInfo participantInfo = ParticipantInfo.of("2000-01-01T00:00:00", Gender.MALE,
+			Region.of("서울", "강남구"));
 
-		ResponseData ResponseData1 = new ResponseData();
-		ReflectionTestUtils.setField(ResponseData1, "questionId", 1L);
-		ReflectionTestUtils.setField(ResponseData1, "answer", Map.of("textAnswer", "초기 답변1"));
+		ResponseData responseData1 = createResponseData(1L, Map.of("textAnswer", "초기 답변1"));
+		ResponseData responseData2 = createResponseData(2L, Map.of("choice", 3));
 
-		ResponseData ResponseData2 = new ResponseData();
-		ReflectionTestUtils.setField(ResponseData2, "questionId", 2L);
-		ReflectionTestUtils.setField(ResponseData2, "answer", Map.of("choice", 3));
-
-		List<ResponseData> initialResponseDataList = List.of(ResponseData1, ResponseData2);
-		Participation participation = Participation.create(memberId, surveyId, participantInfo,
+		List<ResponseData> initialResponseDataList = List.of(responseData1, responseData2);
+		Participation participation = Participation.create(userId, surveyId, participantInfo,
 			initialResponseDataList);
 
-		Response newResponse1 = Response.create(1L, Map.of("textAnswer", "수정된 답변1"));
-		Response newResponse2 = Response.create(2L, Map.of("choice", "4"));
+		ResponseData newResponseData1 = createResponseData(1L, Map.of("textAnswer", "수정된 답변1"));
+		ResponseData newResponseData2 = createResponseData(2L, Map.of("choice", "4"));
 
-		List<Response> newResponses = List.of(newResponse1, newResponse2);
+		List<ResponseData> newResponseDataList = List.of(newResponseData1, newResponseData2);
 
 		// when
-		participation.update(newResponses);
+		participation.update(newResponseDataList);
 
 		// then
-		assertThat(participation.getResponses()).hasSize(2);
-		assertThat(participation.getResponses())
+		assertThat(participation.getAnswers()).hasSize(2);
+		assertThat(participation.getAnswers())
 			.extracting("questionId")
 			.containsExactlyInAnyOrder(1L, 2L);
 
-		Response updatedResponse1 = participation.getResponses().stream()
+		ResponseData updatedResponse1 = participation.getAnswers().stream()
 			.filter(r -> r.getQuestionId().equals(1L))
 			.findFirst().orElseThrow();
 		assertThat(updatedResponse1.getAnswer()).isEqualTo(Map.of("textAnswer", "수정된 답변1"));
 
-		Response updatedResponse2 = participation.getResponses().stream()
+		ResponseData updatedResponse2 = participation.getAnswers().stream()
 			.filter(r -> r.getQuestionId().equals(2L))
 			.findFirst().orElseThrow();
 		assertThat(updatedResponse2.getAnswer()).isEqualTo(Map.of("choice", "4"));
