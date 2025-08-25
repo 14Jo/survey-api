@@ -75,7 +75,7 @@ class SurveyTest {
     }
 
     @Test
-    @DisplayName("Survey.open - 준비 중에서 진행 중으로 상태 변경")
+    @DisplayName("Survey.openAt - 준비 중에서 진행 중으로 상태 변경")
     void openSurvey_success() {
         // given
         Survey survey = Survey.create(
@@ -86,14 +86,14 @@ class SurveyTest {
         );
 
         // when
-        survey.open();
+        survey.openAt(LocalDateTime.now());
 
         // then
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.IN_PROGRESS);
     }
 
     @Test
-    @DisplayName("Survey.close - 진행 중에서 종료로 상태 변경")
+    @DisplayName("Survey.closeAt - 진행 중에서 종료로 상태 변경")
     void closeSurvey_success() {
         // given
         Survey survey = Survey.create(
@@ -102,10 +102,10 @@ class SurveyTest {
             SurveyOption.of(true, true),
             List.of()
         );
-        survey.open();
+        survey.openAt(LocalDateTime.now());
 
         // when
-        survey.close();
+        survey.closeAt(LocalDateTime.now());
 
         // then
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.CLOSED);
@@ -255,11 +255,12 @@ class SurveyTest {
     }
 
     @Test
-    @DisplayName("Survey.open - 시작 시간 업데이트")
+    @DisplayName("Survey.openAt - 시작 시간 업데이트")
     void openSurvey_startTimeUpdate() {
         // given
         LocalDateTime originalStartDate = LocalDateTime.now().plusDays(1);
         LocalDateTime originalEndDate = LocalDateTime.now().plusDays(10);
+        LocalDateTime actualStartTime = LocalDateTime.now();
         Survey survey = Survey.create(
             1L, 1L, "설문 제목", "설문 설명", SurveyType.VOTE,
             SurveyDuration.of(originalStartDate, originalEndDate),
@@ -268,34 +269,36 @@ class SurveyTest {
         );
 
         // when
-        survey.open();
+        survey.openAt(actualStartTime);
 
         // then
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.IN_PROGRESS);
-        assertThat(survey.getDuration().getStartDate()).isBefore(originalStartDate);
+        assertThat(survey.getDuration().getStartDate()).isEqualTo(actualStartTime);
         assertThat(survey.getDuration().getEndDate()).isEqualTo(originalEndDate);
     }
 
     @Test
-    @DisplayName("Survey.close - 종료 시간 업데이트")
+    @DisplayName("Survey.closeAt - 종료 시간 업데이트")
     void closeSurvey_endTimeUpdate() {
         // given
         LocalDateTime originalStartDate = LocalDateTime.now().plusDays(1);
         LocalDateTime originalEndDate = LocalDateTime.now().plusDays(10);
+        LocalDateTime actualStartTime = LocalDateTime.now();
+        LocalDateTime actualEndTime = LocalDateTime.now().plusMinutes(30);
         Survey survey = Survey.create(
             1L, 1L, "설문 제목", "설문 설명", SurveyType.VOTE,
             SurveyDuration.of(originalStartDate, originalEndDate),
             SurveyOption.of(true, true),
             List.of()
         );
-        survey.open();
+        survey.openAt(actualStartTime);
 
         // when
-        survey.close();
+        survey.closeAt(actualEndTime);
 
         // then
         assertThat(survey.getStatus()).isEqualTo(SurveyStatus.CLOSED);
-        assertThat(survey.getDuration().getStartDate()).isBefore(originalStartDate);
-        assertThat(survey.getDuration().getEndDate()).isBefore(originalEndDate);
+        assertThat(survey.getDuration().getStartDate()).isEqualTo(actualStartTime);
+        assertThat(survey.getDuration().getEndDate()).isEqualTo(actualEndTime);
     }
 }
