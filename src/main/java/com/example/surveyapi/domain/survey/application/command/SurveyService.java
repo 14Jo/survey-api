@@ -13,13 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectPort;
-import com.example.surveyapi.domain.survey.application.client.ProjectStateDto;
 import com.example.surveyapi.domain.survey.application.client.ProjectValidDto;
-import com.example.surveyapi.domain.survey.application.command.dto.request.CreateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.command.dto.request.UpdateSurveyRequest;
-import com.example.surveyapi.domain.survey.application.qeury.SurveyReadSyncPort;
-import com.example.surveyapi.domain.survey.application.qeury.dto.QuestionSyncDto;
-import com.example.surveyapi.domain.survey.application.qeury.dto.SurveySyncDto;
 import com.example.surveyapi.domain.survey.application.dto.request.CreateSurveyRequest;
 import com.example.surveyapi.domain.survey.application.dto.request.UpdateSurveyRequest;
 import com.example.surveyapi.domain.survey.domain.survey.Survey;
@@ -35,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class SurveyService {
-
 
 	private final SurveyRepository surveyRepository;
 	private final ProjectPort projectPort;
@@ -98,8 +91,6 @@ public class SurveyService {
 		survey.updateFields(updateFields);
 		survey.applyDurationChange(survey.getDuration(), LocalDateTime.now());
 		surveyRepository.update(survey);
-
-
 
 		return survey.getSurveyId();
 	}
