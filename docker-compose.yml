@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  elasticsearch:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: elasticsearch-nori-8.15
+    environment:
+      # - discovery.type=single-node: 단일 노드로 실행 (클러스터 구성 안 함)
+      - discovery.type=single-node
+      # - xpack.security.enabled=false: 로그인 없이 바로 사용할 수 있도록 보안 기능 비활성화
+      - xpack.security.enabled=false
+      # - ES_JAVA_OPTS: 엘라스틱서치가 사용할 메모리 (힙 사이즈) 설정
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ports:
+      - "9200:9200" # REST API 포트
+      - "9300:9300" # 내부 통신 포트
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+volumes:
+  esdata:
+    driver: local
