@@ -12,18 +12,19 @@ import com.example.surveyapi.global.dto.ExternalApiResponse;
 @HttpExchange
 public interface ParticipationApiClient {
 
-	@GetExchange("/api/v1/surveys/participations")
+	@GetExchange("/api/surveys/participations")
 	ExternalApiResponse getParticipationInfos(
 		@RequestHeader("Authorization") String authHeader,
 		@RequestParam List<Long> surveyIds
 	);
 
-	@GetExchange("/api/v2/surveys/participations/count")
+	@GetExchange("/api/surveys/participations/count")
 	ExternalApiResponse getParticipationCounts(
 		@RequestParam List<Long> surveyIds
 	);
 
-	@GetExchange("/api/v2/participations/answers")
+	// TODO: 통계 도메인 코드 업데이트 후 삭제 (삭제된 api)
+	@GetExchange("/api/participations/answers")
 	ExternalApiResponse getParticipationAnswers(
 		@RequestHeader("Authorization") String authHeader,
 		@RequestParam List<Long> questionIds

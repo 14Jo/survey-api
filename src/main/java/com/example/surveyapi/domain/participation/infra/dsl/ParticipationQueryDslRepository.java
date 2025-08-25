@@ -1,10 +1,10 @@
 package com.example.surveyapi.domain.participation.infra.dsl;
 
 import static com.example.surveyapi.domain.participation.domain.participation.QParticipation.*;
-import static com.example.surveyapi.domain.participation.domain.response.QResponse.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -13,7 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationInfo;
-import com.example.surveyapi.domain.participation.domain.participation.query.QuestionAnswer;
+import com.example.surveyapi.domain.participation.domain.participation.query.ParticipationProjection;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 
@@ -67,15 +67,35 @@ public class ParticipationQueryDslRepository {
 		return map;
 	}
 
-	public List<QuestionAnswer> getAnswersByQuestionIds(List<Long> questionIds) {
+	public List<ParticipationProjection> findParticipationProjectionsBySurveyIds(List<Long> surveyIds) {
 		return queryFactory
 			.select(Projections.constructor(
-				QuestionAnswer.class,
-				response.questionId,
-				response.answer
+				ParticipationProjection.class,
+				participation.surveyId,
+				participation.id,
+				participation.updatedAt,
+				participation.answers
 			))
-			.from(response)
-			.where(response.questionId.in(questionIds))
+			.from(participation)
+			.where(participation.surveyId.in(surveyIds))
 			.fetch();
+	}
+
+	public Optional<ParticipationProjection> findParticipationProjectionByIdAndUserId(Long participationId, Long userId) {
+		ParticipationProjection projection = queryFactory
+			.select(Projections.constructor(
+				ParticipationProjection.class,
+				participation.surveyId,
+				participation.id,
+				participation.updatedAt,
+				participation.answers
+			))
+			.from(participation)
+			.where(
+				participation.id.eq(participationId),
+				participation.userId.eq(userId)
+			)
+			.fetchOne();
+		return Optional.ofNullable(projection);
 	}
 }

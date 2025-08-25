@@ -41,13 +41,13 @@ public class SecurityConfig {
                 .requestMatchers("/auth/kakao/login").permitAll()
                 .requestMatchers("/auth/naver/login").permitAll()
                 .requestMatchers("/auth/google/login").permitAll()
-                .requestMatchers("/api/v1/survey/**").permitAll()
-                .requestMatchers("/api/v1/surveys/**").permitAll()
-                .requestMatchers("/api/v1/projects/**").permitAll()
-                .requestMatchers("/api/v2/survey/**").permitAll()
+                .requestMatchers("/api/survey/**").permitAll()
+                .requestMatchers("/api/surveys/**").permitAll()
+                .requestMatchers("/api/projects/**").permitAll()
+                .requestMatchers("/api/survey/**").permitAll()
                 .requestMatchers("/error").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers("/api/v2/surveys/participations/count").permitAll()
+                .requestMatchers("/api/surveys/participations/count").permitAll()
                 .anyRequest().authenticated())
             .addFilterBefore(new JwtFilter(jwtUtil, redisTemplate), UsernamePasswordAuthenticationFilter.class);
 
