@@ -13,9 +13,7 @@ import com.example.surveyapi.domain.participation.domain.participation.vo.Partic
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ParticipationCreatedEvent implements ParticipationEvent {
@@ -66,8 +64,6 @@ public class ParticipationCreatedEvent implements ParticipationEvent {
 								.collect(Collectors.toList());
 						}
 					}
-					log.info("이벤트 로그: questionId = {}, choiceIds = {}, responseText = {}", answerDto.questionId,
-						answerDto.choiceIds, answerDto.responseText);
 					return answerDto;
 				})
 				.collect(Collectors.toList());
