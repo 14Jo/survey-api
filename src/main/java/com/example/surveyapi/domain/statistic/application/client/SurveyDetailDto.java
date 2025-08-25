@@ -1,4 +1,4 @@
-package com.example.surveyapi.domain.statistic.application.client.dto;
+package com.example.surveyapi.domain.statistic.application.client;
 
 import java.util.List;
 

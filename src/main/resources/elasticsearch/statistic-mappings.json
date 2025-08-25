@@ -7,7 +7,7 @@
       "type": "keyword"
     },
     "questionId": {
-      "type": "keyword"
+      "type": "long"
     },
     "questionText": {
       "type": "text",
@@ -17,7 +17,7 @@
       "type": "keyword"
     },
     "choiceId": {
-      "type": "keyword"
+      "type": "integer"
     },
     "choiceText": {
       "type": "text",

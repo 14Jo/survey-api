@@ -93,6 +93,7 @@ public class GlobalExceptionHandler {
 
 	@ExceptionHandler(Exception.class)
 	protected ResponseEntity<ApiResponse<String>> handleException(Exception e) {
+		log.error(e.getMessage());
 		return ResponseEntity.status(CustomErrorCode.SERVER_ERROR.getHttpStatus())
 			.body(ApiResponse.error("알 수 없는 오류 message : {}", e.getMessage()));
 	}

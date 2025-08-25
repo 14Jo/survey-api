@@ -21,6 +21,7 @@ configurations {
 
 repositories {
     mavenCentral()
+    maven { url 'https://artifacts.elastic.co/maven' }
 }
 
 dependencies {
@@ -89,6 +90,8 @@ dependencies {
 
     // Elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
+    implementation 'co.elastic.clients:elasticsearch-java:8.15.0'
+
     //FCM
     implementation 'com.google.firebase:firebase-admin:9.2.0'
 }

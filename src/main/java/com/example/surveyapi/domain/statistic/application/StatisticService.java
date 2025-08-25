@@ -1,13 +1,8 @@
 package com.example.surveyapi.domain.statistic.application;
 
-import java.util.List;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.surveyapi.domain.statistic.application.client.dto.ParticipationInfoDto;
-import com.example.surveyapi.domain.statistic.application.client.ParticipationServicePort;
-import com.example.surveyapi.domain.statistic.domain.depri.StatisticCommand;
 import com.example.surveyapi.domain.statistic.domain.statistic.Statistic;
 import com.example.surveyapi.domain.statistic.domain.statistic.StatisticRepository;
 import com.example.surveyapi.global.exception.CustomErrorCode;
@@ -22,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 public class StatisticService {
 
 	private final StatisticRepository statisticRepository;
-	private final ParticipationServicePort participationServicePort;
 
 	@Transactional
 	public void create(Long surveyId) {
@@ -36,18 +30,5 @@ public class StatisticService {
 	public Statistic getStatistic(Long surveyId) {
 		return statisticRepository.findById(surveyId)
 			.orElseThrow(() -> new CustomException(CustomErrorCode.STATISTICS_NOT_FOUND));
-	}
-
-	private StatisticCommand toStatisticCommand(List<ParticipationInfoDto.ParticipationDetailDto> participations) {
-		List<StatisticCommand.ParticipationDetailData> detail = participations.stream()
-			.map(participation -> new StatisticCommand.ParticipationDetailData(
-				participation.participatedAt(),
-				participation.responses().stream()
-					.map(response -> new StatisticCommand.ResponseData(
-						response.questionId(), response.answer()
-					)).toList()
-			)).toList();
-
-		return new StatisticCommand(detail);
 	}
 }

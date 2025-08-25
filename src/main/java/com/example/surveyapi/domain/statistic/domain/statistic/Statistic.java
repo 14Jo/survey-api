@@ -38,6 +38,7 @@ public class Statistic extends BaseEntity {
 	public static Statistic start(Long surveyId) {
 		Statistic statistic = new Statistic();
 		statistic.surveyId = surveyId;
+		statistic.finalResponseCount = 0L;
 		statistic.status = StatisticStatus.COUNTING;
 		statistic.startedAt = LocalDateTime.now();
 
@@ -51,6 +52,10 @@ public class Statistic extends BaseEntity {
 		this.status = StatisticStatus.DONE;
 		this.finalResponseCount = finalCount;
 		this.endedAt = LocalDateTime.now();
+	}
+
+	public void increaseCount() {
+		finalResponseCount++;
 	}
 
 	public void verifyIfCounting() {

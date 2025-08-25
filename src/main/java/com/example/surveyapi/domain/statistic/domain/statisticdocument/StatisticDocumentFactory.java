@@ -11,11 +11,54 @@ import com.example.surveyapi.domain.statistic.domain.statisticdocument.dto.Surve
 
 @Component
 public class StatisticDocumentFactory {
+
+	public List<StatisticDocument> initDocuments(Long surveyId, SurveyMetadata metadata) {
+		return metadata.getQuestionMap().entrySet().stream()
+			.flatMap(data -> createInitialStreamForQuestion(surveyId, data.getKey(), data.getValue()))
+			.toList();
+	}
+
 	public List<StatisticDocument> createDocuments(DocumentCreateCommand command, SurveyMetadata metadata) {
 		return command.answers().stream()
 			.flatMap(answer -> createStreamOfDocuments(command, answer, metadata))
 			.filter(Objects::nonNull)
 			.toList();
+	}
+
+	private Stream<StatisticDocument> createInitialStreamForQuestion(Long surveyId, Long questionId, SurveyMetadata.QuestionMetadata questionMeta) {
+		if ("SINGLE_CHOICE".equals(questionMeta.questionType()) || "MULTIPLE_CHOICE".equals(questionMeta.questionType())) {
+			return questionMeta.choiceMap().entrySet().stream()
+				.map(choiceEntry -> {
+					Long choiceId = choiceEntry.getKey();
+					String choiceText = choiceEntry.getValue();
+					return buildInitialDocument(surveyId, questionId, questionMeta, choiceId, choiceText);
+				});
+		}
+		if ("LONG_ANSWER".equals(questionMeta.questionType()) || "SHORT_ANSWER".equals(questionMeta.questionType())) {
+			return Stream.of(buildInitialDocument(surveyId, questionId, questionMeta, null, null));
+		}
+		return Stream.empty();
+	}
+
+	private StatisticDocument buildInitialDocument(
+		Long surveyId, Long questionId,
+		SurveyMetadata.QuestionMetadata questionMeta, Long choiceId, String choiceText
+	) {
+		String documentId = (choiceId != null) ?
+			String.format("%d-%d-%d-init", surveyId, questionId, choiceId) :
+			String.format("%d-%d-init", surveyId, questionId);
+		String responseText = (choiceId != null) ? null : "";
+
+		return StatisticDocument.create(
+			documentId,
+			surveyId,
+			questionId,
+			questionMeta.content(),
+			questionMeta.questionType(),
+			(choiceId != null) ? choiceId.intValue() : null,
+			choiceText,
+			responseText, null, null, null, null, null, null
+		);
 	}
 
 	private Stream<StatisticDocument> createStreamOfDocuments(DocumentCreateCommand command,

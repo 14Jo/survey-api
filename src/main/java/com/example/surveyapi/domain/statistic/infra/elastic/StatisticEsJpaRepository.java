@@ -4,5 +4,5 @@ import org.springframework.data.elasticsearch.repository.ElasticsearchRepository
 
 import com.example.surveyapi.domain.statistic.domain.statisticdocument.StatisticDocument;
 
-public interface StatisticElasticRepository extends ElasticsearchRepository<StatisticDocument, Long> {
+public interface StatisticEsJpaRepository extends ElasticsearchRepository<StatisticDocument, Long> {
 }
