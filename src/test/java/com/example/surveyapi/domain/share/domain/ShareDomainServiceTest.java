@@ -42,8 +42,8 @@ class ShareDomainServiceTest {
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getLink()).startsWith("http://localhost:8080/share/surveys/");
-		assertThat(share.getLink().length()).isGreaterThan("http://localhost:8080/share/surveys/".length());
+		assertThat(share.getLink()).startsWith("https://localhost:8080/share/surveys/");
+		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/share/surveys/".length());
 	}
 
 	@Test
@@ -63,8 +63,8 @@ class ShareDomainServiceTest {
 		assertThat(share).isNotNull();
 		assertThat(share.getSourceType()).isEqualTo(sourceType);
 		assertThat(share.getSourceId()).isEqualTo(sourceId);
-		assertThat(share.getLink()).startsWith("http://localhost:8080/share/projects/");
-		assertThat(share.getLink().length()).isGreaterThan("http://localhost:8080/share/projects/".length());
+		assertThat(share.getLink()).startsWith("https://localhost:8080/share/projects/");
+		assertThat(share.getLink().length()).isGreaterThan("https://localhost:8080/share/projects/".length());
 	}
 
 	@Test
