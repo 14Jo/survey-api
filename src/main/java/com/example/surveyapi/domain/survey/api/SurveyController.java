@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 public class SurveyController {
 
@@ -53,7 +53,7 @@ public class SurveyController {
 		surveyService.open(authHeader, surveyId, creatorId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-		.body(ApiResponse.success("설문 시작 성공", "X"));
+			.body(ApiResponse.success("설문 시작 성공", "X"));
 	}
 
 	@PatchMapping("/{surveyId}/close")
@@ -65,7 +65,7 @@ public class SurveyController {
 		surveyService.close(authHeader, surveyId, creatorId);
 
 		return ResponseEntity.status(HttpStatus.OK)
-		.body(ApiResponse.success("설문 종료 성공", "X"));
+			.body(ApiResponse.success("설문 종료 성공", "X"));
 	}
 
 	@PutMapping("/surveys/{surveyId}")
