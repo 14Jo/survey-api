@@ -1,0 +1,23 @@
+jar {
+    enabled = true
+    archiveClassifier = ''
+}
+
+bootJar {
+    enabled = false
+}
+
+dependencies {
+    implementation project(':shared-kernel')
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    implementation 'co.elastic.clients:elasticsearch-java:8.11.0'
+    implementation 'org.springframework.data:spring-data-elasticsearch:5.1.10'
+
+    implementation 'com.querydsl:querydsl-jpa:5.1.0:jakarta'
+    annotationProcessor "com.querydsl:querydsl-apt:5.1.0:jakarta"
+    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+
+    testImplementation 'org.springframework.security:spring-security-test'
+}

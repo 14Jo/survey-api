@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  survey-api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      target: builder
+    volumes:
+      - ../web-app/src:/app/web-app/src
+      - ../shared-kernel/src:/app/shared-kernel/src
+      - ../user-module/src:/app/user-module/src
+      - ../project-module/src:/app/project-module/src
+      - ../survey-module/src:/app/survey-module/src
+      - ../participation-module/src:/app/participation-module/src
+      - ../statistic-module/src:/app/statistic-module/src
+      - ../share-module/src:/app/share-module/src
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DEVTOOLS_RESTART_ENABLED=true
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - LOGGING_LEVEL_COM_EXAMPLE_SURVEYAPI=DEBUG
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB=DEBUG
+    ports:
+      - "8080:8080"
+      - "5005:5005"
+    command: >
+      sh -c "
+        ./gradlew :web-app:bootRun --args='--spring.profiles.active=dev'
+      "
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  mongodb:
+    ports:
+      - "27017:27017"
+
+  rabbitmq:
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    command: >
+      sh -c "
+        rabbitmq-plugins enable rabbitmq_delayed_message_exchange &&
+        docker-entrypoint.sh rabbitmq-server
+      "
+
+  elasticsearch:
+    environment:
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+    ports:
+      - "9200:9200"
+    command: >
+      sh -c "
+        elasticsearch-plugin list | grep -q analysis-nori || elasticsearch-plugin install analysis-nori --batch &&
+        /usr/local/bin/docker-entrypoint.sh
+      "
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    networks:
+      - survey-network
+
+  mongo-express:
+    image: mongo-express:latest
+    environment:
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGODB_USERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGODB_PASSWORD}
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin
+    ports:
+      - "8082:8081"
+    depends_on:
+      - mongodb
+    networks:
+      - survey-network

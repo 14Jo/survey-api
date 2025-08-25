@@ -1,0 +1,185 @@
+package com.example.surveyapi.share.application.share;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.example.surveyapi.share.application.client.UserEmailDto;
+import com.example.surveyapi.share.application.client.UserServicePort;
+import com.example.surveyapi.share.application.share.dto.ShareResponse;
+import com.example.surveyapi.share.domain.notification.vo.ShareMethod;
+import com.example.surveyapi.share.domain.share.ShareDomainService;
+import com.example.surveyapi.share.domain.share.entity.Share;
+import com.example.surveyapi.share.domain.share.repository.ShareRepository;
+import com.example.surveyapi.share.domain.share.vo.ShareSourceType;
+import com.example.surveyapi.global.exception.CustomErrorCode;
+import com.example.surveyapi.global.exception.CustomException;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class ShareService {
+	private final ShareRepository shareRepository;
+	private final ShareDomainService shareDomainService;
+	private final UserServicePort userServicePort;
+
+	public ShareResponse createShare(ShareSourceType sourceType, Long sourceId,
+		Long creatorId, LocalDateTime expirationDate) {
+		Share existingShare = shareRepository.findBySource(sourceType, sourceId);
+
+		if(existingShare != null) {
+			throw new CustomException(CustomErrorCode.ALREADY_EXISTED_SHARE);
+		}
+
+		Share share = shareDomainService.createShare(
+			sourceType, sourceId,
+			creatorId, expirationDate);
+		Share saved = shareRepository.save(share);
+
+		return ShareResponse.from(saved);
+	}
+
+	public void createNotifications(String authHeader, Long shareId, Long creatorId,
+		ShareMethod shareMethod, List<String> emails,
+		LocalDateTime notifyAt) {
+		Share share = shareRepository.findById(shareId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+
+		if (!share.isOwner(creatorId)) {
+			throw new CustomException(CustomErrorCode.ACCESS_DENIED_SHARE);
+		}
+
+		Map<String, Long> emailToUserIdMap = new HashMap<>();
+
+		if ((shareMethod == ShareMethod.PUSH || shareMethod == ShareMethod.APP)
+			&& emails != null && !emails.isEmpty()) {
+			for (String email : emails) {
+				try {
+					UserEmailDto userEmailDto = userServicePort.getUserByEmail(authHeader, email);
+					if (userEmailDto != null && userEmailDto.getUserId() != null) {
+						emailToUserIdMap.put(email, userEmailDto.getUserId());
+					}
+				} catch (Exception e) {
+					throw new CustomException(CustomErrorCode.CANNOT_CREATE_NOTIFICATION);
+				}
+			}
+		}
+
+		share.createNotifications(shareMethod, emails, notifyAt, emailToUserIdMap);
+	}
+
+	@Transactional(readOnly = true)
+	public List<ShareResponse> getShare(String sourceType, Long sourceId, Long currentUserId) {
+		List<Share> shares;
+
+		if ("project".equalsIgnoreCase(sourceType)) {
+			Share managerShare = shareRepository.findBySource(ShareSourceType.PROJECT_MANAGER, sourceId);
+			Share memberShare = shareRepository.findBySource(ShareSourceType.PROJECT_MEMBER, sourceId);
+
+			shares = new ArrayList<>();
+			if (managerShare != null) shares.add(managerShare);
+			if (memberShare != null) shares.add(memberShare);
+		} else if ("survey".equalsIgnoreCase(sourceType)) {
+			Share surveyShare = shareRepository.findBySource(ShareSourceType.SURVEY, sourceId);
+
+			if (surveyShare != null) {
+				shares = List.of(surveyShare);
+			} else {
+				shares = Collections.emptyList();
+			}
+		} else {
+			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
+		}
+
+		if (shares.isEmpty()) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		shares.forEach(share -> {
+			if (!share.isOwner(currentUserId)) {
+				throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+			}
+		});
+
+
+		return shares.stream().map(ShareResponse::from)
+			.collect(Collectors.toList());
+	}
+
+	@Transactional(readOnly = true)
+	public Share getShareEntity(Long shareId, Long currentUserId) {
+		Share share = shareRepository.findById(shareId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+
+		if (!share.isOwner(currentUserId)) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return share;
+	}
+
+	@Transactional(readOnly = true)
+	public Share getShareBySource(ShareSourceType sourceType, Long sourceId) {
+		Share share = shareRepository.findBySource(sourceType, sourceId);
+
+		if (share.isDeleted()) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return share;
+	}
+
+	@Transactional(readOnly = true)
+	public List<Share> getShareBySourceId(Long sourceId) {
+		List<Share> shares = shareRepository.findBySourceId(sourceId);
+
+		if (shares.isEmpty()) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+
+		return shares;
+	}
+
+	public String delete(Long shareId, Long currentUserId) {
+		Share share = shareRepository.findById(shareId)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+
+		if (!share.isOwner(currentUserId)) {
+			throw new CustomException(CustomErrorCode.NOT_FOUND_SHARE);
+		}
+		shareRepository.delete(share);
+
+		return "공유 삭제 완료";
+	}
+
+	@Transactional(readOnly = true)
+	public Share getShareByToken(String token) {
+		Share share = shareRepository.findByToken(token)
+			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_SHARE));
+
+		if(share.isDeleted() || share.getExpirationDate().isBefore(LocalDateTime.now())) {
+			throw new CustomException(CustomErrorCode.SHARE_EXPIRED);
+		}
+
+		return share;
+	}
+
+	public String getRedirectUrl(String token, ShareSourceType sourceType) {
+		Share share = getShareByToken(token);
+
+		if (share.getSourceType() != sourceType) {
+			throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
+		}
+
+		return shareDomainService.getRedirectUrl(share);
+	}
+}

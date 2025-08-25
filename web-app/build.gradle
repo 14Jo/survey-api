@@ -1,0 +1,16 @@
+dependencies {
+    implementation project(':shared-kernel')
+    implementation project(':user-module')
+    implementation project(':project-module')
+    implementation project(':survey-module')
+    implementation project(':participation-module')
+    implementation project(':statistic-module')
+    implementation project(':share-module')
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
+    testImplementation 'org.testcontainers:mongodb'
+    testImplementation 'org.springframework.test:spring-test'
+}

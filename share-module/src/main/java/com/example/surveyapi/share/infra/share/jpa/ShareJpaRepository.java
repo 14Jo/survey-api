@@ -1,0 +1,21 @@
+package com.example.surveyapi.share.infra.share.jpa;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.surveyapi.share.domain.share.entity.Share;
+import com.example.surveyapi.share.domain.share.vo.ShareSourceType;
+
+public interface ShareJpaRepository extends JpaRepository<Share, Long> {
+	Optional<Share> findByLink(String link);
+
+	Optional<Share> findById(Long id);
+
+	Optional<Share> findByToken(String token);
+
+	Share findBySourceTypeAndSourceId(ShareSourceType sourceType, Long sourceId);
+
+	List<Share> findBySourceId(Long sourceId);
+}

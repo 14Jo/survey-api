@@ -1,1 +1,10 @@
 rootProject.name = 'survey-api'
+
+include 'shared-kernel'
+include 'user-module'
+include 'project-module'
+include 'survey-module'
+include 'participation-module'
+include 'statistic-module'
+include 'share-module'
+include 'web-app'

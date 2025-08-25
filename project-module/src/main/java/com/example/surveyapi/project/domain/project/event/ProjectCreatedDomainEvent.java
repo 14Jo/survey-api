@@ -1,0 +1,14 @@
+package com.example.surveyapi.project.domain.project.event;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@Getter
+@AllArgsConstructor
+public class ProjectCreatedDomainEvent {
+	private Long projectId;
+	private Long ownerId;
+	private LocalDateTime periodEnd;
+}
