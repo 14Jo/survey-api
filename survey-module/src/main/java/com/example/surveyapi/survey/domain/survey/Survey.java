@@ -13,6 +13,7 @@ import com.example.surveyapi.survey.domain.survey.event.ActivateEvent;
 import com.example.surveyapi.survey.domain.survey.event.CreatedEvent;
 import com.example.surveyapi.survey.domain.survey.event.DeletedEvent;
 import com.example.surveyapi.survey.domain.survey.event.ScheduleStateChangedEvent;
+import com.example.surveyapi.survey.domain.survey.event.UpdatedEvent;
 import com.example.surveyapi.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.survey.domain.survey.vo.SurveyOption;

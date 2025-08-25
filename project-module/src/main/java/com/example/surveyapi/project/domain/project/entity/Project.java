@@ -11,8 +11,6 @@ import com.example.surveyapi.project.domain.participant.member.entity.ProjectMem
 import com.example.surveyapi.project.domain.project.enums.ProjectState;
 import com.example.surveyapi.project.domain.project.event.ProjectCreatedDomainEvent;
 import com.example.surveyapi.project.domain.project.event.ProjectDeletedDomainEvent;
-import com.example.surveyapi.project.domain.project.event.ProjectManagerAddedDomainEvent;
-import com.example.surveyapi.project.domain.project.event.ProjectMemberAddedDomainEvent;
 import com.example.surveyapi.project.domain.project.event.ProjectStateChangedDomainEvent;
 import com.example.surveyapi.project.domain.project.vo.ProjectPeriod;
 import com.example.surveyapi.global.exception.CustomErrorCode;
