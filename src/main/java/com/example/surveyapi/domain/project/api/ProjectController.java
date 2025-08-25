@@ -58,7 +58,7 @@ public class ProjectController {
 
 	@PostMapping("/{projectId}/open")
 	public ResponseEntity<ApiResponse<CreateProjectResponse>> openProject(
-		@RequestParam Long projectId
+		@PathVariable Long projectId
 	) {
 		projectService.openProject(projectId);
 
