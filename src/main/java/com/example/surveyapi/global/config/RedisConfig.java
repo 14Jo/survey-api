@@ -46,7 +46,11 @@ public class RedisConfig {
 			RedisCacheConfiguration surveyDetailsConfig = RedisCacheConfiguration.defaultCacheConfig()
 				.entryTtl(Duration.ofHours(4));
 
-			builder.withCacheConfiguration("surveyDetails", surveyDetailsConfig);
+			RedisCacheConfiguration surveyInfoConfig = RedisCacheConfiguration.defaultCacheConfig()
+				.entryTtl(Duration.ofHours(4));
+
+			builder.withCacheConfiguration("surveyDetails", surveyDetailsConfig)
+				.withCacheConfiguration("surveyInfo", surveyInfoConfig);
 		};
 	}
 }

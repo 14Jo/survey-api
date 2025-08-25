@@ -77,17 +77,7 @@ public class ProjectRepositoryImpl implements ProjectRepository {
 	}
 
 	@Override
-	public void removeMemberFromProjects(Long userId) {
-		projectQuerydslRepository.removeMemberFromProjects(userId);
-	}
-
-	@Override
-	public void removeManagerFromProjects(Long userId) {
-		projectQuerydslRepository.removeManagerFromProjects(userId);
-	}
-
-	@Override
-	public void removeProjects(Long userId) {
-		projectQuerydslRepository.removeProjects(userId);
+	public List<Project> findAllWithParticipantsByUserId(Long userId) {
+		return projectQuerydslRepository.findAllWithParticipantsByUserId(userId);
 	}
 }
