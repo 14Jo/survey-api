@@ -5,10 +5,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
+import com.example.surveyapi.domain.project.domain.project.event.ProjectCreatedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectDeletedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectManagerAddedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectMemberAddedDomainEvent;
 import com.example.surveyapi.domain.project.domain.project.event.ProjectStateChangedDomainEvent;
+import com.example.surveyapi.global.event.project.ProjectCreatedEvent;
 import com.example.surveyapi.global.event.project.ProjectDeletedEvent;
 import com.example.surveyapi.global.event.project.ProjectManagerAddedEvent;
 import com.example.surveyapi.global.event.project.ProjectMemberAddedEvent;
@@ -25,6 +27,13 @@ public class ProjectEventListener {
 
 	private final ProjectEventPublisher projectEventPublisher;
 	private final ObjectMapper objectMapper;
+
+	@Async
+	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+	public void handleProjectCreated(ProjectCreatedDomainEvent internalEvent) {
+		ProjectCreatedEvent globalEvent = objectMapper.convertValue(internalEvent, ProjectCreatedEvent.class);
+		projectEventPublisher.convertAndSend(globalEvent);
+	}
 
 	@Async
 	@TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

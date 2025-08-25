@@ -17,7 +17,7 @@ public class AbstractRoot<A extends AbstractRoot<A>> extends BaseEntity {
 
 	private transient final @Transient List<Object> domainEvents = new ArrayList<>();
 
-	protected <T> void registerEvent(T event) {
+	public <T> void registerEvent(T event) {
 
 		Assert.notNull(event, "Domain event must not be null");
 
