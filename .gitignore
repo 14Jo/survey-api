@@ -72,6 +72,11 @@ application-*.properties
 !application.properties
 !application-test.yml
 
+# Firebase 자격 증명 파일들
+**/firebase-*.json
+firebase-service-account.json
+firebase-survey-account.json
+
 # 테스트 결과물
 **/test-results/
 **/coverage/
