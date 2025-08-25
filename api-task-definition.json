@@ -1,0 +1,80 @@
+{
+  "family": "api-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["EC2"],
+  "cpu": "1024",
+  "memory": "1536",
+  "executionRoleArn": "arn:aws:iam::025861172546:role/ecsTaskExecutionRole",
+  "containerDefinitions": [{
+    "name": "api-container",
+    "image": "025861172546.dkr.ecr.ap-northeast-2.amazonaws.com/survey-api/service:latest",
+    "memory": 1024,
+    "portMappings": [{
+      "containerPort": 8080,
+      "protocol": "tcp"
+    }],
+    "essential": true,
+    "secrets": [
+        { "name": "DB_USERNAME", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-db/credentials:username::" },
+        { "name": "DB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-db/credentials:password::" },
+        
+        { "name": "SECRET_KEY", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:SECRET_KEY::" },
+        { "name": "RABBITMQ_USERNAME", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:RABBITMQ_USERNAME::" },
+        { "name": "RABBITMQ_PASSWORD", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:RABBITMQ_PASSWORD::" },
+        { "name": "MONGODB_USERNAME", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:MONGODB_USERNAME::" },
+        { "name": "MONGODB_PASSWORD", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:MONGODB_PASSWORD::" },
+        { "name": "NAVER_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:NAVER_SECRET::" },
+        { "name": "GOOGLE_SECRET", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:GOOGLE_SECRET::" },
+        
+        { "name": "FIREBASE_PRIVATE_KEY_ID", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:FIREBASE_PRIVATE_KEY_ID::" },
+        { "name": "FIREBASE_PRIVATE_KEY", "valueFrom": "arn:aws:secretsmanager:ap-northeast-2:025861172546:secret:prod/survey-api/secrets:FIREBASE_PRIVATE_KEY::" }
+    ],
+    "environment": [
+      {"name": "SPRING_PROFILES_ACTIVE", "value": "prod"},
+      {"name": "SPRING_JPA_HIBERNATE_DDL_AUTO", "value": "none"},
+      {"name": "DB_HOST", "value": "survey-database.c5gckg46ikaa.ap-northeast-2.rds.amazonaws.com"},
+      {"name": "DB_PORT", "value": "5432"},
+      {"name": "DB_SCHEME", "value": "survey_db"},
+      {"name": "REDIS_HOST", "value": "cache.survey-cache.local"},
+      {"name": "REDIS_PORT", "value": "6379"},
+      {"name": "RABBITMQ_HOST", "value": "message.survey-message.local"},
+      {"name": "RABBITMQ_PORT", "value": "5672"},
+      {"name": "MONGODB_HOST", "value": "document.survey-document.local"},
+      {"name": "MONGODB_PORT", "value": "27017"},
+      {"name": "MONGODB_DATABASE", "value": "survey_read_db"},
+      {"name": "MONGODB_AUTHDB", "value": "admin"},
+      {"name": "ELASTIC_URIS", "value": "http://elastic.survey-elastic.local:9200"},
+      {"name": "ELASTICSEARCH_ENABLED", "value": "true"},
+      {"name": "SPRING_MAIL_ENABLED", "value": "false"},
+      {"name": "MANAGEMENT_HEALTH_MAIL_ENABLED", "value": "false"},
+      {"name": "MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED", "value": "false"},
+      
+      {"name": "FIREBASE_ENABLED", "value": "true"},
+      {"name": "FIREBASE_PROJECT_ID", "value": "survey-f5a93"},
+      {"name": "FIREBASE_CLIENT_EMAIL", "value": "firebase-adminsdk-fbsvc@survey-f5a93.iam.gserviceaccount.com"},
+      {"name": "FIREBASE_CLIENT_ID", "value": "100191250643521230154"},
+      
+      {"name": "KAKAO_CLIENT_ID", "value": "095680b1255e001a75547779c2466dc7"},
+      {"name": "KAKAO_REDIRECT_URL", "value": "https://api.surveylink.site/auth/kakao/login"},
+      {"name": "NAVER_CLIENT_ID", "value": "fXngEOOPoc9G6_PYaVwk"},
+      {"name": "NAVER_REDIRECT_URL", "value": "https://api.surveylink.site/auth/naver/login"},
+      {"name": "GOOGLE_CLIENT_ID", "value": "143003014057-q9baq71l6sohdveir85j124hbo17hhqu.apps.googleusercontent.com"},
+      {"name": "GOOGLE_REDIRECT_URL", "value": "https://api.surveylink.site/auth/google/login"}
+    ],
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "/ecs/api-task",
+        "awslogs-region": "ap-northeast-2",
+        "awslogs-stream-prefix": "ecs"
+      }
+    },
+    "healthCheck": {
+      "command": ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"],
+      "interval": 30,
+      "timeout": 5,
+      "retries": 3,
+      "startPeriod": 60
+    }
+  }]
+}
