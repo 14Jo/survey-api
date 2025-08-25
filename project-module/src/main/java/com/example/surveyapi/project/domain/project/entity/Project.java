@@ -181,9 +181,6 @@ public class Project extends AbstractRoot<Project> {
 
 		ProjectManager newProjectManager = ProjectManager.create(this, currentUserId);
 		this.projectManagers.add(newProjectManager);
-
-		registerEvent(
-			new ProjectManagerAddedDomainEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void updateManagerRole(Long currentUserId, Long managerId, ManagerRole newRole) {
@@ -255,9 +252,6 @@ public class Project extends AbstractRoot<Project> {
 		}
 
 		this.projectMembers.add(ProjectMember.create(this, currentUserId));
-
-		registerEvent(
-			new ProjectMemberAddedDomainEvent(currentUserId, this.period.getPeriodEnd(), this.ownerId, this.id));
 	}
 
 	public void removeMember(Long currentUserId) {

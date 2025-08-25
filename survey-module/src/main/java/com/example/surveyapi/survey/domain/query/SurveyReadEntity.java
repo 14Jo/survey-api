@@ -96,10 +96,17 @@ public class SurveyReadEntity {
 	public void updateParticipationCount(int participationCount) {
 		this.participationCount = participationCount;
 	}
+
+	public void update(Long surveyId, Long projectId, String title, String description,
+		SurveyStatus surveyStatus, ScheduleState scheduleState, boolean anonymous, boolean allowResponseUpdate,
+		LocalDateTime startDate, LocalDateTime endDate) {
+
+		this.surveyId = surveyId;
+		this.projectId = projectId;
+		this.title = title;
+		this.description = description;
+		this.status = surveyStatus.name();
+		this.scheduleState = scheduleState.name();
+		this.options = new SurveyOptions(anonymous, allowResponseUpdate, startDate, endDate);
+	}
 }
-
-
-
-
-
-

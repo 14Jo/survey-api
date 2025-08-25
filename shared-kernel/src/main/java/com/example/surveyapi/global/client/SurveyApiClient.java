@@ -13,13 +13,13 @@ import com.example.surveyapi.global.dto.ExternalApiResponse;
 @HttpExchange
 public interface SurveyApiClient {
 
-	@GetExchange("/api/v1/surveys/{surveyId}")
+	@GetExchange("/api/surveys/{surveyId}")
 	ExternalApiResponse getSurveyDetail(
 		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long surveyId
 	);
 
-	@GetExchange("/api/v2/survey/find-surveys")
+	@GetExchange("/api/surveys/find-surveys")
 	ExternalApiResponse getSurveyInfoList(
 		@RequestHeader("Authorization") String authHeader,
 		@RequestParam List<Long> surveyIds

@@ -64,7 +64,7 @@ public class Survey extends AbstractRoot<Survey> {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "schedule_state", nullable = false)
 	private ScheduleState scheduleState = ScheduleState.AUTO_SCHEDULED;
-	
+
 	@Enumerated
 	private SurveyOption option;
 	@Enumerated
@@ -108,6 +108,7 @@ public class Survey extends AbstractRoot<Survey> {
 	}
 
 	public void updateFields(Map<String, Object> fields) {
+		UpdatedEvent event = new UpdatedEvent(this, false);
 		fields.forEach((key, value) -> {
 			switch (key) {
 				case "title" -> this.title = (String)value;
@@ -115,7 +116,7 @@ public class Survey extends AbstractRoot<Survey> {
 				case "type" -> this.type = (SurveyType)value;
 				case "duration" -> {
 					this.duration = (SurveyDuration)value;
-					addEvent();
+					event.setDuration(true);
 				}
 				case "option" -> this.option = (SurveyOption)value;
 				case "questions" -> {
@@ -124,6 +125,8 @@ public class Survey extends AbstractRoot<Survey> {
 				}
 			}
 		});
+
+		registerEvent(event);
 	}
 
 	public void delete() {
@@ -162,7 +165,7 @@ public class Survey extends AbstractRoot<Survey> {
 		this.duration = newDuration;
 
 		LocalDateTime startAt = this.duration.getStartDate();
-		LocalDateTime endAt   = this.duration.getEndDate();
+		LocalDateTime endAt = this.duration.getEndDate();
 
 		if (startAt != null && startAt.isBefore(now) && this.status == SurveyStatus.PREPARING) {
 			openAt(startAt);
@@ -194,7 +197,7 @@ public class Survey extends AbstractRoot<Survey> {
 		changeToManualMode("폴백 처리로 인한 수동 모드 전환");
 	}
 
-		public void changeToManualMode(String reason) {
+	public void changeToManualMode(String reason) {
 		this.scheduleState = ScheduleState.MANUAL_CONTROL;
 		registerEvent(new ScheduleStateChangedEvent(this.surveyId, this.creatorId,
 			this.scheduleState, this.status, reason));

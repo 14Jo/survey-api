@@ -22,11 +22,4 @@ public interface ParticipationApiClient {
 	ExternalApiResponse getParticipationCounts(
 		@RequestParam List<Long> surveyIds
 	);
-
-	// TODO: 통계 도메인 코드 업데이트 후 삭제 (삭제된 api)
-	@GetExchange("/api/participations/answers")
-	ExternalApiResponse getParticipationAnswers(
-		@RequestHeader("Authorization") String authHeader,
-		@RequestParam List<Long> questionIds
-	);
 }

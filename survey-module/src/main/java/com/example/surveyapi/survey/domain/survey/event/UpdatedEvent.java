@@ -14,10 +14,13 @@ import lombok.Getter;
 @Getter
 public class UpdatedEvent {
 
-	Survey survey;
+	private Survey survey;
 
-	public UpdatedEvent(Survey survey) {
+	private Boolean isDuration;
+
+	public UpdatedEvent(Survey survey, Boolean isDuration) {
 		this.survey = survey;
+		this.isDuration = isDuration;
 	}
 
 	public Long getSurveyId() {
@@ -58,5 +61,9 @@ public class UpdatedEvent {
 
 	public List<Question> getQuestions() {
 		return survey.getQuestions();
+	}
+
+	public void setDuration(Boolean duration) {
+		isDuration = duration;
 	}
 }

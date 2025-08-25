@@ -17,7 +17,7 @@ public class ShareDomainService {
 	private static final String PROJECT_MANAGER_URL = "http://localhost:8080/share/projects/managers/";
 
 	public Share createShare(ShareSourceType sourceType, Long sourceId,
-		Long creatorId,	LocalDateTime expirationDate) {
+		Long creatorId, LocalDateTime expirationDate) {
 		String token = UUID.randomUUID().toString().replace("-", "");
 		String link = generateLink(sourceType, token);
 
@@ -28,11 +28,11 @@ public class ShareDomainService {
 
 	public String generateLink(ShareSourceType sourceType, String token) {
 
-		if(sourceType == ShareSourceType.SURVEY) {
+		if (sourceType == ShareSourceType.SURVEY) {
 			return SURVEY_URL + token;
-		} else if(sourceType == ShareSourceType.PROJECT_MEMBER) {
+		} else if (sourceType == ShareSourceType.PROJECT_MEMBER) {
 			return PROJECT_MEMBER_URL + token;
-		} else if(sourceType == ShareSourceType.PROJECT_MANAGER) {
+		} else if (sourceType == ShareSourceType.PROJECT_MANAGER) {
 			return PROJECT_MANAGER_URL + token;
 		}
 		throw new CustomException(CustomErrorCode.UNSUPPORTED_SHARE_METHOD);
@@ -41,10 +41,10 @@ public class ShareDomainService {
 	public String getRedirectUrl(Share share) {
 		if (share.getSourceType() == ShareSourceType.PROJECT_MEMBER) {
 			return "http://localhost:8080/api/projects/" + share.getSourceId() + "/members/join";
-		} else if(share.getSourceType() == ShareSourceType.PROJECT_MANAGER) {
+		} else if (share.getSourceType() == ShareSourceType.PROJECT_MANAGER) {
 			return "http://localhost:8080/api/projects/" + share.getSourceId() + "/managers";
 		} else if (share.getSourceType() == ShareSourceType.SURVEY) {
-			return "http://localhost:8080/api/v1/surveys/" + share.getSourceId();
+			return "http://localhost:8080/api/surveys/" + share.getSourceId();
 		}
 		throw new CustomException(CustomErrorCode.INVALID_SHARE_TYPE);
 	}

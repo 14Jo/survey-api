@@ -25,7 +25,7 @@ public class SurveyQueryController {
 
 	private final SurveyReadService surveyReadService;
 
-	@GetMapping("/v1/surveys/{surveyId}")
+	@GetMapping("/surveys/{surveyId}")
 	public ResponseEntity<ApiResponse<SearchSurveyDetailResponse>> getSurveyDetail(
 		@PathVariable Long surveyId
 	) {
@@ -34,17 +34,18 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyDetailById));
 	}
 
-	@GetMapping("/v1/projects/{projectId}/surveys")
+	@GetMapping("/projects/{projectId}/surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@PathVariable Long projectId,
 		@RequestParam(required = false) Long lastSurveyId
 	) {
-		List<SearchSurveyTitleResponse> surveyByProjectId = surveyReadService.findSurveyByProjectId(projectId, lastSurveyId);
+		List<SearchSurveyTitleResponse> surveyByProjectId = surveyReadService.findSurveyByProjectId(projectId,
+			lastSurveyId);
 
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveyByProjectId));
 	}
 
-	@GetMapping("/v2/survey/find-surveys")
+	@GetMapping("/surveys/find-surveys")
 	public ResponseEntity<ApiResponse<List<SearchSurveyTitleResponse>>> getSurveyList(
 		@RequestParam List<Long> surveyIds
 	) {
@@ -53,7 +54,7 @@ public class SurveyQueryController {
 		return ResponseEntity.status(HttpStatus.OK).body(ApiResponse.success("조회 성공", surveys));
 	}
 
-	@GetMapping("/v2/survey/find-status")
+	@GetMapping("/surveys/find-status")
 	public ResponseEntity<ApiResponse<SearchSurveyStatusResponse>> getSurveyStatus(
 		@RequestParam String surveyStatus
 	) {

@@ -27,8 +27,6 @@ public class ProjectEventPublisherImpl implements ProjectEventPublisher {
 		routingKeyMap = Map.of(
 			EventCode.PROJECT_STATE_CHANGED, RabbitConst.ROUTING_KEY_PROJECT_STATE_CHANGED,
 			EventCode.PROJECT_DELETED, RabbitConst.ROUTING_KEY_PROJECT_DELETED,
-			EventCode.PROJECT_ADD_MANAGER, RabbitConst.ROUTING_KEY_ADD_MANAGER,
-			EventCode.PROJECT_ADD_MEMBER, RabbitConst.ROUTING_KEY_ADD_MEMBER,
 			EventCode.PROJECT_CREATED, RabbitConst.ROUTING_KEY_PROJECT_CREATED
 		);
 	}
