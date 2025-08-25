@@ -19,12 +19,12 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api")
+@RequestMapping
 public class ShareController {
 	private final ShareService shareService;
 	private final NotificationService notificationService;
 
-	@PostMapping("/v2/share-tasks/{shareId}/notifications")
+	@PostMapping("/share-tasks/{shareId}/notifications")
 	public ResponseEntity<ApiResponse<Void>> createNotifications(
 		@RequestHeader("Authorization") String authHeader,
 		@PathVariable Long shareId,
@@ -41,7 +41,7 @@ public class ShareController {
 			.body(ApiResponse.success("알림 생성 성공", null));
 	}
 
-	@GetMapping("/v1/share-tasks/{shareId}")
+	@GetMapping("/share-tasks/{shareId}")
 	public ResponseEntity<ApiResponse<ShareResponse>> get(
 		@PathVariable Long shareId,
 		@AuthenticationPrincipal Long currentUserId
@@ -53,7 +53,7 @@ public class ShareController {
 			.body(ApiResponse.success("공유 작업 조회 성공", response));
 	}
 
-	@GetMapping("/v1/share-tasks/{shareId}/notifications")
+	@GetMapping("/share-tasks/{shareId}/notifications")
 	public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getAll(
 		@PathVariable Long shareId,
 		@AuthenticationPrincipal Long currentId,
@@ -64,7 +64,7 @@ public class ShareController {
 		return ResponseEntity.ok(ApiResponse.success("알림 이력 조회 성공", response));
 	}
 
-	@GetMapping("/v2/notifications")
+	@GetMapping("/notifications")
 	public ResponseEntity<ApiResponse<Page<NotificationResponse>>> getMyNotifications(
 		@AuthenticationPrincipal Long currentId,
 		Pageable pageable

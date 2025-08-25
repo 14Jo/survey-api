@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v2/share")
+@RequestMapping("/share")
 public class ShareExternalController {
 	private final ShareService shareService;
 
