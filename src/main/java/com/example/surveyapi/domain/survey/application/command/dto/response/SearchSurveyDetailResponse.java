@@ -3,15 +3,15 @@ package com.example.surveyapi.domain.survey.application.command.dto.response;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
 import com.example.surveyapi.domain.survey.domain.query.dto.SurveyDetail;
 import com.example.surveyapi.domain.survey.domain.question.enums.QuestionType;
+import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
 import com.example.surveyapi.domain.survey.domain.survey.vo.ChoiceInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.QuestionInfo;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyDuration;
 import com.example.surveyapi.domain.survey.domain.survey.vo.SurveyOption;
-import com.example.surveyapi.domain.survey.domain.query.SurveyReadEntity;
-import com.example.surveyapi.domain.survey.domain.question.vo.Choice;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -115,7 +115,7 @@ public class SearchSurveyDetailResponse {
 		private Long questionId;
 		private String content;
 		private QuestionType questionType;
-		private boolean isRequired;
+		private Boolean isRequired;
 		private int displayOrder;
 		private List<ChoiceResponse> choices;
 

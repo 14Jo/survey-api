@@ -28,7 +28,7 @@ import com.example.surveyapi.domain.share.domain.notification.repository.Notific
 import com.example.surveyapi.domain.share.domain.notification.repository.query.NotificationQueryRepository;
 import com.example.surveyapi.domain.share.domain.notification.vo.Status;
 import com.example.surveyapi.domain.share.domain.share.entity.Share;
-import com.example.surveyapi.domain.share.domain.share.vo.ShareMethod;
+import com.example.surveyapi.domain.share.domain.notification.vo.ShareMethod;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 
@@ -63,8 +63,7 @@ class NotificationServiceTest {
 		ReflectionTestUtils.setField(mockNotification, "failedReason", null);
 
 		Pageable pageable = PageRequest.of(page, size);
-		NotificationResponse mockNotificationResponse = NotificationResponse.from(mockNotification);
-		Page<NotificationResponse> mockPage = new PageImpl<>(List.of(mockNotificationResponse), pageable, 1);
+		Page<Notification> mockPage = new PageImpl<>(List.of(mockNotification), pageable, 1);
 
 		given(notificationQueryRepository.findPageByShareId(shareId, requesterId, pageable))
 			.willReturn(mockPage);

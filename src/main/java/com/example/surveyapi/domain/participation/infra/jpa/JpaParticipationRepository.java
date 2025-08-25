@@ -10,12 +10,9 @@ import org.springframework.data.repository.query.Param;
 import com.example.surveyapi.domain.participation.domain.participation.Participation;
 
 public interface JpaParticipationRepository extends JpaRepository<Participation, Long> {
-	@Query("SELECT p FROM Participation p JOIN FETCH p.responses WHERE p.surveyId IN :surveyIds AND p.isDeleted = :isDeleted")
-	List<Participation> findAllBySurveyIdInAndIsDeleted(@Param("surveyIds") List<Long> surveyIds,
-		@Param("isDeleted") Boolean isDeleted);
+	List<Participation> findAllBySurveyIdInAndIsDeleted(List<Long> surveyIds, Boolean isDeleted);
 
-	@Query("SELECT p FROM Participation p JOIN FETCH p.responses WHERE p.id = :id AND p.isDeleted = FALSE")
-	Optional<Participation> findWithResponseByIdAndIsDeletedFalse(@Param("id") Long id);
+	Optional<Participation> findByIdAndIsDeletedFalse(Long id);
 
 	boolean existsBySurveyIdAndUserIdAndIsDeletedFalse(Long surveyId, Long userId);
 }

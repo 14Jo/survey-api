@@ -3,7 +3,7 @@ package com.example.surveyapi.domain.user.domain.auth;
 import com.example.surveyapi.domain.user.domain.auth.enums.Provider;
 import com.example.surveyapi.domain.user.domain.user.User;
 import com.example.surveyapi.global.model.BaseEntity;
-import com.example.surveyapi.global.util.MaskingUtils;
+import com.example.surveyapi.domain.user.domain.util.MaskingUtils;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
