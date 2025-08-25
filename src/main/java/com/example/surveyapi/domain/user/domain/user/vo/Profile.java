@@ -1,6 +1,6 @@
 package com.example.surveyapi.domain.user.domain.user.vo;
 
-import com.example.surveyapi.global.util.MaskingUtils;
+import com.example.surveyapi.domain.user.domain.util.MaskingUtils;
 
 import jakarta.persistence.Embeddable;
 import lombok.AccessLevel;
@@ -40,7 +40,7 @@ public class Profile {
         }
     }
 
-    public void masking(){
+    public void masking() {
         this.name = MaskingUtils.maskName(name);
         this.phoneNumber = MaskingUtils.maskPhoneNumber(phoneNumber);
     }

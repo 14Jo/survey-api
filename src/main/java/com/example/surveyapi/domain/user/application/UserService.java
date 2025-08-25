@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.user.application.dto.request.UpdateUserRequest;
 import com.example.surveyapi.domain.user.application.dto.response.UpdateUserResponse;
+import com.example.surveyapi.domain.user.application.dto.response.UserByEmailResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserGradeResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserInfoResponse;
 import com.example.surveyapi.domain.user.application.dto.response.UserSnapShotResponse;
@@ -94,5 +95,12 @@ public class UserService {
 
         user.increasePoint();
         userRepository.save(user);
+    }
+
+    public UserByEmailResponse byEmail(String email){
+        Long userId = userRepository.findIdByAuthEmail(email)
+            .orElseThrow(() -> new CustomException(CustomErrorCode.USERID_NOT_FOUND));
+
+        return UserByEmailResponse.from(userId);
     }
 }
