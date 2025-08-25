@@ -1,5 +1,7 @@
 package com.example.surveyapi.domain.project.application;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,6 +120,32 @@ public class ProjectService {
 		Project project = findByIdOrElseThrow(projectId);
 		project.removeMember(currentUserId);
 		projectRepository.save(project);
+	}
+
+	@Transactional
+	public void handleUserWithdraw(Long userId) {
+		// 카테시안 곱 발생
+		List<Project> projects = projectRepository.findAllWithParticipantsByUserId(userId);
+
+		for (Project project : projects) {
+			boolean isManager = project.getProjectManagers().stream()
+				.anyMatch(m -> m.isSameUser(userId) && !m.getIsDeleted());
+			if (isManager) {
+				project.removeManager(userId);
+			}
+
+			boolean isMember = project.getProjectMembers().stream()
+				.anyMatch(m -> m.isSameUser(userId) && !m.getIsDeleted());
+			if (isMember) {
+				project.removeMember(userId);
+			}
+
+			if (project.getOwnerId().equals(userId)) {
+				project.softDelete(userId);
+			}
+		}
+
+		projectRepository.saveAll(projects);
 	}
 
 	private void validateDuplicateName(String name) {

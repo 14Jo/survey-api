@@ -35,9 +35,5 @@ public interface ProjectRepository {
 
 	void updateStateByIds(List<Long> projectIds, ProjectState newState);
 
-	void removeMemberFromProjects(Long userId);
-
-	void removeManagerFromProjects(Long userId);
-
-	void removeProjects(Long userId);
+	List<Project> findAllWithParticipantsByUserId(Long userId);
 }

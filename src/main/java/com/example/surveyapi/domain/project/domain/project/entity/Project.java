@@ -256,7 +256,7 @@ public class Project extends AbstractRoot<Project> {
 	// Member 조회 헬퍼 메소드
 	private ProjectMember findMemberByUserId(Long userId) {
 		return this.projectMembers.stream()
-			.filter(member -> member.isSameUser(userId))
+			.filter(member -> member.isSameUser(userId) && !member.getIsDeleted())
 			.findFirst()
 			.orElseThrow(() -> new CustomException(CustomErrorCode.NOT_FOUND_MEMBER));
 	}
