@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.PlatformTransactionManager;
 
 import com.example.surveyapi.domain.participation.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.participation.application.client.SurveyInfoDto;
@@ -62,6 +63,9 @@ class ParticipationServiceTest {
 
 	@Mock
 	private UserServicePort userServicePort;
+
+	@Mock
+	private PlatformTransactionManager transactionManager;
 
 	@Spy
 	private TaskExecutor taskExecutor = new SyncTaskExecutor();
