@@ -1,3 +1,5 @@
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.15.0
+FROM eclipse-temurin:17-jre-alpine
 
-RUN bin/elasticsearch-plugin install analysis-nori
+COPY build/libs/*.jar app.jar
+
+ENTRYPOINT ["java", "-jar", "/app.jar"]
