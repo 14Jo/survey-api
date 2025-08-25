@@ -1,8 +1,8 @@
-package com.example.surveyapi.domain.user.domain.user;
+package com.example.surveyapi.domain.user.application.client.port;
 
 import java.time.Duration;
 
-public interface UserRedisRepository {
+public interface UserRedisPort {
     Boolean delete (Long userId);
 
     String getRedisKey(String key);

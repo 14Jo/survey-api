@@ -1,4 +1,4 @@
-package com.example.surveyapi.global.util;
+package com.example.surveyapi.domain.user.domain.util;
 
 public class MaskingUtils {
 
@@ -25,7 +25,7 @@ public class MaskingUtils {
             prefix.length() < 3 ?
                 "*".repeat(prefix.length()) :
                 prefix.substring(0, 3) + "*".repeat(prefix.length() - 3);
-        return maskPrefix + "+" + userId  + domain;
+        return maskPrefix + "+" + userId + domain;
     }
 
     public static String maskPhoneNumber(String phoneNumber) {

@@ -8,10 +8,11 @@ import com.example.surveyapi.domain.user.domain.demographics.Demographics;
 import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.domain.user.domain.user.enums.Role;
-import com.example.surveyapi.domain.user.domain.user.event.UserAbstractRoot;
 import com.example.surveyapi.domain.user.domain.user.event.UserEvent;
 import com.example.surveyapi.domain.user.domain.demographics.vo.Address;
 import com.example.surveyapi.domain.user.domain.user.vo.Profile;
+import com.example.surveyapi.global.model.AbstractRoot;
+
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.CascadeType;
@@ -35,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Entity
 @Getter
 @Table(name = "users")
-public class User extends UserAbstractRoot<User> {
+public class User extends AbstractRoot<User> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -139,6 +140,8 @@ public class User extends UserAbstractRoot<User> {
         this.auth.masking();
         this.profile.masking();
         this.demographics.masking();
+
+        registerUserWithdrawEvent();
     }
 
     public void increasePoint() {
