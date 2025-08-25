@@ -17,7 +17,7 @@ public interface UserApiClient {
 		@PathVariable Long userId
 	);
 
-	@GetExchange
+	@GetExchange("/users/by-email")
 	ExternalApiResponse getUserByEmail(
 		@RequestHeader("Authorization") String authHeader,
 		@RequestParam("email") String email
