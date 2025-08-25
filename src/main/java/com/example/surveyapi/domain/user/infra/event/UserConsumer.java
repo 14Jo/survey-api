@@ -16,22 +16,22 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @RequiredArgsConstructor
 @RabbitListener(
-    queues = RabbitConst.QUEUE_NAME_USER
+	queues = RabbitConst.QUEUE_NAME_USER
 )
 public class UserConsumer {
 
-    private final UserEventListenerPort userEventListenerPort;
+	private final UserEventListenerPort userEventListenerPort;
 
-    @RabbitHandler
-    public void handleSurveyCompletion(SurveyActivateEvent event) {
-        if(!"CLOSED".equals(event.getSurveyStatus()) ){
-            return;
-        }
-        userEventListenerPort.surveyCompletion(event.getCreatorId());
-    }
+	@RabbitHandler
+	public void handleSurveyCompletion(SurveyActivateEvent event) {
+		if (!"CLOSED".equals(event.getSurveyStatus())) {
+			return;
+		}
+		userEventListenerPort.surveyCompletion(event.getCreatorId());
+	}
 
-    @RabbitHandler
-    public void handleParticipation(ParticipationCreatedGlobalEvent event) {
-        userEventListenerPort.participation(event.getUserId());
-    }
+	@RabbitHandler
+	public void handleParticipation(ParticipationCreatedGlobalEvent event) {
+		userEventListenerPort.participation(event.getUserId());
+	}
 }
