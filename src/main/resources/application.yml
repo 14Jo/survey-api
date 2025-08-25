@@ -45,8 +45,11 @@ spring:
   rabbitmq:
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
-    username: ${RABBITMQ_USERNAME:guest}
-    password: ${RABBITMQ_PASSWORD:guest}
+    username: ${RABBITMQ_USERNAME:user}
+    password: ${RABBITMQ_PASSWORD:password}
+
+  elasticsearch:
+    uris: ${ELASTIC_URIS:http://localhost:9200}
 
   data:
     mongodb:
@@ -96,10 +99,15 @@ management:
         http.server.requests: true
       percentiles:
         http.server.requests: 0.5,0.95,0.99
+  health:
+    elasticsearch:
+      enabled: false
 
 jwt:
   secret:
     key: ${SECRET_KEY}
+  statistic:
+    token: ${STATISTIC_TOKEN}
 
 oauth:
   kakao:
