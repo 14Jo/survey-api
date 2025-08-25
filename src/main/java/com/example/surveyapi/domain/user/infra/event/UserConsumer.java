@@ -27,7 +27,7 @@ public class UserConsumer {
         if(!"CLOSED".equals(event.getSurveyStatus()) ){
             return;
         }
-        userEventListenerPort.surveyCompletion(event.getCreatorID());
+        userEventListenerPort.surveyCompletion(event.getCreatorId());
     }
 
     @RabbitHandler

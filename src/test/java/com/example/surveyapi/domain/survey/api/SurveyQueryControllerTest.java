@@ -26,6 +26,7 @@ import com.example.surveyapi.domain.survey.application.dto.response.SearchSurvey
 import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyStatusResponse;
 import com.example.surveyapi.domain.survey.application.dto.response.SearchSurveyTitleResponse;
 import com.example.surveyapi.domain.survey.domain.survey.enums.SurveyStatus;
+import com.example.surveyapi.domain.survey.domain.survey.enums.ScheduleState;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.example.surveyapi.global.exception.GlobalExceptionHandler;
@@ -168,7 +169,7 @@ class SurveyQueryControllerTest {
         
         SurveyReadEntity entity = SurveyReadEntity.create(
             1L, 1L, "테스트 설문", "테스트 설문 설명", 
-            SurveyStatus.PREPARING, 5, options
+            SurveyStatus.PREPARING, ScheduleState.AUTO_SCHEDULED, 5, options
         );
         
         return SearchSurveyDetailResponse.from(entity, 5);
@@ -181,7 +182,7 @@ class SurveyQueryControllerTest {
         
         SurveyReadEntity entity = SurveyReadEntity.create(
             1L, 1L, "테스트 설문", "테스트 설문 설명", 
-            SurveyStatus.PREPARING, 5, options
+            SurveyStatus.PREPARING, ScheduleState.AUTO_SCHEDULED, 5, options
         );
         
         return SearchSurveyTitleResponse.from(entity);
