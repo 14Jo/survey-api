@@ -107,7 +107,7 @@ class ProjectControllerTest {
 			.thenReturn(CreateProjectResponse.of(1L, 50));
 
 		// when & then
-		mockMvc.perform(post("/api/v2/projects")
+		mockMvc.perform(post("/api/projects")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(createRequest))
 				.with(authentication(auth())))
@@ -124,7 +124,7 @@ class ProjectControllerTest {
 		ReflectionTestUtils.setField(createRequest, "name", "");
 
 		// when & then
-		mockMvc.perform(post("/api/v2/projects")
+		mockMvc.perform(post("/api/projects")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(createRequest))
 				.with(authentication(auth())))
@@ -144,7 +144,7 @@ class ProjectControllerTest {
 		when(projectQueryService.getProject(eq(1L))).thenReturn(ProjectInfoResponse.from(project));
 
 		// when & then
-		mockMvc.perform(get("/api/v2/projects/1"))
+		mockMvc.perform(get("/api/projects/1"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.data.projectId").value(1))
@@ -158,7 +158,7 @@ class ProjectControllerTest {
 		// stateRequest setUp에서 생성됨
 
 		// when & then
-		mockMvc.perform(patch("/api/v2/projects/1/state")
+		mockMvc.perform(patch("/api/projects/1/state")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(stateRequest)))
 			.andExpect(status().isOk())
@@ -172,7 +172,7 @@ class ProjectControllerTest {
 		// updateRequest setUp에서 생성됨
 
 		// when & then
-		mockMvc.perform(put("/api/v2/projects/1")
+		mockMvc.perform(put("/api/projects/1")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(updateRequest)))
 			.andExpect(status().isOk())
@@ -183,7 +183,7 @@ class ProjectControllerTest {
 	@DisplayName("프로젝트 매니저 참여 - 200 반환")
 	void joinProjectManager_ok() throws Exception {
 		// when & then
-		mockMvc.perform(post("/api/v2/projects/1/managers")
+		mockMvc.perform(post("/api/projects/1/managers")
 				.with(authentication(auth())))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true));
@@ -196,7 +196,7 @@ class ProjectControllerTest {
 		// roleRequest setUp에서 생성됨
 
 		// when & then
-		mockMvc.perform(patch("/api/v2/projects/1/managers/10/role")
+		mockMvc.perform(patch("/api/projects/1/managers/10/role")
 				.with(authentication(auth()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(roleRequest)))
@@ -218,19 +218,19 @@ class ProjectControllerTest {
 			.thenReturn(ProjectMemberIdsResponse.from(project));
 
 		// when & then
-		mockMvc.perform(post("/api/v2/projects/1/members").with(authentication(auth())))
+		mockMvc.perform(post("/api/projects/1/members").with(authentication(auth())))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true));
 
 		// when & then
-		mockMvc.perform(get("/api/v2/projects/1/members"))
+		mockMvc.perform(get("/api/projects/1/members"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.data.currentMemberCount").value(1))
 			.andExpect(jsonPath("$.data.maxMembers").value(50));
 
 		// when & then
-		mockMvc.perform(delete("/api/v2/projects/1/members").with(authentication(auth())))
+		mockMvc.perform(delete("/api/projects/1/members").with(authentication(auth())))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true));
 	}
@@ -243,7 +243,7 @@ class ProjectControllerTest {
 			.thenReturn(new SliceImpl<>(List.of(), PageRequest.of(0, 10), false));
 
 		// when & then
-		mockMvc.perform(get("/api/v2/projects/search").param("keyword", "테스트"))
+		mockMvc.perform(get("/api/projects/search").param("keyword", "테스트"))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true));
 	}
@@ -256,7 +256,7 @@ class ProjectControllerTest {
 			.thenThrow(new CustomException(CustomErrorCode.DUPLICATE_PROJECT_NAME));
 
 		// when & then
-		mockMvc.perform(post("/api/v2/projects")
+		mockMvc.perform(post("/api/projects")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(createRequest))
 				.with(authentication(auth())))
@@ -273,7 +273,7 @@ class ProjectControllerTest {
 			.thenThrow(new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
 
 		// when & then
-		mockMvc.perform(get("/api/v2/projects/999"))
+		mockMvc.perform(get("/api/projects/999"))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.NOT_FOUND_PROJECT.getMessage()));
@@ -287,7 +287,7 @@ class ProjectControllerTest {
 			.when(projectService).updateProject(eq(999L), any(UpdateProjectRequest.class));
 
 		// when & then
-		mockMvc.perform(put("/api/v2/projects/999")
+		mockMvc.perform(put("/api/projects/999")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(updateRequest)))
 			.andExpect(status().isNotFound())
@@ -303,7 +303,7 @@ class ProjectControllerTest {
 			.when(projectService).updateState(eq(1L), any(UpdateProjectStateRequest.class));
 
 		// when & then
-		mockMvc.perform(patch("/api/v2/projects/1/state")
+		mockMvc.perform(patch("/api/projects/1/state")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(stateRequest)))
 			.andExpect(status().isBadRequest())
@@ -319,7 +319,7 @@ class ProjectControllerTest {
 			.when(projectService).updateOwner(eq(1L), any(UpdateProjectOwnerRequest.class), anyLong());
 
 		// when & then
-		mockMvc.perform(patch("/api/v2/projects/1/owner")
+		mockMvc.perform(patch("/api/projects/1/owner")
 				.with(authentication(auth()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(ownerRequest)))
@@ -336,7 +336,7 @@ class ProjectControllerTest {
 			.when(projectService).deleteProject(eq(1L), anyLong());
 
 		// when & then
-		mockMvc.perform(delete("/api/v2/projects/1").with(authentication(auth())))
+		mockMvc.perform(delete("/api/projects/1").with(authentication(auth())))
 			.andExpect(status().isForbidden())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.ACCESS_DENIED.getMessage()));
@@ -350,7 +350,7 @@ class ProjectControllerTest {
 			.when(projectService).joinProjectManager(eq(1L), anyLong());
 
 		// when & then
-		mockMvc.perform(post("/api/v2/projects/1/managers").with(authentication(auth())))
+		mockMvc.perform(post("/api/projects/1/managers").with(authentication(auth())))
 			.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.ALREADY_REGISTERED_MANAGER.getMessage()));
@@ -364,7 +364,7 @@ class ProjectControllerTest {
 			.when(projectService).updateManagerRole(eq(1L), eq(10L), any(UpdateManagerRoleRequest.class), anyLong());
 
 		// when & then
-		mockMvc.perform(patch("/api/v2/projects/1/managers/10/role")
+		mockMvc.perform(patch("/api/projects/1/managers/10/role")
 				.with(authentication(auth()))
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(roleRequest)))
@@ -381,7 +381,7 @@ class ProjectControllerTest {
 			.when(projectService).deleteManager(eq(1L), eq(10L), anyLong());
 
 		// when & then
-		mockMvc.perform(delete("/api/v2/projects/1/managers/10").with(authentication(auth())))
+		mockMvc.perform(delete("/api/projects/1/managers/10").with(authentication(auth())))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.CANNOT_DELETE_SELF_OWNER.getMessage()));
@@ -395,7 +395,7 @@ class ProjectControllerTest {
 			.when(projectService).joinProjectMember(eq(1L), anyLong());
 
 		// when & then
-		mockMvc.perform(post("/api/v2/projects/1/members").with(authentication(auth())))
+		mockMvc.perform(post("/api/projects/1/members").with(authentication(auth())))
 			.andExpect(status().isConflict())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.PROJECT_MEMBER_LIMIT_EXCEEDED.getMessage()));
@@ -409,7 +409,7 @@ class ProjectControllerTest {
 			.thenThrow(new CustomException(CustomErrorCode.NOT_FOUND_PROJECT));
 
 		// when & then
-		mockMvc.perform(get("/api/v2/projects/999/members"))
+		mockMvc.perform(get("/api/projects/999/members"))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.NOT_FOUND_PROJECT.getMessage()));
@@ -423,7 +423,7 @@ class ProjectControllerTest {
 			.when(projectService).leaveProjectMember(eq(1L), anyLong());
 
 		// when & then
-		mockMvc.perform(delete("/api/v2/projects/1/members").with(authentication(auth())))
+		mockMvc.perform(delete("/api/projects/1/members").with(authentication(auth())))
 			.andExpect(status().isNotFound())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").value(CustomErrorCode.NOT_FOUND_MEMBER.getMessage()));
@@ -435,7 +435,7 @@ class ProjectControllerTest {
 		// given: request param keyword=aa (size < 3)
 
 		// when & then
-		mockMvc.perform(get("/api/v2/projects/search").param("keyword", "aa"))
+		mockMvc.perform(get("/api/projects/search").param("keyword", "aa"))
 			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.success").value(false))
 			.andExpect(jsonPath("$.message").exists())
@@ -446,7 +446,7 @@ class ProjectControllerTest {
 	@DisplayName("프로젝트 생성 - 잘못된 JSON 400")
 	void createProject_invalidJson_400() throws Exception {
 		// when & then
-		mockMvc.perform(post("/api/v2/projects")
+		mockMvc.perform(post("/api/projects")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content("{ invalid json }"))
 			.andExpect(status().isBadRequest())
@@ -457,7 +457,7 @@ class ProjectControllerTest {
 	@DisplayName("프로젝트 생성 - 지원하지 않는 Content-Type 415")
 	void createProject_unsupportedMediaType_415() throws Exception {
 		// when & then
-		mockMvc.perform(post("/api/v2/projects")
+		mockMvc.perform(post("/api/projects")
 				.contentType(MediaType.TEXT_PLAIN)
 				.content("plain text"))
 			.andExpect(status().isUnsupportedMediaType())
@@ -468,7 +468,7 @@ class ProjectControllerTest {
 	@DisplayName("PathVariable 타입 오류 - 500 처리")
 	void pathVariable_typeMismatch_500() throws Exception {
 		// when & then
-		mockMvc.perform(get("/api/v2/projects/invalid"))
+		mockMvc.perform(get("/api/projects/invalid"))
 			.andExpect(status().isInternalServerError())
 			.andExpect(jsonPath("$.success").value(false));
 	}
@@ -481,7 +481,7 @@ class ProjectControllerTest {
 				.csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
-					.requestMatchers("/api/v2/projects/**").permitAll()
+					.requestMatchers("/api/projects/**").permitAll()
 					.anyRequest().permitAll()
 				);
 			return http.build();

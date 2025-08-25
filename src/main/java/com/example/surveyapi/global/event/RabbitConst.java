@@ -24,6 +24,7 @@ public class RabbitConst {
 	public static final String ROUTING_KEY_PROJECT_DELETED = "project.deleted";
 	public static final String ROUTING_KEY_ADD_MANAGER = "project.manager";
 	public static final String ROUTING_KEY_ADD_MEMBER = "project.member";
+	public static final String ROUTING_KEY_PROJECT_CREATED = "project.created";
 
 	// DLQ 관련 상수
 	public static final String DEAD_LETTER_EXCHANGE = "domain.event.exchange.dlq";

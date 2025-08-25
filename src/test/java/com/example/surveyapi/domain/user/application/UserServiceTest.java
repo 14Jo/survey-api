@@ -21,7 +21,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,14 +43,10 @@ import com.example.surveyapi.domain.user.domain.user.enums.Gender;
 import com.example.surveyapi.domain.user.domain.user.enums.Grade;
 import com.example.surveyapi.global.auth.jwt.JwtUtil;
 import com.example.surveyapi.global.auth.jwt.PasswordEncoder;
-import com.example.surveyapi.global.client.ParticipationApiClient;
-import com.example.surveyapi.global.client.ProjectApiClient;
 import com.example.surveyapi.global.dto.ExternalApiResponse;
 import com.example.surveyapi.global.exception.CustomErrorCode;
 import com.example.surveyapi.global.exception.CustomException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import jakarta.persistence.EntityManager;
 
 @Testcontainers
 @SpringBootTest
@@ -90,15 +85,6 @@ public class UserServiceTest {
 
     @Autowired
     private JwtUtil jwtUtil;
-
-    @Autowired
-    private EntityManager em;
-
-    @MockitoBean
-    private ProjectApiClient projectApiClient;
-
-    @MockitoBean
-    private ParticipationApiClient participationApiClient;
 
     @Test
     @DisplayName("회원 가입 - 성공 (DB 저장 검증)")
@@ -140,7 +126,7 @@ public class UserServiceTest {
         ReflectionTestUtils.setField(request, "profile", profileRequest);
 
         // when & then
-        mockMvc.perform(post("/api/v1/auth/signup")
+        mockMvc.perform(post("/auth/signup")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
             .andExpect(status().isBadRequest())
