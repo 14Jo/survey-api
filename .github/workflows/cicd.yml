@@ -21,7 +21,7 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REPOSITORY: survey-api/service
   ECS_CLUSTER: survey-cluster
-  ECS_SERVICE: api-service
+  ECS_SERVICE: api-task-service-v12
   ECS_TASK_DEFINITION: api-task-definition.json
 
 jobs:
