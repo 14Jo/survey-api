@@ -39,6 +39,7 @@ public class StatisticEventConsumer {
 	public void consumeSurveyActivateEvent(SurveyActivateEvent event) {
 		try{
 			log.info("get surveyEvent : {}", event);
+			log.info("surveyActivateEvent received: {}", event.getSurveyStatus());
 			if (event.getSurveyStatus().equals("IN_PROGRESS")) {
 				statisticEventPort.handleSurveyActivateEvent(event.getSurveyId());
 				return;

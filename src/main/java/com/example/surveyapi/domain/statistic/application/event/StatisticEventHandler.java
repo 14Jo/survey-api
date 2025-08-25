@@ -5,12 +5,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.surveyapi.domain.statistic.application.StatisticService;
-import com.example.surveyapi.domain.statistic.application.client.dto.SurveyDetailDto;
 import com.example.surveyapi.domain.statistic.application.client.SurveyServicePort;
+import com.example.surveyapi.domain.statistic.application.client.SurveyDetailDto;
 import com.example.surveyapi.domain.statistic.domain.statistic.Statistic;
 import com.example.surveyapi.domain.statistic.domain.statisticdocument.StatisticDocument;
 import com.example.surveyapi.domain.statistic.domain.statisticdocument.StatisticDocumentFactory;
@@ -30,13 +31,27 @@ public class StatisticEventHandler implements StatisticEventPort {
 	private final StatisticDocumentFactory statisticDocumentFactory;
 	private final StatisticDocumentRepository statisticDocumentRepository;
 
+	@Value("${jwt.statistic.token}")
+	private String serviceToken;
+
+	@Override
+	public void handleSurveyActivateEvent(Long surveyId) {
+		statisticService.create(surveyId);
+		//TODO : 캐싱 여부 적용
+		SurveyDetailDto surveyDetail = surveyServicePort.getSurveyDetail(serviceToken, surveyId);
+
+		SurveyMetadata metadata = toSurveyMetadata(surveyDetail);
+		List<StatisticDocument> emptyDocuments = statisticDocumentFactory.initDocuments(surveyId, metadata);
+
+		if (!emptyDocuments.isEmpty()) {
+			statisticDocumentRepository.saveAll(emptyDocuments);
+		}
+	}
+
 	@Override
 	public void handleParticipationEvent(ParticipationResponses responses) {
 		Statistic statistic = statisticService.getStatistic(responses.surveyId());
 		statistic.verifyIfCounting();
-
-		//TODO : 고치기
-		String serviceToken = "Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwidXNlclJvbGUiOiJVU0VSIiwidHlwZSI6ImFjY2VzcyIsImV4cCI6MTc1NTUwNTc2NywiaWF0IjoxNzU1NDg0MTY3fQ.jPpL3Y_jup5GxrzyX92RA_KenRL2QSRms0k_qrggt9Y";
 
 		SurveyDetailDto surveyDetail = surveyServicePort.getSurveyDetail(serviceToken, responses.surveyId());
 		SurveyMetadata surveyMetadata = toSurveyMetadata(surveyDetail);
@@ -50,11 +65,7 @@ public class StatisticEventHandler implements StatisticEventPort {
 		if(!documents.isEmpty()) {
 			statisticDocumentRepository.saveAll(documents);
 		}
-	}
-
-	@Override
-	public void handleSurveyActivateEvent(Long surveyId) {
-		statisticService.create(surveyId);
+		statistic.increaseCount();
 	}
 
 	@Override

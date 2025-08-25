@@ -106,6 +106,8 @@ management:
 jwt:
   secret:
     key: ${SECRET_KEY}
+  statistic:
+    token: ${STATISTIC_TOKEN}
 
 oauth:
   kakao:
