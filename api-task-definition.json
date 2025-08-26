@@ -45,7 +45,7 @@
       {"name": "MONGODB_AUTHDB", "value": "admin"},
       
       {"name": "ELASTIC_URIS", "value": "http://10.0.129.126:9200"},
-      {"name": "ELASTICSEARCH_ENABLED", "value": "false"},
+      {"name": "ELASTICSEARCH_ENABLED", "value": "true"},
       {"name": "SPRING_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED", "value": "false"},
