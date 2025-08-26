@@ -49,8 +49,7 @@
       {"name": "SPRING_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_MAIL_ENABLED", "value": "false"},
       {"name": "MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED", "value": "false"},
-      {"name": "SPRING_AUTOCONFIGURE_EXCLUDE", "value": "org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration,org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration"},
-      
+
       {"name": "FIREBASE_ENABLED", "value": "true"},
       {"name": "FIREBASE_PROJECT_ID", "value": "survey-f5a93"},
       {"name": "FIREBASE_CLIENT_EMAIL", "value": "firebase-adminsdk-fbsvc@survey-f5a93.iam.gserviceaccount.com"},
